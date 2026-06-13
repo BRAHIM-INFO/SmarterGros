@@ -1,0 +1,1005 @@
+﻿@model SmarterGros.ViewModels.CategoryIndexViewModel
+@{
+    ViewData["Title"] = "الفئات";
+}
+
+<!-- Page Header -->
+<div class="sg-page-header">
+    <div class="sg-page-header-top">
+        <div>
+            <h1 class="sg-page-title-main">
+                <i class="fas fa-tags me-2"></i>الفئات
+            </h1>
+            <p class="sg-page-subtitle">
+                إدارة تصنيفات المنتجات — @Model.TotalCategories فئة، @Model.TotalProducts منتج
+            </p>
+        </div>
+        <button class="btn sg-btn-primary" onclick="openAddModal()">
+            <i class="fas fa-plus me-1"></i>+ فئة جديدة
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="cat-stats-row">
+        <div class="cat-stat-card green">
+            <div class="cat-stat-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div class="cat-stat-info">
+                <span class="cat-stat-num">@Model.TotalCategories</span>
+                <span class="cat-stat-label">إجمالي الفئات</span>
+            </div>
+        </div>
+        <div class="cat-stat-card blue">
+            <div class="cat-stat-icon">
+                <i class="fas fa-box"></i>
+            </div>
+            <div class="cat-stat-info">
+                <span class="cat-stat-num">@Model.TotalProducts</span>
+                <span class="cat-stat-label">إجمالي المنتجات</span>
+            </div>
+        </div>
+        <div class="cat-stat-card gold">
+            <div class="cat-stat-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="cat-stat-info">
+                <span class="cat-stat-num">
+                    @(Model.Categories.Any() ? Model.Categories.OrderByDescending(c => c.ProductCount).First().Name : "—")
+                </span>
+                <span class="cat-stat-label">أكبر فئة</span>
+            </div>
+        </div>
+        <div class="cat-stat-card orange">
+            <div class="cat-stat-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="cat-stat-info">
+                <span class="cat-stat-num">
+                    @(Model.TotalCategories > 0 ? (Model.TotalProducts / Model.TotalCategories) : 0)
+                </span>
+                <span class="cat-stat-label">متوسط المنتجات/فئة</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div class="sg-filters-bar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+        <div class="sg-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text"
+                   name="search"
+                   value="@ViewBag.Search"
+                   placeholder="بحث عن فئة..."
+                   class="sg-search-input" />
+        </div>
+        <button type="submit" class="btn sg-btn-search">
+            <i class="fas fa-search me-1"></i>بحث
+        </button>
+        @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+        {
+            <a href="@Url.Action("Index")" class="btn sg-btn-prev">
+                <i class="fas fa-times me-1"></i>إلغاء
+            </a>
+        }
+    </form>
+    <span class="text-muted small">
+        @Model.Categories.Count نتيجة
+    </span>
+</div>
+
+<!-- Categories Grid -->
+@if (!Model.Categories.Any())
+{
+    <div class="cat-empty">
+        <div class="cat-empty-icon">
+            <i class="fas fa-tags"></i>
+        </div>
+        <h3>لا توجد فئات</h3>
+        <p>ابدأ بإضافة فئة جديدة لتنظيم منتجاتك</p>
+        <button class="btn sg-btn-primary mt-3" onclick="openAddModal()">
+            <i class="fas fa-plus me-1"></i>إضافة أول فئة
+        </button>
+    </div>
+}
+else
+{
+    <div class="cat-grid">
+        @foreach (var cat in Model.Categories)
+        {
+            var colors = GetCategoryColor(cat.Id);
+            <div class="cat-card" data-id="@cat.Id">
+                <div class="cat-card-header" style="background: @colors.Item1;">
+                    <div class="cat-card-icon" style="background: @colors.Item2; color: @colors.Item3;">
+                        <i class="@GetCategoryIcon(cat.Name)"></i>
+                    </div>
+                    <div class="cat-card-badge">
+                        <span>@cat.ProductCount منتج</span>
+                    </div>
+                </div>
+                <div class="cat-card-body">
+                    <h3 class="cat-card-name">@cat.Name</h3>
+                    @if (!string.IsNullOrEmpty(cat.SubCategory))
+                    {
+                        <span class="cat-sub-badge">
+                            <i class="fas fa-layer-group me-1"></i>@cat.SubCategory
+                        </span>
+                    }
+                    @if (!string.IsNullOrEmpty(cat.Description))
+                    {
+                        <p class="cat-card-desc">@cat.Description</p>
+                    }
+
+                    <!-- Progress Bar -->
+                    <div class="cat-progress">
+                        <div class="cat-progress-label">
+                            <span>المنتجات</span>
+                            <span>@cat.ProductCount / @Model.TotalProducts</span>
+                        </div>
+                        <div class="cat-progress-bar">
+                            <div class="cat-progress-fill"
+                                 style="width: @(Model.TotalProducts > 0 ? (cat.ProductCount * 100 / Model.TotalProducts) : 0)%;
+                                                background: @colors.Item2;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cat-card-footer">
+                        <span class="cat-date">
+                            <i class="fas fa-calendar me-1"></i>
+                            @cat.CreatedAt.ToString("dd/MM/yyyy")
+                        </span>
+                        <div class="cat-actions">
+                            <button class="cat-btn-products"
+                                    onclick="showProducts(@cat.Id, '@cat.Name')"
+                                    title="عرض المنتجات">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="cat-btn-edit"
+                                    onclick="openEditModal(@cat.Id)"
+                                    title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="cat-btn-delete"
+                                    onclick="deleteCategory(@cat.Id, '@cat.Name', @cat.ProductCount)"
+                                    title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Add New Card -->
+        <div class="cat-card cat-add-card" onclick="openAddModal()">
+            <div class="cat-add-content">
+                <div class="cat-add-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <span>إضافة فئة جديدة</span>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ===== MODAL إضافة/تعديل فئة ===== -->
+<div class="sg-modal-overlay" id="categoryModal">
+    <div class="sg-modal sg-modal-sm">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title" id="modalTitle">
+                <i class="fas fa-tags me-2"></i>إضافة فئة جديدة
+            </h2>
+            <button class="sg-modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="sg-modal-body">
+            <input type="hidden" id="categoryId" value="0" />
+
+            <div class="sg-form-group">
+                <label>
+                    <i class="fas fa-tag me-1 text-success"></i>
+                    اسم الفئة *
+                </label>
+                <input type="text"
+                       id="categoryName"
+                       class="sg-form-input"
+                       placeholder="مثال: مواد غذائية"
+                       maxlength="200" />
+                <span class="text-danger small" id="nameError" style="display:none;"></span>
+            </div>
+
+            <div class="sg-form-group">
+                <label>
+                    <i class="fas fa-layer-group me-1 text-primary"></i>
+                    الفئة الفرعية
+                </label>
+                <input type="text"
+                       id="categorySubCategory"
+                       class="sg-form-input"
+                       placeholder="مثال: زيوت، منظفات سائلة..."
+                       maxlength="200" />
+            </div>
+
+            <div class="sg-form-group">
+                <label>
+                    <i class="fas fa-align-left me-1 text-warning"></i>
+                    الوصف
+                </label>
+                <textarea id="categoryDescription"
+                          class="sg-form-textarea"
+                          rows="3"
+                          placeholder="وصف مختصر للفئة..."></textarea>
+            </div>
+
+            <!-- Preview -->
+            <div class="cat-preview" id="categoryPreview">
+                <div class="cat-preview-icon" id="previewIcon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <div class="cat-preview-info">
+                    <span class="cat-preview-name" id="previewName">اسم الفئة</span>
+                    <span class="cat-preview-sub" id="previewSub">الفئة الفرعية</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-modal-footer">
+            <button class="sg-btn-cancel" onclick="closeModal()">
+                <i class="fas fa-times me-1"></i>إلغاء
+            </button>
+            <button class="sg-btn-next" id="saveBtn" onclick="saveCategory()">
+                <i class="fas fa-save me-1"></i>حفظ
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL عرض المنتجات ===== -->
+<div class="sg-modal-overlay" id="productsModal">
+    <div class="sg-modal" style="max-width: 750px;">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title" id="productsModalTitle">
+                <i class="fas fa-box me-2"></i>منتجات الفئة
+            </h2>
+            <button class="sg-modal-close" onclick="closeProductsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sg-modal-body" id="productsModalBody">
+            <div class="text-center py-4">
+                <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+            </div>
+        </div>
+        <div class="sg-modal-footer">
+            <span></span>
+            <button class="sg-btn-cancel" onclick="closeProductsModal()">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL تأكيد الحذف ===== -->
+<div class="sg-modal-overlay" id="deleteModal">
+    <div class="sg-modal sg-modal-sm">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title text-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>تأكيد الحذف
+            </h2>
+            <button class="sg-modal-close" onclick="closeDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sg-modal-body text-center">
+            <div class="delete-icon-wrapper">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h4 id="deleteMessage">هل تريد حذف هذه الفئة؟</h4>
+            <p class="text-muted small mt-2" id="deleteSubMessage"></p>
+        </div>
+        <div class="sg-modal-footer">
+            <button class="sg-btn-cancel" onclick="closeDeleteModal()">
+                <i class="fas fa-times me-1"></i>إلغاء
+            </button>
+            <button class="sg-btn-danger" id="confirmDeleteBtn">
+                <i class="fas fa-trash me-1"></i>حذف
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toastContainer" style="position:fixed; top:80px; left:20px; z-index:9999;"></div>
+
+@section Styles {
+    <style>
+        /* ===== STATS ROW ===== */
+        .cat-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .cat-stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--sg-shadow);
+            border: 1px solid rgba(14,77,58,0.06);
+            transition: transform 0.2s;
+        }
+
+        .cat-stat-card:hover { transform: translateY(-2px); }
+
+        .cat-stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .cat-stat-card.green .cat-stat-icon { background: #dcfce7; color: #16a34a; }
+        .cat-stat-card.blue  .cat-stat-icon { background: #dbeafe; color: #2563eb; }
+        .cat-stat-card.gold  .cat-stat-icon { background: #fef9c3; color: #ca8a04; }
+        .cat-stat-card.orange .cat-stat-icon { background: #ffedd5; color: #ea580c; }
+
+        .cat-stat-info { display: flex; flex-direction: column; min-width: 0; }
+
+        .cat-stat-num {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--sg-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cat-stat-label {
+            font-size: 11px;
+            color: var(--sg-text-light);
+            font-weight: 500;
+        }
+
+        /* ===== CATEGORIES GRID ===== */
+        .cat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        /* ===== CATEGORY CARD ===== */
+        .cat-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--sg-shadow);
+            border: 1px solid rgba(14,77,58,0.06);
+            transition: all 0.25s;
+        }
+
+        .cat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--sg-shadow-hover);
+        }
+
+        .cat-card-header {
+            padding: 22px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .cat-card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .cat-card-badge {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(5px);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .cat-card-body { padding: 15px 18px; }
+
+        .cat-card-name {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--sg-text);
+            margin: 0 0 8px;
+        }
+
+        .cat-sub-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #f0f9f4;
+            color: var(--sg-primary);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #c8e6d4;
+        }
+
+        .cat-card-desc {
+            font-size: 12px;
+            color: var(--sg-text-light);
+            margin: 6px 0 10px;
+            line-height: 1.5;
+        }
+
+        /* Progress */
+        .cat-progress { margin-bottom: 12px; }
+
+        .cat-progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--sg-text-light);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .cat-progress-bar {
+            height: 6px;
+            background: #f0f4f2;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .cat-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            min-width: 4px;
+        }
+
+        /* Card Footer */
+        .cat-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 10px;
+            border-top: 1px solid #f0f4f2;
+        }
+
+        .cat-date {
+            font-size: 11px;
+            color: var(--sg-text-light);
+            font-weight: 500;
+        }
+
+        .cat-actions { display: flex; gap: 5px; }
+
+        .cat-btn-products,
+        .cat-btn-edit,
+        .cat-btn-delete {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cat-btn-products { background: #e0f2fe; color: #0284c7; }
+        .cat-btn-edit     { background: #dbeafe; color: #1d4ed8; }
+        .cat-btn-delete   { background: #fee2e2; color: #b91c1c; }
+
+        .cat-btn-products:hover { background: #bae6fd; }
+        .cat-btn-edit:hover     { background: #bfdbfe; }
+        .cat-btn-delete:hover   { background: #fecaca; }
+
+        /* Add Card */
+        .cat-add-card {
+            border: 2px dashed var(--sg-border) !important;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            background: #fafcfb !important;
+            box-shadow: none !important;
+        }
+
+        .cat-add-card:hover {
+            border-color: var(--sg-primary) !important;
+            background: #f0f9f4 !important;
+            transform: translateY(-4px);
+        }
+
+        .cat-add-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: var(--sg-text-light);
+        }
+
+        .cat-add-card:hover .cat-add-content { color: var(--sg-primary); }
+
+        .cat-add-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #e8f5ef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            transition: all 0.2s;
+        }
+
+        .cat-add-card:hover .cat-add-icon {
+            background: var(--sg-primary);
+            color: white;
+        }
+
+        .cat-add-content span {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        /* Empty State */
+        .cat-empty {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--sg-shadow);
+        }
+
+        .cat-empty-icon {
+            width: 90px;
+            height: 90px;
+            background: #f0f9f4;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: #c8e6d4;
+            margin: 0 auto 20px;
+        }
+
+        .cat-empty h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--sg-text);
+            margin-bottom: 8px;
+        }
+
+        .cat-empty p {
+            font-size: 14px;
+            color: var(--sg-text-light);
+        }
+
+        /* Preview */
+        .cat-preview {
+            background: #f8fbf9;
+            border: 1.5px solid var(--sg-border);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .cat-preview-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--sg-primary), var(--sg-primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .cat-preview-name {
+            display: block;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--sg-text);
+        }
+
+        .cat-preview-sub {
+            display: block;
+            font-size: 11px;
+            color: var(--sg-text-light);
+            margin-top: 2px;
+        }
+
+        /* Delete Icon */
+        .delete-icon-wrapper {
+            width: 70px;
+            height: 70px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--sg-danger);
+            margin: 0 auto 15px;
+        }
+
+        /* Products Table in Modal */
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .products-table th {
+            padding: 10px 12px;
+            text-align: right;
+            font-weight: 700;
+            color: var(--sg-text-light);
+            font-size: 11px;
+            border-bottom: 2px solid var(--sg-border);
+            background: #f8fbf9;
+        }
+
+        .products-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f4f2;
+            vertical-align: middle;
+        }
+
+        .products-table tr:hover td { background: #f8fbf9; }
+
+        /* Toast */
+        .sg-toast {
+            padding: 12px 18px;
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            animation: slideInLeft 0.3s ease;
+            min-width: 250px;
+        }
+
+        .sg-toast.success { background: var(--sg-primary); }
+        .sg-toast.error   { background: var(--sg-danger); }
+        .sg-toast.warning { background: var(--sg-warning); }
+
+        @@keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
+
+        /* Responsive */
+        @@media (max-width: 900px) {
+            .cat-stats-row { grid-template-columns: repeat(2, 1fr); }
+            .cat-grid      { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @@media (max-width: 600px) {
+            .cat-stats-row { grid-template-columns: 1fr 1fr; }
+            .cat-grid      { grid-template-columns: 1fr; }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // ===== MODAL FUNCTIONS =====
+        function openAddModal() {
+            document.getElementById('categoryId').value = '0';
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus me-2"></i>إضافة فئة جديدة';
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categorySubCategory').value = '';
+            document.getElementById('categoryDescription').value = '';
+            document.getElementById('previewName').textContent = 'اسم الفئة';
+            document.getElementById('previewSub').textContent = 'الفئة الفرعية';
+            document.getElementById('nameError').style.display = 'none';
+            document.getElementById('categoryModal').classList.add('show');
+            setTimeout(() => document.getElementById('categoryName').focus(), 100);
+        }
+
+        async function openEditModal(id) {
+            const res = await fetch(`/Categories/Get/${id}`);
+            const data = await res.json();
+            if (!data.success) { showToast('خطأ في تحميل البيانات', 'error'); return; }
+
+            document.getElementById('categoryId').value = data.id;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit me-2"></i>تعديل الفئة';
+            document.getElementById('categoryName').value = data.name;
+            document.getElementById('categorySubCategory').value = data.subCategory || '';
+            document.getElementById('categoryDescription').value = data.description || '';
+            document.getElementById('previewName').textContent = data.name;
+            document.getElementById('previewSub').textContent = data.subCategory || 'لا يوجد';
+            document.getElementById('nameError').style.display = 'none';
+            document.getElementById('categoryModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('categoryModal').classList.remove('show');
+        }
+
+        // ===== SAVE CATEGORY =====
+        async function saveCategory() {
+            const id   = parseInt(document.getElementById('categoryId').value);
+            const name = document.getElementById('categoryName').value.trim();
+            const sub  = document.getElementById('categorySubCategory').value.trim();
+            const desc = document.getElementById('categoryDescription').value.trim();
+
+            // Validation
+            if (!name) {
+                document.getElementById('nameError').textContent = 'اسم الفئة مطلوب';
+                document.getElementById('nameError').style.display = 'block';
+                document.getElementById('categoryName').focus();
+                return;
+            }
+
+            document.getElementById('nameError').style.display = 'none';
+
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري الحفظ...';
+
+            try {
+                const url  = id === 0 ? '/Categories/Create' : '/Categories/Edit';
+                const data = { id, name, subCategory: sub, description: desc };
+
+                const res    = await fetch(url, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast(result.message || 'تم الحفظ بنجاح', 'success');
+                    closeModal();
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(result.message || 'حدث خطأ', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save me-1"></i>حفظ';
+            }
+        }
+
+        // ===== DELETE =====
+        function deleteCategory(id, name, count) {
+            document.getElementById('deleteMessage').textContent = `هل تريد حذف فئة "${name}"؟`;
+
+            if (count > 0) {
+                document.getElementById('deleteSubMessage').textContent =
+                    `⚠️ هذه الفئة تحتوي على ${count} منتج، لا يمكن حذفها`;
+                document.getElementById('confirmDeleteBtn').disabled = true;
+                document.getElementById('confirmDeleteBtn').style.opacity = '0.5';
+            } else {
+                document.getElementById('deleteSubMessage').textContent =
+                    'سيتم حذف الفئة نهائياً ولا يمكن التراجع عن هذا الإجراء';
+                document.getElementById('confirmDeleteBtn').disabled = false;
+                document.getElementById('confirmDeleteBtn').style.opacity = '1';
+            }
+
+            document.getElementById('confirmDeleteBtn').onclick = () => confirmDelete(id);
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        async function confirmDelete(id) {
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري الحذف...';
+
+            try {
+                const res    = await fetch(`/Categories/Delete/${id}`, { method: 'POST' });
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeDeleteModal();
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(result.message, 'error');
+                    closeDeleteModal();
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        // ===== SHOW PRODUCTS =====
+        async function showProducts(id, name) {
+            document.getElementById('productsModalTitle').innerHTML =
+                `<i class="fas fa-box me-2"></i>منتجات فئة: ${name}`;
+            document.getElementById('productsModalBody').innerHTML =
+                '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x text-muted"></i></div>';
+            document.getElementById('productsModal').classList.add('show');
+
+            try {
+                const res    = await fetch(`/Categories/GetProducts/${id}`);
+                const result = await res.json();
+
+                if (!result.success || result.products.length === 0) {
+                    document.getElementById('productsModalBody').innerHTML = `
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted fw-bold">لا توجد منتجات في هذه الفئة</p>
+                        </div>`;
+                    return;
+                }
+
+                let rows = result.products.map(p => `
+                    <tr>
+                        <td><span class="sg-ref">${p.reference}</span></td>
+                        <td><strong>${p.name}</strong></td>
+                        <td>
+                            <span class="${p.stockQuantity === 0 ? 'sg-status-badge danger' :
+                                           p.stockQuantity <= 5 ? 'sg-status-badge warning' :
+                                           'sg-status-badge success'}">
+                                ${p.stockQuantity}
+                            </span>
+                        </td>
+                        <td><strong>${p.retailPriceTTC.toFixed(2)} دج</strong></td>
+                        <td>
+                            <a href="/Products/Index" class="cat-btn-edit" style="text-decoration:none; display:inline-flex;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>`).join('');
+
+                document.getElementById('productsModalBody').innerHTML = `
+                    <div class="mb-3">
+                        <span class="sg-badge-cat">
+                            <i class="fas fa-box me-1"></i>${result.products.length} منتج
+                        </span>
+                    </div>
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>المرجع</th>
+                                <th>اسم المنتج</th>
+                                <th>الكمية</th>
+                                <th>سعر التجزئة</th>
+                                <th>عرض</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>`;
+            } catch (e) {
+                document.getElementById('productsModalBody').innerHTML =
+                    '<div class="text-center py-4 text-danger">خطأ في تحميل البيانات</div>';
+            }
+        }
+
+        function closeProductsModal() {
+            document.getElementById('productsModal').classList.remove('show');
+        }
+
+        // ===== PREVIEW UPDATE =====
+        document.getElementById('categoryName').addEventListener('input', function () {
+            document.getElementById('previewName').textContent = this.value || 'اسم الفئة';
+            document.getElementById('nameError').style.display = 'none';
+        });
+
+        document.getElementById('categorySubCategory').addEventListener('input', function () {
+            document.getElementById('previewSub').textContent = this.value || 'الفئة الفرعية';
+        });
+
+        // ===== ENTER KEY =====
+        document.getElementById('categoryName').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') saveCategory();
+        });
+
+        // ===== CLOSE ON OVERLAY CLICK =====
+        document.getElementById('categoryModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+        document.getElementById('deleteModal').addEventListener('click', function (e) {
+            if (e.target === this) closeDeleteModal();
+        });
+        document.getElementById('productsModal').addEventListener('click', function (e) {
+            if (e.target === this) closeProductsModal();
+        });
+
+        // ===== TOAST =====
+        function showToast(message, type = 'success') {
+            const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
+            const toast = document.createElement('div');
+            toast.className = `sg-toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icons[type]}"></i> ${message}`;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.4s';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // ===== ANIMATE PROGRESS BARS =====
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.cat-progress-fill').forEach(bar => {
+                const w = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => bar.style.width = w, 100);
+            });
+        });
+    </script>
+}
+
+@functions {
+    (string, string, string) GetCategoryColor(int id)
+    {
+        var colors = new[]
+        {
+            ("#e8f5e9", "#4CAF50", "white"),
+            ("#e3f2fd", "#2196F3", "white"),
+            ("#fff8e1", "#FFC107", "white"),
+            ("#fce4ec", "#E91E63", "white"),
+            ("#f3e5f5", "#9C27B0", "white"),
+            ("#e0f7fa", "#00BCD4", "white"),
+            ("#fff3e0", "#FF9800", "white"),
+            ("#e8eaf6", "#3F51B5", "white"),
+        };
+        return colors[id % colors.Length];
+    }
+
+    string GetCategoryIcon(string name)
+    {
+        if (name.Contains("غذا") || name.Contains("أكل") || name.Contains("طعام"))
+            return "fas fa-utensils";
+        if (name.Contains("منظف") || name.Contains("تنظيف"))
+            return "fas fa-soap";
+        if (name.Contains("مشروب") || name.Contains("عصير"))
+            return "fas fa-glass-water";
+        if (name.Contains("أدوات") || name.Contains("معدات"))
+            return "fas fa-tools";
+        if (name.Contains("بناء") || name.Contains("مواد"))
+            return "fas fa-hard-hat";
+        if (name.Contains("إلكترون") || name.Contains("تقنية"))
+            return "fas fa-microchip";
+        if (name.Contains("ملابس") || name.Contains("نسيج"))
+            return "fas fa-tshirt";
+        if (name.Contains("صحة") || name.Contains("دواء"))
+            return "fas fa-pills";
+        return "fas fa-tag";
+    }
+}

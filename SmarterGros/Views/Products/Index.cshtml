@@ -1,0 +1,677 @@
+﻿@model List<SmarterGros.Models.Product>
+@{
+    ViewData["Title"] = "المنتجات";
+    var categories = ViewBag.Categories as List<SmarterGros.Models.Category> ?? new();
+    var viewMode = ViewBag.ViewMode as string ?? "grid";
+}
+
+<div class="sg-page-header">
+    <div class="sg-page-header-top">
+        <div>
+            <h1 class="sg-page-title-main">
+                <i class="fas fa-box me-2"></i>المنتجات
+            </h1>
+            <p class="sg-page-subtitle">@Model.Count منتج — عرض وإدارة المخزون</p>
+        </div>
+        <div class="sg-page-actions">
+            <button class="btn sg-btn-export" onclick="exportProducts()">
+                <i class="fas fa-file-export me-2"></i>تصدير
+            </button>
+            <button class="btn sg-btn-primary" onclick="openProductModal()">
+                <i class="fas fa-plus me-1"></i>+ منتج جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="sg-product-stats">
+        <div class="sg-pstat blue">
+            <span class="sg-pstat-num">@Model.Sum(p => p.StockQuantity).ToString("N0")</span>
+            <span class="sg-pstat-label">● مخزون</span>
+            <span class="sg-pstat-sub">@Model.Count مرجع</span>
+        </div>
+        <div class="sg-pstat red">
+            <span class="sg-pstat-num">@ViewBag.TotalCost.ToString("N3") دج</span>
+            <span class="sg-pstat-label">● الاستثمار</span>
+            <span class="sg-pstat-sub">تكلفة الشراء المتراكمة</span>
+        </div>
+        <div class="sg-pstat purple">
+            <span class="sg-pstat-num">@ViewBag.TotalRetailValue.ToString("N3") دج</span>
+            <span class="sg-pstat-label">● بيع التجزئة</span>
+            <span class="sg-pstat-sub">رقم الأعمال المتخيل</span>
+        </div>
+        <div class="sg-pstat teal">
+            <span class="sg-pstat-num">@ViewBag.TotalWholesaleValue.ToString("N3") دج</span>
+            <span class="sg-pstat-label">● بيع الجملة</span>
+            <span class="sg-pstat-sub">B2B جير</span>
+        </div>
+        <div class="sg-pstat gold">
+            <span class="sg-pstat-num">@ViewBag.TotalProfit.ToString("N3") دج</span>
+            <span class="sg-pstat-label">● صافي الربح</span>
+            <span class="sg-pstat-sub">هامش 20%</span>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<!-- Filters Bar -->
+<div class="sg-filters-bar">
+    <div class="sg-filters-right">
+        <form method="get" class="d-flex gap-2 align-items-center">
+            <div class="sg-search-box">
+                <i class="fas fa-search"></i>
+                <input type="text"
+                       name="search"
+                       value="@ViewBag.Search"
+                       placeholder="بحث بالاسم، المرجع، الرمز الشريطي..."
+                       class="sg-search-input" />
+            </div>
+
+            <select name="categoryId" class="sg-select">
+                <option value="">كل الفئات</option>
+                @foreach (var cat in categories)
+                {
+                    if (ViewBag.CategoryId != null &&
+                    ViewBag.CategoryId.ToString() == cat.Id.ToString())
+                    {
+                        <option value="@cat.Id" selected="selected">@cat.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@cat.Id">@cat.Name</option>
+                    }
+                }
+            </select>
+
+            <select name="view" class="sg-select">
+                @if (viewMode == "list")
+                {
+                    <option value="grid">شبكة</option>
+                    <option value="list" selected="selected">قائمة</option>
+                }
+                else
+                {
+                    <option value="grid" selected="selected">شبكة</option>
+                    <option value="list">قائمة</option>
+                }
+            </select>
+
+            <button type="submit" class="btn sg-btn-search">بحث</button>
+        </form>
+    </div>
+
+    <div class="sg-filters-left">
+        <button class="sg-view-btn @(viewMode == "list" ? "active" : "")"
+                onclick="setView('list')">
+            <i class="fas fa-list"></i>
+        </button>
+        <button class="sg-view-btn @(viewMode == "grid" ? "active" : "")"
+                onclick="setView('grid')">
+            <i class="fas fa-th"></i>
+        </button>
+        <button class="btn sg-btn-labels">
+            <i class="fas fa-print me-1"></i>طباعة التسميات
+        </button>
+        <button class="btn sg-btn-export2" onclick="exportProducts()">
+            <i class="fas fa-file-export me-1"></i>تصدير
+        </button>
+    </div>
+</div>
+
+<!-- Products Grid -->
+@if (viewMode == "grid")
+{
+    <div class="sg-products-grid">
+        @foreach (var product in Model)
+        {
+            var stockClass = product.StockQuantity == 0 ? "out" : product.StockQuantity <= product.MinStockAlert ? "low" : "ok";
+            var stockText = product.StockQuantity == 0 ? "نفد" : product.StockQuantity <= product.MinStockAlert ? "منخفض" : "متوفر";
+            <div class="sg-product-card">
+                <div class="sg-product-card-header" style="background: @GetProductColor(product.CategoryId);">
+                    <div class="sg-product-ref-badge">@product.Reference</div>
+                    @if (!string.IsNullOrEmpty(product.ImagePath))
+                    {
+                        <img src="@product.ImagePath" alt="@product.Name" class="sg-product-img" />
+                    }
+                    else
+                    {
+                        <div class="sg-product-icon">
+                            <i class="@GetProductIcon(product.CategoryId)"></i>
+                        </div>
+                    }
+                </div>
+                <div class="sg-product-card-body">
+                    <div class="sg-product-stock-row">
+                        <span class="sg-stock-badge @stockClass">@product.StockQuantity علبة — @stockText</span>
+                    </div>
+                    <h4 class="sg-product-name">@product.Name</h4>
+                    <div class="sg-product-prices">
+                        <div class="sg-price-row">
+                            <span class="sg-price-label">شراء</span>
+                            <span class="sg-price-val">@product.PurchasePriceTTC.ToString("N0") دج</span>
+                        </div>
+                        <div class="sg-price-row">
+                            <span class="sg-price-label">تجزئة</span>
+                            <span class="sg-price-val">@product.RetailPriceTTC.ToString("N0") دج</span>
+                        </div>
+                        <div class="sg-price-row">
+                            <span class="sg-price-label">وحدة</span>
+                            <span class="sg-price-val">@product.Unit</span>
+                        </div>
+                        <div class="sg-price-row">
+                            <span class="sg-price-label">هامش</span>
+                            <span class="sg-price-val">@product.RetailMargin%+</span>
+                        </div>
+                    </div>
+                    <div class="sg-product-actions">
+                        <button class="sg-btn-edit" onclick="editProduct(@product.Id)">
+                            <i class="fas fa-edit me-1"></i>تعديل
+                        </button>
+                        <button class="sg-btn-delete" onclick="deleteProduct(@product.Id, '@product.Name')">
+                            <i class="fas fa-trash me-1"></i>حذف
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="sg-card">
+        <table class="sg-table sg-table-hover">
+            <thead>
+                <tr>
+                    <th>المرجع</th>
+                    <th>المنتج</th>
+                    <th>الفئة</th>
+                    <th>الكمية</th>
+                    <th>سعر الشراء</th>
+                    <th>سعر التجزئة</th>
+                    <th>الحالة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in Model)
+                {
+                    <tr>
+                        <td><span class="sg-ref">@product.Reference</span></td>
+                        <td><strong>@product.Name</strong></td>
+                        <td>@product.Category?.Name</td>
+                        <td><span class="@(product.StockQuantity <= product.MinStockAlert ? "text-danger fw-bold" : "")">@product.StockQuantity</span></td>
+                        <td>@product.PurchasePriceTTC.ToString("N2") دج</td>
+                        <td>@product.RetailPriceTTC.ToString("N2") دج</td>
+                        <td>
+                            @if (product.StockQuantity == 0)
+                            {
+                                <span class="sg-status-badge danger">نفد</span>
+                            }
+                            else if (product.StockQuantity <= product.MinStockAlert)
+                            {
+                                <span class="sg-status-badge warning">منخفض</span>
+                            }
+                            else
+                            {
+                                <span class="sg-status-badge success">متوفر</span>
+                            }
+                        </td>
+                        <td>
+                            <button class="sg-btn-sm-edit" onclick="editProduct(@product.Id)"><i class="fas fa-edit"></i></button>
+                            <button class="sg-btn-sm-delete" onclick="deleteProduct(@product.Id, '@product.Name')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- Product Modal -->
+<div class="sg-modal-overlay" id="productModal">
+    <div class="sg-modal">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title">إضافة منتج جديد</h2>
+            <button class="sg-modal-close" onclick="closeProductModal()">✕</button>
+        </div>
+
+        <!-- Steps -->
+        <div class="sg-steps">
+            <div class="sg-step active" id="step1Btn">
+                <div class="sg-step-circle">1</div>
+                <span>المعلومات</span>
+            </div>
+            <div class="sg-step-line"></div>
+            <div class="sg-step" id="step2Btn">
+                <div class="sg-step-circle">2</div>
+                <span>الأسعار</span>
+            </div>
+            <div class="sg-step-line"></div>
+            <div class="sg-step" id="step3Btn">
+                <div class="sg-step-circle">3</div>
+                <span>المخزون</span>
+            </div>
+        </div>
+
+        <form id="productForm" asp-action="Create" asp-controller="Products" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <!-- Step 1: Info -->
+            <div class="sg-step-content" id="stepContent1">
+                <p class="sg-step-desc">المعلومات الأساسية</p>
+                <div class="sg-form-row">
+                    <div class="sg-form-group">
+                        <label><i class="fas fa-tag me-1"></i>اسم المنتج *</label>
+                        <input type="text" name="Name" class="sg-form-input" placeholder="مثال: سكر أبيض 1kg" required />
+                    </div>
+                    <div class="sg-form-group">
+                        <label><i class="fas fa-list me-1"></i>الفئة</label>
+                        <select name="CategoryId" class="sg-form-select">
+                            <option value="">-- اختار الفئة --</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="sg-form-row">
+                    <div class="sg-form-group">
+                        <label><i class="fas fa-hashtag me-1"></i>المرجع</label>
+                        <div class="sg-input-with-btn">
+                            <input type="text" name="Reference" id="referenceInput" class="sg-form-input" value="@ViewBag.NextReference" />
+                            <button type="button" class="sg-btn-generate" onclick="generateReference()">توليد</button>
+                        </div>
+                    </div>
+                    <div class="sg-form-group">
+                        <label><i class="fas fa-tag me-1"></i>الفئة الفرعية</label>
+                        <input type="text" name="Location" class="sg-form-input" placeholder="مثال: زيوت، منظفات سائلة..." />
+                    </div>
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-barcode me-1"></i>الرمز الشريطي</label>
+                    <div class="sg-barcode-input">
+                        <select class="sg-form-select-sm">
+                            <option>EAN-13</option>
+                            <option>EAN-8</option>
+                            <option>CODE-128</option>
+                        </select>
+                        <input type="text" name="Barcode" class="sg-form-input" placeholder="أدخل الرمز الشريطي..." />
+                        <button type="button" class="sg-btn-icon"><i class="fas fa-qrcode"></i></button>
+                        <button type="button" class="sg-btn-add-barcode">إضافة</button>
+                    </div>
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-image me-1"></i>صورة المنتج</label>
+                    <div class="sg-image-upload-row">
+                        <div class="sg-image-option ai" onclick="document.getElementById('imageFile').click()">
+                            <i class="fas fa-magic"></i>
+                            <span>توليد تلقائي (AI)</span>
+                            <small>إنشاء صورة بالذكاء الاصطناعي</small>
+                        </div>
+                        <div class="sg-image-option" onclick="document.getElementById('imageFile').click()">
+                            <i class="fas fa-upload"></i>
+                            <span>اختيار صورة</span>
+                            <small>5MB حتى PNG, JPG</small>
+                        </div>
+                        <input type="file" id="imageFile" name="imageFile" accept="image/*" style="display:none" onchange="previewImage(this)" />
+                    </div>
+                    <div id="imagePreview" style="display:none; margin-top:10px;">
+                        <img id="previewImg" style="max-height:80px; border-radius:8px;" />
+                    </div>
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-list-ul me-1"></i>المواصفات التقنية</label>
+                    <button type="button" class="sg-btn-add-spec">+ إضافة مواصفة</button>
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-truck me-1"></i>الموردون</label>
+                    <button type="button" class="sg-btn-add-supplier">+ إضافة مورد</button>
+                </div>
+                <div class="sg-form-group">
+                    <label>الوصف</label>
+                    <textarea name="Description" class="sg-form-textarea" rows="2" placeholder="وصف المنتج..."></textarea>
+                </div>
+            </div>
+
+            <!-- Step 2: Prices -->
+            <div class="sg-step-content" id="stepContent2" style="display:none;">
+                <p class="sg-step-desc">الأسعار والتعريفات</p>
+
+                <div class="sg-price-section blue-bg">
+                    <h4 class="sg-price-section-title text-primary">$ الشراء والضرائب</h4>
+                    <div class="sg-form-row-3">
+                        <div class="sg-form-group">
+                            <label>نسبة TVA</label>
+                            <select name="TaxRate" class="sg-form-select" id="taxRate" onchange="calcPrices()">
+                                <option value="0">0%</option>
+                                <option value="9">9%</option>
+                                <option value="19">19%</option>
+                            </select>
+                        </div>
+                        <div class="sg-form-group">
+                            <label>سعر الشراء HT *</label>
+                            <div class="sg-price-input">
+                                <input type="number" name="PurchasePriceHT" id="purchaseHT" step="0.01" class="sg-form-input" value="0.00" onchange="calcPrices()" />
+                                <span class="sg-currency">دج</span>
+                            </div>
+                        </div>
+                        <div class="sg-form-group">
+                            <label>سعر الشراء TTC</label>
+                            <div class="sg-price-input">
+                                <input type="number" name="PurchasePriceTTC" id="purchaseTTC" step="0.01" class="sg-form-input" value="0.00" readonly />
+                                <span class="sg-currency">دج</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="sg-btn-calc" onclick="calcPrices()">
+                        <i class="fas fa-calculator me-1"></i>حاسبة الكولياساج
+                    </button>
+                </div>
+
+                <div class="sg-price-row-grid">
+                    <div class="sg-price-section green-bg">
+                        <h4 class="sg-price-section-title text-success">🏪 بيع التجزئة</h4>
+                        <div class="sg-form-row-3">
+                            <div class="sg-form-group">
+                                <label>% الهامش</label>
+                                <input type="number" name="RetailMargin" id="retailMargin" step="0.01" class="sg-form-input" value="20" onchange="calcPrices()" />
+                            </div>
+                            <div class="sg-form-group">
+                                <label>سعر HT دج</label>
+                                <input type="number" name="RetailPriceHT" id="retailHT" step="0.01" class="sg-form-input" value="0.00" readonly />
+                            </div>
+                            <div class="sg-form-group">
+                                <label>سعر TTC دج</label>
+                                <input type="number" name="RetailPriceTTC" id="retailTTC" step="0.01" class="sg-form-input" value="0.00" readonly />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sg-price-section yellow-bg">
+                        <h4 class="sg-price-section-title text-warning">🚛 بيع نصف الجملة</h4>
+                        <div class="sg-form-row-3">
+                            <div class="sg-form-group">
+                                <label>% الهامش</label>
+                                <input type="number" name="SemiWholesaleMargin" id="semiMargin" step="0.01" class="sg-form-input" value="15" onchange="calcPrices()" />
+                            </div>
+                            <div class="sg-form-group">
+                                <label>سعر HT دج</label>
+                                <input type="number" name="SemiWholesalePriceHT" id="semiHT" step="0.01" class="sg-form-input" value="0.00" readonly />
+                            </div>
+                            <div class="sg-form-group">
+                                <label>سعر TTC دج</label>
+                                <input type="number" name="SemiWholesalePriceTTC" id="semiTTC" step="0.01" class="sg-form-input" value="0.00" readonly />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sg-price-section purple-bg">
+                        <h4 class="sg-price-section-title text-purple">🏪 بيع الجملة</h4>
+                        <div class="sg-form-row-3">
+                            <div class="sg-form-group">
+                                <label>% الهامش</label>
+                                <input type="number" name="WholesaleMargin" id="wholesaleMargin" step="0.01" class="sg-form-input" value="10" onchange="calcPrices()" />
+                            </div>
+                            <div class="sg-form-group">
+                                <label>سعر HT دج</label>
+                                <input type="number" name="WholesalePriceHT" id="wholesaleHT" step="0.01" class="sg-form-input" value="0.00" readonly />
+                            </div>
+                            <div class="sg-form-group">
+                                <label>سعر TTC دج</label>
+                                <input type="number" name="WholesalePriceTTC" id="wholesaleTTC" step="0.01" class="sg-form-input" value="0.00" readonly />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sg-price-section gray-bg">
+                        <h4 class="sg-price-section-title">📊 ملخص الأرباح</h4>
+                        <div class="sg-profit-summary">
+                            <div class="sg-profit-row">
+                                <span>ربح التجزئة/وحدة</span>
+                                <span class="text-success fw-bold" id="profitRetail">0.00 دج</span>
+                            </div>
+                            <div class="sg-profit-row">
+                                <span>ربح نصف الجملة/وحدة</span>
+                                <span class="text-warning fw-bold" id="profitSemi">0.00 دج</span>
+                            </div>
+                            <div class="sg-profit-row">
+                                <span>ربح الجملة/وحدة</span>
+                                <span class="text-info fw-bold" id="profitWholesale">0.00 دج</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Stock -->
+            <div class="sg-step-content" id="stepContent3" style="display:none;">
+                <p class="sg-step-desc">المخزون والمواقع</p>
+                <div class="sg-form-row">
+                    <div class="sg-form-group">
+                        <label><i class="fas fa-warehouse me-1"></i>المخزون</label>
+                        <div class="sg-form-group">
+                            <label>المخزون الابتدائي والوحدة</label>
+                            <div class="sg-stock-input-row">
+                                <input type="text" name="Unit" class="sg-form-input-sm" placeholder="الوحدة (مثل)" />
+                                <input type="number" name="StockQuantity" class="sg-form-input" value="0" min="0" />
+                            </div>
+                        </div>
+                        <div class="sg-form-group mt-2">
+                            <label>حد تنبيه المخزون المنخفض</label>
+                            <div class="sg-number-input">
+                                <button type="button" onclick="this.nextElementSibling.stepDown()">-</button>
+                                <input type="number" name="MinStockAlert" value="0" min="0" />
+                                <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
+                            </div>
+                        </div>
+                        <div class="sg-form-group mt-2">
+                            <label>الكولياساج (وحدات/كرتون)</label>
+                            <div class="sg-number-input">
+                                <button type="button" onclick="this.nextElementSibling.stepDown()">-</button>
+                                <input type="number" name="PackagingQty" value="1" min="1" />
+                                <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
+                            </div>
+                        </div>
+                        <div class="sg-form-group mt-2">
+                            <label><i class="fas fa-calendar me-1"></i>تاريخ التلوء الصلاحية</label>
+                            <input type="date" name="ExpiryDate" class="sg-form-input" />
+                        </div>
+                    </div>
+
+                    <div class="sg-form-group">
+                        <label><i class="fas fa-map-marker-alt me-1"></i>التخزين متعدد المواقع</label>
+                        <div class="sg-location-card">
+                            <div class="sg-location-header">
+                                <span>الموقع الرئيسي</span>
+                                <button type="button" class="sg-btn-remove-loc">✕</button>
+                            </div>
+                            <div class="sg-location-fields">
+                                <input type="text" name="Location" class="sg-form-input-sm" placeholder="المستودع" />
+                                <input type="text" name="Zone" class="sg-form-input-sm" placeholder="Zone / المنطقة" />
+                                <input type="text" name="Aisle" class="sg-form-input-sm" placeholder="Allée / الممر" />
+                                <input type="text" name="Shelf" class="sg-form-input-sm" placeholder="Étagère / الرف" />
+                                <input type="text" name="Level" class="sg-form-input-sm" placeholder="Niveau / المستوى" />
+                                <input type="text" name="Bin" class="sg-form-input-sm" placeholder="Casier (Bin) / الصندوق" />
+                            </div>
+                        </div>
+                        <button type="button" class="sg-btn-add-location mt-2">+ إضافة موقع آخر</button>
+
+                        <div class="sg-form-group mt-3">
+                            <label>المتغيرات (VARIANTS)</label>
+                            <button type="button" class="sg-btn-add-variant">+ إضافة متغير (لون، حجم...)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="sg-modal-footer">
+                <div class="sg-step-indicator" id="stepIndicator">الخطوة 1 من 3</div>
+                <div class="sg-modal-btns">
+                    <button type="button" class="sg-btn-prev" id="prevBtn" onclick="prevStep()" style="display:none;">
+                        <i class="fas fa-chevron-left me-1"></i>السابق
+                    </button>
+                    <button type="button" class="sg-btn-next" id="nextBtn" onclick="nextStep()">
+                        التالي <i class="fas fa-chevron-left ms-1"></i>
+                    </button>
+                    <button type="submit" class="sg-btn-save" id="saveBtn" style="display:none;">
+                        <i class="fas fa-save me-1"></i>حفظ المنتج
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="sg-modal-overlay" id="deleteModal">
+    <div class="sg-modal sg-modal-sm">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title text-danger"><i class="fas fa-trash me-2"></i>حذف المنتج</h2>
+            <button class="sg-modal-close" onclick="closeDeleteModal()">✕</button>
+        </div>
+        <div class="sg-modal-body">
+            <p>هل أنت متأكد من حذف المنتج: <strong id="deleteProductName"></strong>؟</p>
+            <p class="text-muted small">لن يتم حذف المنتج نهائياً بل سيتم إخفاؤه.</p>
+        </div>
+        <div class="sg-modal-footer">
+            <form id="deleteForm" method="post">
+                @Html.AntiForgeryToken()
+                <button type="button" class="sg-btn-cancel" onclick="closeDeleteModal()">إلغاء</button>
+                <button type="submit" class="sg-btn-danger">حذف</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentStep = 1;
+        const totalSteps = 3;
+
+        function openProductModal() {
+            document.getElementById('productModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                setStep(currentStep + 1);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                setStep(currentStep - 1);
+            }
+        }
+
+        function setStep(step) {
+            document.getElementById(`stepContent${currentStep}`).style.display = 'none';
+            document.getElementById(`step${currentStep}Btn`).classList.remove('active');
+
+            currentStep = step;
+
+            document.getElementById(`stepContent${currentStep}`).style.display = 'block';
+            document.getElementById(`step${currentStep}Btn`).classList.add('active');
+            document.getElementById('stepIndicator').textContent = `الخطوة ${currentStep} من ${totalSteps}`;
+
+            document.getElementById('prevBtn').style.display = currentStep > 1 ? 'block' : 'none';
+            document.getElementById('nextBtn').style.display = currentStep < totalSteps ? 'block' : 'none';
+            document.getElementById('saveBtn').style.display = currentStep === totalSteps ? 'block' : 'none';
+
+            if (step > 1) {
+                document.getElementById(`step${step - 1}Btn`).classList.add('done');
+            }
+        }
+
+        function calcPrices() {
+            const ht = parseFloat(document.getElementById('purchaseHT').value) || 0;
+            const tax = parseFloat(document.getElementById('taxRate').value) || 0;
+            const ttc = ht * (1 + tax / 100);
+            document.getElementById('purchaseTTC').value = ttc.toFixed(2);
+
+            const retailMargin = parseFloat(document.getElementById('retailMargin').value) || 0;
+            const semiMargin = parseFloat(document.getElementById('semiMargin').value) || 0;
+            const wholesaleMargin = parseFloat(document.getElementById('wholesaleMargin').value) || 0;
+
+            const retailHT = ttc * (1 + retailMargin / 100);
+            const semiHT = ttc * (1 + semiMargin / 100);
+            const wholesaleHT = ttc * (1 + wholesaleMargin / 100);
+
+            document.getElementById('retailHT').value = retailHT.toFixed(2);
+            document.getElementById('retailTTC').value = retailHT.toFixed(2);
+            document.getElementById('semiHT').value = semiHT.toFixed(2);
+            document.getElementById('semiTTC').value = semiHT.toFixed(2);
+            document.getElementById('wholesaleHT').value = wholesaleHT.toFixed(2);
+            document.getElementById('wholesaleTTC').value = wholesaleHT.toFixed(2);
+
+            document.getElementById('profitRetail').textContent = (retailHT - ttc).toFixed(2) + ' دج';
+            document.getElementById('profitSemi').textContent = (semiHT - ttc).toFixed(2) + ' دج';
+            document.getElementById('profitWholesale').textContent = (wholesaleHT - ttc).toFixed(2) + ' دج';
+        }
+
+        async function generateReference() {
+            const res = await fetch('/Products/GenerateReference');
+            const data = await res.json();
+            document.getElementById('referenceInput').value = data.reference;
+        }
+
+        function deleteProduct(id, name) {
+            document.getElementById('deleteProductName').textContent = name;
+            document.getElementById('deleteForm').action = `/Products/Delete/${id}`;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        async function editProduct(id) {
+            const res = await fetch(`/Products/GetProduct/${id}`);
+            const p = await res.json();
+            alert('وظيفة التعديل ستفتح نافذة التعديل للمنتج: ' + p.name);
+        }
+
+        function setView(view) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', view);
+            window.location.href = url.toString();
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function exportProducts() {
+            window.location.href = '/Products/Export';
+        }
+    </script>
+}
+
+@functions {
+    string GetProductColor(int categoryId)
+    {
+        var colors = new[] { "#e8f5e9", "#e3f2fd", "#fff8e1", "#fce4ec", "#f3e5f5", "#e0f7fa" };
+        return colors[categoryId % colors.Length];
+    }
+
+    string GetProductIcon(int categoryId)
+    {
+        var icons = new[] { "fas fa-seedling", "fas fa-box", "fas fa-flask", "fas fa-utensils", "fas fa-tshirt", "fas fa-laptop" };
+        return icons[categoryId % icons.Length];
+    }
+}

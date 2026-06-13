@@ -1,0 +1,301 @@
+﻿@model SmarterGros.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "لوحة التحكم";
+}
+
+<div class="sg-dashboard">
+    <!-- Welcome Banner -->
+    <div class="sg-welcome-banner">
+        <div class="sg-welcome-content">
+            <h2 class="sg-welcome-title">
+                <i class="fas fa-sun text-warning me-2"></i>
+                مرحباً، مدير النظام
+            </h2>
+            <p class="sg-welcome-sub">إليك ملخص أداء مخزونك اليوم — كل شيء تحت السيطرة</p>
+        </div>
+        <div class="sg-welcome-stats">
+            <div class="sg-quick-stat">
+                <span class="sg-qs-num">98%</span>
+                <span class="sg-qs-label">كفاءة المخزون</span>
+            </div>
+            <div class="sg-quick-stat">
+                <span class="sg-qs-num">47</span>
+                <span class="sg-qs-label">مخزون منخفض</span>
+            </div>
+            <div class="sg-quick-stat">
+                <span class="sg-qs-num">@Model.TotalProducts.ToString("N0")</span>
+                <span class="sg-qs-label">إجمالي المنتجات</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="sg-kpi-row">
+        <div class="sg-kpi-card">
+            <div class="sg-kpi-body">
+                <div class="sg-kpi-info">
+                    <span class="sg-kpi-num">@Model.TotalProducts.ToString("N0")</span>
+                    <span class="sg-kpi-label">إجمالي المنتجات</span>
+                    <span class="sg-kpi-change positive">
+                        <i class="fas fa-arrow-up"></i> 3.2% منذ الأسبوع
+                    </span>
+                </div>
+                <div class="sg-kpi-icon blue">
+                    <i class="fas fa-box"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-kpi-card">
+            <div class="sg-kpi-body">
+                <div class="sg-kpi-info">
+                    <span class="sg-kpi-num">@Model.TotalStockValue.ToString("N0") دج</span>
+                    <span class="sg-kpi-label">قيمة المخزون</span>
+                    <span class="sg-kpi-change positive">
+                        <i class="fas fa-arrow-up"></i> +3.8% منذ الشهر
+                    </span>
+                </div>
+                <div class="sg-kpi-icon gold">
+                    <i class="fas fa-coins"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-kpi-card">
+            <div class="sg-kpi-body">
+                <div class="sg-kpi-info">
+                    <span class="sg-kpi-num warning-text">@Model.LowStockProducts.Count</span>
+                    <span class="sg-kpi-label">مخزون منخفض</span>
+                    <span class="sg-kpi-change negative">
+                        <i class="fas fa-arrow-down"></i> -3 هذا الأسبوع
+                    </span>
+                </div>
+                <div class="sg-kpi-icon orange">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-kpi-card">
+            <div class="sg-kpi-body">
+                <div class="sg-kpi-info">
+                    <span class="sg-kpi-num">@Model.TotalSuppliers</span>
+                    <span class="sg-kpi-label">الموردون</span>
+                    <span class="sg-kpi-change neutral">عدد العملاء: @Model.TotalCustomers</span>
+                </div>
+                <div class="sg-kpi-icon green">
+                    <i class="fas fa-truck"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="sg-main-grid">
+        <!-- Low Stock Table -->
+        <div class="sg-card sg-stock-table-card">
+            <div class="sg-card-header">
+                <h3 class="sg-card-title">
+                    <i class="fas fa-history me-2"></i>آخر حركات المخزون
+                </h3>
+            </div>
+            <div class="sg-card-body p-0">
+                <table class="sg-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>المنتج</th>
+                            <th>الكمية</th>
+                            <th>النوع</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.LowStockProducts.Any())
+                        {
+                            @foreach (var p in Model.LowStockProducts.Take(5))
+                            {
+                                <tr>
+                                    <td><span class="sg-ref">@p.Reference</span></td>
+                                    <td>@p.Name</td>
+                                    <td>@p.StockQuantity+</td>
+                                    <td><span class="sg-badge-cat">@p.Category?.Name</span></td>
+                                    <td>
+                                        @if (p.StockQuantity == 0)
+                                        {
+                                            <span class="sg-status-badge danger">✕ نفد</span>
+                                        }
+                                        else if (p.StockQuantity <= p.MinStockAlert)
+                                        {
+                                            <span class="sg-status-badge warning">⚠ متأخر</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="sg-status-badge success">✓ متوفر</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            @foreach (var m in Model.RecentMovements)
+                            {
+                                <tr>
+                                    <td><span class="sg-ref">@m.Product?.Reference</span></td>
+                                    <td>@m.Product?.Name</td>
+                                    <td>@Math.Abs(m.Quantity)+</td>
+                                    <td><span class="sg-badge-cat">@m.Product?.Category?.Name</span></td>
+                                    <td>
+                                        @if (m.MovementType == "إدخال")
+                                        {
+                                            <span class="sg-status-badge success">✓ استيراد</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="sg-status-badge danger">✕ بيع</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="sg-card sg-alerts-card">
+            <div class="sg-card-header">
+                <h3 class="sg-card-title">
+                    <i class="fas fa-bell me-2 text-warning"></i>التنبيهات
+                </h3>
+                <span class="sg-badge-count">@Model.LowStockProducts.Count</span>
+            </div>
+            <div class="sg-card-body">
+                @if (!Model.LowStockProducts.Any())
+                {
+                    <div class="sg-empty-alerts">
+                        <i class="fas fa-check-circle"></i>
+                        <span>لا توجد تنبيهات حالياً</span>
+                    </div>
+                }
+                @foreach (var p in Model.LowStockProducts.Take(5))
+                {
+                    <div class="sg-alert-item @(p.StockQuantity == 0 ? "danger" : "warning")">
+                        <div class="sg-alert-dot"></div>
+                        <div class="sg-alert-content">
+                            <span class="sg-alert-title">
+                                @if (p.StockQuantity == 0)
+                                {
+                                    <text>نفاد مخزون: @p.Name</text>
+                                }
+                                else
+                                {
+                                    <text>مخزون منخفض @p.Name</text>
+                                }
+                            </span>
+                            <span class="sg-alert-sub">الكمية المتبقية — الحد الأدنى @p.MinStockAlert — الكمية @p.StockQuantity</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Grid -->
+    <div class="sg-bottom-grid">
+        <!-- Recent Activity -->
+        <div class="sg-card">
+            <div class="sg-card-header">
+                <h3 class="sg-card-title">
+                    <i class="fas fa-history me-2"></i>آخر الأنشطة
+                </h3>
+            </div>
+            <div class="sg-card-body">
+                @foreach (var m in Model.RecentMovements)
+                {
+                    <div class="sg-activity-item">
+                        <div class="sg-activity-icon @(m.MovementType == "إدخال" ? "green" : m.MovementType == "إخراج" ? "red" : "blue")">
+                            @(m.UserName?.Substring(0, 1).ToUpper() ?? "م")
+                        </div>
+                        <div class="sg-activity-content">
+                            <span>@m.Reason</span>
+                        </div>
+                        <span class="sg-activity-time">@m.MovementDate.ToString("HH:mm")</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="sg-card">
+            <div class="sg-card-header">
+                <h3 class="sg-card-title">
+                    <i class="fas fa-bolt me-2"></i>إجراءات سريعة
+                </h3>
+            </div>
+            <div class="sg-card-body">
+                <div class="sg-quick-actions">
+                    <a href="@Url.Action("Index", "Purchases")" class="sg-quick-action">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>طلب شراء</span>
+                    </a>
+                    <a href="@Url.Action("Index", "StockMovements")" class="sg-quick-action">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>إضافة مخزن</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Sales")" class="sg-quick-action">
+                        <i class="fas fa-receipt"></i>
+                        <span>فاتورة كريم</span>
+                    </a>
+                    <a href="@Url.Action("Stock", "Reports")" class="sg-quick-action">
+                        <i class="fas fa-file-export"></i>
+                        <span>تصدير الصحة</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Chart -->
+        <div class="sg-card">
+            <div class="sg-card-header">
+                <h3 class="sg-card-title">
+                    <i class="fas fa-chart-bar me-2"></i>حركة المخزون (أسبوعية)
+                </h3>
+            </div>
+            <div class="sg-card-body">
+                <canvas id="weeklyChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        const weeklyData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeeklyMovements));
+        const days = ['السبت','الجمعة','الخميس','الأربعاء','الثلاثاء','الاثنين','الأحد'].reverse();
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: days,
+                datasets: [{
+                    data: weeklyData,
+                    backgroundColor: ['#c4a23a','#c4a23a','#1a5c38','#a8d5bc','#a8d5bc','#a8d5bc','#a8d5bc'],
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Cairo' } } },
+                    x: { grid: { display: false }, ticks: { font: { family: 'Cairo' } } }
+                }
+            }
+        });
+    </script>
+}

@@ -1,0 +1,1515 @@
+﻿@model List<SmarterGros.ViewModels.UserViewModel>
+@{
+    ViewData["Title"] = "إدارة المستخدمين";
+    var roles = new List<string>
+    {
+        "مدير النظام", "مدير المخزن",
+        "مسؤول المبيعات", "مسؤول المشتريات", "مستخدم عادي"
+    };
+}
+
+
+<!-- Settings Tabs -->
+<div class="sg-settings-tabs">
+    <a href="@Url.Action("Index","Settings")" class="sg-tab-btn">
+        <i class="fas fa-building me-1"></i>بيانات المؤسسة
+    </a>
+    <a href="@Url.Action("Users","Settings")" class="sg-tab-btn active">
+        <i class="fas fa-users me-1"></i>المستخدمون
+    </a>
+    <a href="@Url.Action("Database","Settings")" class="sg-tab-btn">
+        <i class="fas fa-database me-1"></i>قاعدة البيانات
+    </a>
+    <a href="@Url.Action("Support","Settings")" class="sg-tab-btn">
+        <i class="fas fa-headset me-1"></i>الدعم
+    </a>
+</div>
+
+
+<!-- Header -->
+<div class="sg-page-header">
+    <div class="sg-page-header-top">
+        <div>
+            <h1 class="sg-page-title-main">
+                <i class="fas fa-users-cog me-2"></i>إدارة المستخدمين
+            </h1>
+            <p class="sg-page-subtitle">
+                إدارة حسابات المستخدمين والصلاحيات
+            </p>
+        </div>
+        <button class="btn sg-btn-primary" onclick="openAddModal()">
+            <i class="fas fa-user-plus me-1"></i>+ مستخدم جديد
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="usr-stats-row">
+        <div class="usr-stat green">
+            <i class="fas fa-users"></i>
+            <div>
+                <span class="usr-stat-num">@ViewBag.TotalUsers</span>
+                <span class="usr-stat-label">إجمالي المستخدمين</span>
+            </div>
+        </div>
+        <div class="usr-stat blue">
+            <i class="fas fa-user-check"></i>
+            <div>
+                <span class="usr-stat-num">@ViewBag.ActiveUsers</span>
+                <span class="usr-stat-label">مستخدمون نشطون</span>
+            </div>
+        </div>
+        <div class="usr-stat red">
+            <i class="fas fa-user-times"></i>
+            <div>
+                <span class="usr-stat-num">@(ViewBag.TotalUsers - ViewBag.ActiveUsers)</span>
+                <span class="usr-stat-label">حسابات معطلة</span>
+            </div>
+        </div>
+        <div class="usr-stat gold">
+            <i class="fas fa-user-shield"></i>
+            <div>
+                <span class="usr-stat-num">@Model.Count(u => u.Role == "مدير النظام")</span>
+                <span class="usr-stat-label">مدراء النظام</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Filters -->
+<div class="sg-filters-bar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+        <div class="sg-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text"
+                   name="search"
+                   value="@ViewBag.Search"
+                   placeholder="بحث بالاسم أو اسم المستخدم..."
+                   class="sg-search-input" />
+        </div>
+        <select name="role" class="sg-select">
+            <option value="">كل الأدوار</option>
+            @foreach (var r in roles)
+            {
+                if (ViewBag.RoleFilter == r)
+                {
+                    <option value="@r" selected="selected">@r</option>
+                }
+                else
+                {
+                    <option value="@r">@r</option>
+                }
+            }
+        </select>
+        <select name="status" class="sg-select">
+            <option value="">كل الحالات</option>
+            @if (ViewBag.StatusFilter == "active")
+            {
+                <option value="active" selected="selected">نشط</option>
+                <option value="inactive">معطل</option>
+            }
+            else if (ViewBag.StatusFilter == "inactive")
+            {
+                <option value="active">نشط</option>
+                <option value="inactive" selected="selected">معطل</option>
+            }
+            else
+            {
+                <option value="active">نشط</option>
+                <option value="inactive">معطل</option>
+            }
+        </select>
+        <button type="submit" class="btn sg-btn-search">
+            <i class="fas fa-search me-1"></i>بحث
+        </button>
+        @if (!string.IsNullOrEmpty(ViewBag.Search as string) ||
+             !string.IsNullOrEmpty(ViewBag.RoleFilter as string) ||
+             !string.IsNullOrEmpty(ViewBag.StatusFilter as string))
+        {
+            <a href="@Url.Action("Users")" class="btn sg-btn-prev">
+                <i class="fas fa-times me-1"></i>مسح
+            </a>
+        }
+    </form>
+    <span class="text-muted small fw-bold">@Model.Count مستخدم</span>
+</div>
+
+<!-- Users Grid -->
+@if (!Model.Any())
+{
+    <div class="usr-empty">
+        <div class="usr-empty-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <h3>لا يوجد مستخدمون</h3>
+        <p>ابدأ بإضافة مستخدم جديد</p>
+        <button class="btn sg-btn-primary mt-3" onclick="openAddModal()">
+            <i class="fas fa-user-plus me-1"></i>إضافة مستخدم
+        </button>
+    </div>
+}
+else
+{
+    <div class="usr-grid">
+        @foreach (var user in Model)
+        {
+            var roleInfo = GetRoleInfo(user.Role);
+            <div class="usr-card @(!user.IsActive ? "inactive" : "")">
+                <!-- Card Header -->
+                <div class="usr-card-header">
+                    <div class="usr-avatar" style="background: @roleInfo.Color;">
+                        @user.FullName.Substring(0, 1).ToUpper()
+                    </div>
+                    <div class="usr-status-dot @(user.IsActive ? "active" : "inactive")"
+                         title="@(user.IsActive ? "نشط" : "معطل")">
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="usr-card-body">
+                    <h3 class="usr-name">@user.FullName</h3>
+                    <span class="usr-username">
+                        <i class="fas fa-at me-1"></i>@user.UserName
+                    </span>
+
+                    <div class="usr-role-badge" style="background: @roleInfo.Bg; color: @roleInfo.Color;">
+                        <i class="@roleInfo.Icon me-1"></i>@user.Role
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(user.Email))
+                    {
+                        <div class="usr-info-row">
+                            <i class="fas fa-envelope"></i>
+                            <span>@user.Email</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(user.PhoneNumber))
+                    {
+                        <div class="usr-info-row">
+                            <i class="fas fa-phone"></i>
+                            <span>@user.PhoneNumber</span>
+                        </div>
+                    }
+
+                    <div class="usr-info-row">
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>@user.CreatedAt.ToString("dd/MM/yyyy")</span>
+                    </div>
+
+                    <div class="usr-status-row">
+                        @if (user.IsActive)
+                        {
+                            <span class="sg-status-badge success">
+                                <i class="fas fa-circle me-1" style="font-size:7px;"></i>نشط
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="sg-status-badge danger">
+                                <i class="fas fa-circle me-1" style="font-size:7px;"></i>معطل
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Card Actions -->
+                <div class="usr-card-footer">
+                    <button class="usr-btn edit"
+                            onclick="openEditModal('@user.Id')"
+                            title="تعديل">
+                        <i class="fas fa-edit"></i>
+                        <span>تعديل</span>
+                    </button>
+                    <button class="usr-btn password"
+                            onclick="openPasswordModal('@user.Id', '@user.FullName')"
+                            title="تغيير كلمة المرور">
+                        <i class="fas fa-key"></i>
+                    </button>
+                    <button class="usr-btn @(user.IsActive ? "deactivate" : "activate")"
+                            onclick="toggleUser('@user.Id', '@user.FullName', @user.IsActive.ToString().ToLower())"
+                            title="@(user.IsActive ? "تعطيل" : "تفعيل")">
+                        <i class="fas fa-@(user.IsActive ? "ban" : "check-circle")"></i>
+                    </button>
+                    <button class="usr-btn delete"
+                            onclick="deleteUser('@user.Id', '@user.FullName')"
+                            title="حذف">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- ============================================
+     MODAL: إضافة مستخدم جديد
+============================================ -->
+<div class="sg-modal-overlay" id="addUserModal">
+    <div class="sg-modal" style="max-width: 600px;">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title">
+                <i class="fas fa-user-plus me-2"></i>إضافة مستخدم جديد
+            </h2>
+            <button class="sg-modal-close" onclick="closeAddModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="sg-modal-body">
+            <!-- Avatar Preview -->
+            <div class="usr-modal-avatar-row">
+                <div class="usr-modal-avatar" id="addAvatarPreview">م</div>
+                <div>
+                    <h4 id="addNamePreview" style="margin:0; font-size:16px; font-weight:800;">
+                        الاسم الكامل
+                    </h4>
+                    <span id="addRolePreview" class="usr-role-badge"
+                          style="background:#e8f5e9; color:#0E4D3A;">
+                        الدور الوظيفي
+                    </span>
+                </div>
+            </div>
+
+            <div class="usr-form-divider">المعلومات الأساسية</div>
+
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label><i class="fas fa-user me-1 text-success"></i>الاسم الكامل *</label>
+                    <input type="text" id="addFullName" class="sg-form-input"
+                           placeholder="مثال: أحمد محمد" maxlength="200" />
+                    <span class="text-danger small" id="addFullNameError"></span>
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-at me-1 text-primary"></i>اسم المستخدم *</label>
+                    <input type="text" id="addUserName" class="sg-form-input"
+                           placeholder="مثال: ahmed.mohamed" maxlength="100" />
+                    <span class="text-danger small" id="addUserNameError"></span>
+                </div>
+            </div>
+
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label><i class="fas fa-envelope me-1 text-warning"></i>البريد الإلكتروني</label>
+                    <input type="email" id="addEmail" class="sg-form-input"
+                           placeholder="example@email.com" />
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-phone me-1 text-info"></i>رقم الهاتف</label>
+                    <input type="text" id="addPhone" class="sg-form-input"
+                           placeholder="0550000000" />
+                </div>
+            </div>
+
+            <div class="sg-form-group">
+                <label><i class="fas fa-user-shield me-1 text-purple"></i>الدور الوظيفي *</label>
+                <select id="addRole" class="sg-form-select" onchange="updateRolePreview()">
+                    <option value="">-- اختر الدور --</option>
+                    @foreach (var r in roles)
+                    {
+                        <option value="@r">@r</option>
+                    }
+                </select>
+                <span class="text-danger small" id="addRoleError"></span>
+            </div>
+
+            <!-- Permissions Preview -->
+            <div class="usr-permissions-preview" id="permissionsPreview" style="display:none;">
+                <div class="usr-perm-title">
+                    <i class="fas fa-shield-alt me-1"></i>صلاحيات هذا الدور:
+                </div>
+                <div class="usr-perm-list" id="permList"></div>
+            </div>
+
+            <div class="usr-form-divider">كلمة المرور</div>
+
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label><i class="fas fa-lock me-1 text-danger"></i>كلمة المرور *</label>
+                    <div class="usr-pass-input">
+                        <input type="password" id="addPassword" class="sg-form-input"
+                               placeholder="6 أحرف على الأقل" />
+                        <button type="button" class="usr-pass-toggle"
+                                onclick="togglePassword('addPassword', 'addPassIcon')">
+                            <i class="fas fa-eye" id="addPassIcon"></i>
+                        </button>
+                    </div>
+                    <div class="usr-pass-strength" id="addPassStrength" style="display:none;">
+                        <div class="usr-strength-bar">
+                            <div class="usr-strength-fill" id="addStrengthFill"></div>
+                        </div>
+                        <span id="addStrengthText"></span>
+                    </div>
+                    <span class="text-danger small" id="addPasswordError"></span>
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-lock me-1 text-danger"></i>تأكيد كلمة المرور *</label>
+                    <div class="usr-pass-input">
+                        <input type="password" id="addConfirmPassword" class="sg-form-input"
+                               placeholder="أعد كتابة كلمة المرور" />
+                        <button type="button" class="usr-pass-toggle"
+                                onclick="togglePassword('addConfirmPassword', 'addConfirmIcon')">
+                            <i class="fas fa-eye" id="addConfirmIcon"></i>
+                        </button>
+                    </div>
+                    <span class="text-danger small" id="addConfirmError"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-modal-footer">
+            <button class="sg-btn-cancel" onclick="closeAddModal()">
+                <i class="fas fa-times me-1"></i>إلغاء
+            </button>
+            <button class="sg-btn-next" id="addSaveBtn" onclick="saveNewUser()">
+                <i class="fas fa-user-plus me-1"></i>إنشاء المستخدم
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     MODAL: تعديل مستخدم
+============================================ -->
+<div class="sg-modal-overlay" id="editUserModal">
+    <div class="sg-modal" style="max-width: 600px;">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title">
+                <i class="fas fa-user-edit me-2"></i>تعديل بيانات المستخدم
+            </h2>
+            <button class="sg-modal-close" onclick="closeEditModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="sg-modal-body">
+            <input type="hidden" id="editUserId" />
+
+            <div class="usr-modal-avatar-row">
+                <div class="usr-modal-avatar" id="editAvatarPreview"
+                     style="background: var(--sg-primary);">م</div>
+                <div>
+                    <h4 id="editNamePreview" style="margin:0; font-size:16px; font-weight:800;">
+                        الاسم الكامل
+                    </h4>
+                    <span class="usr-username" id="editUserNamePreview">username</span>
+                </div>
+            </div>
+
+            <div class="usr-form-divider">المعلومات الأساسية</div>
+
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label><i class="fas fa-user me-1 text-success"></i>الاسم الكامل *</label>
+                    <input type="text" id="editFullName" class="sg-form-input" />
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-at me-1 text-primary"></i>اسم المستخدم *</label>
+                    <input type="text" id="editUserName" class="sg-form-input" />
+                </div>
+            </div>
+
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label><i class="fas fa-envelope me-1 text-warning"></i>البريد الإلكتروني</label>
+                    <input type="email" id="editEmail" class="sg-form-input" />
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-phone me-1 text-info"></i>رقم الهاتف</label>
+                    <input type="text" id="editPhone" class="sg-form-input" />
+                </div>
+            </div>
+
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label><i class="fas fa-user-shield me-1"></i>الدور الوظيفي *</label>
+                    <select id="editRole" class="sg-form-select">
+                        @foreach (var r in roles)
+                        {
+                            <option value="@r">@r</option>
+                        }
+                    </select>
+                </div>
+                <div class="sg-form-group">
+                    <label><i class="fas fa-toggle-on me-1"></i>حالة الحساب</label>
+                    <div class="usr-toggle-row">
+                        <label class="usr-toggle">
+                            <input type="checkbox" id="editIsActive" />
+                            <span class="usr-toggle-slider"></span>
+                        </label>
+                        <span id="editIsActiveLabel" class="fw-bold text-success">نشط</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-modal-footer">
+            <button class="sg-btn-cancel" onclick="closeEditModal()">
+                <i class="fas fa-times me-1"></i>إلغاء
+            </button>
+            <button class="sg-btn-next" id="editSaveBtn" onclick="saveEditUser()">
+                <i class="fas fa-save me-1"></i>حفظ التغييرات
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     MODAL: تغيير كلمة المرور
+============================================ -->
+<div class="sg-modal-overlay" id="passwordModal">
+    <div class="sg-modal sg-modal-sm">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title">
+                <i class="fas fa-key me-2"></i>تغيير كلمة المرور
+            </h2>
+            <button class="sg-modal-close" onclick="closePasswordModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="sg-modal-body">
+            <input type="hidden" id="passUserId" />
+
+            <div class="usr-pass-user-info" id="passUserInfo">
+                <i class="fas fa-user-circle fa-2x text-muted"></i>
+                <span id="passUserName">اسم المستخدم</span>
+            </div>
+
+            <div class="sg-form-group">
+                <label><i class="fas fa-lock me-1 text-danger"></i>كلمة المرور الجديدة *</label>
+                <div class="usr-pass-input">
+                    <input type="password" id="newPassword" class="sg-form-input"
+                           placeholder="6 أحرف على الأقل" />
+                    <button type="button" class="usr-pass-toggle"
+                            onclick="togglePassword('newPassword', 'newPassIcon')">
+                        <i class="fas fa-eye" id="newPassIcon"></i>
+                    </button>
+                </div>
+                <div class="usr-pass-strength" id="newPassStrength" style="display:none;">
+                    <div class="usr-strength-bar">
+                        <div class="usr-strength-fill" id="newStrengthFill"></div>
+                    </div>
+                    <span id="newStrengthText"></span>
+                </div>
+            </div>
+
+            <div class="sg-form-group">
+                <label><i class="fas fa-lock me-1 text-danger"></i>تأكيد كلمة المرور *</label>
+                <div class="usr-pass-input">
+                    <input type="password" id="confirmNewPassword" class="sg-form-input"
+                           placeholder="أعد كتابة كلمة المرور" />
+                    <button type="button" class="usr-pass-toggle"
+                            onclick="togglePassword('confirmNewPassword', 'confirmNewIcon')">
+                        <i class="fas fa-eye" id="confirmNewIcon"></i>
+                    </button>
+                </div>
+                <span class="text-danger small" id="passConfirmError"></span>
+            </div>
+        </div>
+
+        <div class="sg-modal-footer">
+            <button class="sg-btn-cancel" onclick="closePasswordModal()">إلغاء</button>
+            <button class="sg-btn-save" id="passSaveBtn" onclick="savePassword()">
+                <i class="fas fa-key me-1"></i>تغيير كلمة المرور
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     MODAL: تأكيد الحذف
+============================================ -->
+<div class="sg-modal-overlay" id="deleteUserModal">
+    <div class="sg-modal sg-modal-sm">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title text-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>تأكيد الحذف
+            </h2>
+            <button class="sg-modal-close" onclick="closeDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sg-modal-body text-center">
+            <div class="delete-icon-wrapper">
+                <i class="fas fa-user-times"></i>
+            </div>
+            <h4 id="deleteUserMessage">هل تريد حذف هذا المستخدم؟</h4>
+            <p class="text-muted small mt-2">لا يمكن التراجع عن هذا الإجراء</p>
+        </div>
+        <div class="sg-modal-footer">
+            <button class="sg-btn-cancel" onclick="closeDeleteModal()">إلغاء</button>
+            <button class="sg-btn-danger" id="confirmDeleteUserBtn">
+                <i class="fas fa-trash me-1"></i>حذف
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" style="position:fixed; top:80px; left:20px; z-index:9999;"></div>
+
+@section Styles {
+<style>
+    /* ===== STATS ===== */
+    .usr-stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    .usr-stat {
+        background: white;
+        border-radius: 12px;
+        padding: 15px 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--sg-shadow);
+        font-size: 22px;
+        transition: transform 0.2s;
+    }
+
+    .usr-stat:hover { transform: translateY(-2px); }
+
+    .usr-stat.green { border-right: 4px solid #16a34a; }
+    .usr-stat.blue  { border-right: 4px solid #2563eb; }
+    .usr-stat.red   { border-right: 4px solid #dc2626; }
+    .usr-stat.gold  { border-right: 4px solid #ca8a04; }
+
+    .usr-stat.green i { color: #16a34a; }
+    .usr-stat.blue  i { color: #2563eb; }
+    .usr-stat.red   i { color: #dc2626; }
+    .usr-stat.gold  i { color: #ca8a04; }
+
+    .usr-stat-num {
+        display: block;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--sg-text);
+        line-height: 1.2;
+    }
+
+    .usr-stat-label {
+        display: block;
+        font-size: 11px;
+        color: var(--sg-text-light);
+        font-weight: 500;
+    }
+
+    /* ===== USERS GRID ===== */
+    .usr-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        gap: 18px;
+    }
+
+    /* ===== USER CARD ===== */
+    .usr-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--sg-shadow);
+        border: 1px solid rgba(14,77,58,0.06);
+        transition: all 0.25s;
+    }
+
+    .usr-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--sg-shadow-hover);
+    }
+
+    .usr-card.inactive {
+        opacity: 0.75;
+        border: 1px dashed #e5e7eb;
+    }
+
+    .usr-card-header {
+        background: linear-gradient(135deg, var(--sg-primary), var(--sg-primary-light));
+        padding: 25px 20px 15px;
+        display: flex;
+        justify-content: center;
+        position: relative;
+    }
+
+    .usr-avatar {
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        font-weight: 900;
+        color: white;
+        border: 3px solid rgba(255,255,255,0.4);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .usr-status-dot {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .usr-status-dot.active   { background: #4ade80; }
+    .usr-status-dot.inactive { background: #f87171; }
+
+    .usr-card-body {
+        padding: 15px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .usr-name {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--sg-text);
+        margin: 0;
+        text-align: center;
+    }
+
+    .usr-username {
+        font-size: 12px;
+        color: var(--sg-text-light);
+        text-align: center;
+        display: block;
+    }
+
+    .usr-role-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        margin: 4px auto;
+        text-align: center;
+        width: fit-content;
+    }
+
+    .usr-info-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--sg-text-light);
+        padding: 3px 0;
+    }
+
+    .usr-info-row i {
+        width: 16px;
+        color: var(--sg-primary);
+        opacity: 0.7;
+        font-size: 11px;
+    }
+
+    .usr-status-row {
+        display: flex;
+        justify-content: center;
+        margin-top: 4px;
+    }
+
+    /* Card Footer */
+    .usr-card-footer {
+        padding: 12px 15px;
+        border-top: 1px solid #f0f4f2;
+        display: flex;
+        gap: 6px;
+        background: #fafcfb;
+    }
+
+    .usr-btn {
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: 'Cairo', sans-serif !important;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 7px 10px;
+    }
+
+    .usr-btn.edit {
+        background: #dbeafe;
+        color: #1d4ed8;
+        flex: 1;
+    }
+
+    .usr-btn.edit:hover     { background: #bfdbfe; }
+
+    .usr-btn.password {
+        background: #fef3c7;
+        color: #b45309;
+        width: 34px;
+    }
+
+    .usr-btn.password:hover { background: #fde68a; }
+
+    .usr-btn.deactivate {
+        background: #ffedd5;
+        color: #ea580c;
+        width: 34px;
+    }
+
+    .usr-btn.deactivate:hover { background: #fed7aa; }
+
+    .usr-btn.activate {
+        background: #dcfce7;
+        color: #16a34a;
+        width: 34px;
+    }
+
+    .usr-btn.activate:hover { background: #bbf7d0; }
+
+    .usr-btn.delete {
+        background: #fee2e2;
+        color: #b91c1c;
+        width: 34px;
+    }
+
+    .usr-btn.delete:hover { background: #fecaca; }
+
+    /* ===== MODAL STYLES ===== */
+    .usr-modal-avatar-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: linear-gradient(135deg, var(--sg-primary), var(--sg-primary-light));
+        padding: 18px;
+        border-radius: 12px;
+        margin-bottom: 18px;
+    }
+
+    .usr-modal-avatar {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 900;
+        color: white;
+        border: 3px solid rgba(255,255,255,0.3);
+        flex-shrink: 0;
+        background: var(--sg-gold);
+    }
+
+    .usr-modal-avatar-row h4,
+    .usr-modal-avatar-row span {
+        color: white !important;
+    }
+
+    .usr-form-divider {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--sg-text-light);
+        border-right: 3px solid var(--sg-primary);
+        padding-right: 8px;
+        margin: 15px 0 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Password Input */
+    .usr-pass-input {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .usr-pass-input .sg-form-input {
+        padding-left: 40px;
+    }
+
+    .usr-pass-toggle {
+        position: absolute;
+        left: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--sg-text-light);
+        font-size: 14px;
+        transition: color 0.2s;
+    }
+
+    .usr-pass-toggle:hover { color: var(--sg-primary); }
+
+    /* Password Strength */
+    .usr-pass-strength {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .usr-strength-bar {
+        flex: 1;
+        height: 5px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .usr-strength-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: all 0.3s;
+    }
+
+    #addStrengthText, #newStrengthText {
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    /* Permissions Preview */
+    .usr-permissions-preview {
+        background: #f0f9f4;
+        border: 1px solid #c8e6d4;
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 5px;
+    }
+
+    .usr-perm-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--sg-primary);
+        margin-bottom: 8px;
+    }
+
+    .usr-perm-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .usr-perm-item {
+        background: white;
+        border: 1px solid #c8e6d4;
+        color: var(--sg-primary);
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Toggle Switch */
+    .usr-toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+    }
+
+    .usr-toggle {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+        cursor: pointer;
+    }
+
+    .usr-toggle input { opacity: 0; width: 0; height: 0; }
+
+    .usr-toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: #e5e7eb;
+        border-radius: 13px;
+        transition: 0.3s;
+    }
+
+    .usr-toggle-slider:before {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: white;
+        top: 3px;
+        right: 3px;
+        transition: 0.3s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .usr-toggle input:checked + .usr-toggle-slider {
+        background: var(--sg-primary);
+    }
+
+    .usr-toggle input:checked + .usr-toggle-slider:before {
+        transform: translateX(-24px);
+    }
+
+    /* Password Modal */
+    .usr-pass-user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #f8fbf9;
+        border: 1px solid var(--sg-border);
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 18px;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--sg-text);
+    }
+
+    /* Delete Icon */
+    .delete-icon-wrapper {
+        width: 70px;
+        height: 70px;
+        background: #fee2e2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: var(--sg-danger);
+        margin: 0 auto 15px;
+    }
+
+    /* Empty State */
+    .usr-empty {
+        text-align: center;
+        padding: 80px 20px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: var(--sg-shadow);
+    }
+
+    .usr-empty-icon {
+        width: 90px;
+        height: 90px;
+        background: #f0f9f4;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        color: #c8e6d4;
+        margin: 0 auto 20px;
+    }
+
+    /* Toast */
+    .sg-toast {
+        padding: 12px 18px;
+        border-radius: 10px;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        animation: slideInLeft 0.3s ease;
+        min-width: 250px;
+    }
+
+    .sg-toast.success { background: var(--sg-primary); }
+    .sg-toast.error   { background: var(--sg-danger); }
+    .sg-toast.warning { background: var(--sg-warning); color: #333; }
+
+    @@keyframes slideInLeft {
+        from { transform: translateX(-100%); opacity: 0; }
+        to   { transform: translateX(0);    opacity: 1; }
+    }
+
+    /* Responsive */
+    @@media (max-width: 900px) {
+        .usr-stats-row { grid-template-columns: repeat(2, 1fr); }
+        .usr-grid      { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @@media (max-width: 600px) {
+        .usr-stats-row { grid-template-columns: 1fr 1fr; }
+        .usr-grid      { grid-template-columns: 1fr; }
+    }
+</style>
+}
+
+@section Scripts {
+<script>
+// ============================================
+// ROLES PERMISSIONS DATA
+// ============================================
+const rolesPermissions = {
+    "مدير النظام": [
+        "لوحة التحكم", "المنتجات", "المخزون", "المشتريات",
+        "المبيعات", "الموردون", "العملاء", "التقارير", "الإعدادات"
+    ],
+    "مدير المخزن": [
+        "لوحة التحكم", "المنتجات", "المخزون", "التقارير"
+    ],
+    "مسؤول المبيعات": [
+        "لوحة التحكم", "المبيعات", "العملاء", "التقارير"
+    ],
+    "مسؤول المشتريات": [
+        "لوحة التحكم", "المشتريات", "الموردون", "التقارير"
+    ],
+    "مستخدم عادي": [
+        "لوحة التحكم", "المنتجات"
+    ]
+};
+
+const roleColors = {
+    "مدير النظام":       { bg: "#fef3c7", color: "#b45309" },
+    "مدير المخزن":       { bg: "#dcfce7", color: "#15803d" },
+    "مسؤول المبيعات":    { bg: "#dbeafe", color: "#1d4ed8" },
+    "مسؤول المشتريات":   { bg: "#ede9fe", color: "#7c3aed" },
+    "مستخدم عادي":       { bg: "#f0f9f4", color: "#0E4D3A" }
+};
+
+// ============================================
+// ADD USER MODAL
+// ============================================
+function openAddModal() {
+    clearAddForm();
+    document.getElementById('addUserModal').classList.add('show');
+    setTimeout(() => document.getElementById('addFullName').focus(), 100);
+}
+
+function closeAddModal() {
+    document.getElementById('addUserModal').classList.remove('show');
+}
+
+function clearAddForm() {
+    ['addFullName','addUserName','addEmail','addPhone','addPassword','addConfirmPassword']
+        .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('addRole').value = '';
+    document.getElementById('addAvatarPreview').textContent = 'م';
+    document.getElementById('addNamePreview').textContent = 'الاسم الكامل';
+    document.getElementById('addRolePreview').textContent = 'الدور الوظيفي';
+    document.getElementById('addRolePreview').style.background = '#e8f5e9';
+    document.getElementById('addRolePreview').style.color = '#0E4D3A';
+    document.getElementById('permissionsPreview').style.display = 'none';
+    ['addFullNameError','addUserNameError','addRoleError','addPasswordError','addConfirmError']
+        .forEach(id => document.getElementById(id).textContent = '');
+    document.getElementById('addPassStrength').style.display = 'none';
+}
+
+// Update Preview
+document.getElementById('addFullName').addEventListener('input', function() {
+    const val = this.value.trim();
+    document.getElementById('addNamePreview').textContent = val || 'الاسم الكامل';
+    document.getElementById('addAvatarPreview').textContent = val ? val[0].toUpperCase() : 'م';
+});
+
+function updateRolePreview() {
+    const role = document.getElementById('addRole').value;
+    const preview = document.getElementById('addRolePreview');
+    const permsDiv = document.getElementById('permissionsPreview');
+
+    if (role) {
+        const rc = roleColors[role] || { bg: '#e8f5e9', color: '#0E4D3A' };
+        preview.textContent = role;
+        preview.style.background = rc.bg;
+        preview.style.color = rc.color;
+
+        // Show permissions
+        const perms = rolesPermissions[role] || [];
+        document.getElementById('permList').innerHTML = perms
+            .map(p => `<span class="usr-perm-item"><i class="fas fa-check"></i>${p}</span>`)
+            .join('');
+        permsDiv.style.display = 'block';
+    } else {
+        preview.textContent = 'الدور الوظيفي';
+        permsDiv.style.display = 'none';
+    }
+}
+
+// Password Strength
+document.getElementById('addPassword').addEventListener('input', function() {
+    checkPasswordStrength(this.value, 'addPassStrength', 'addStrengthFill', 'addStrengthText');
+});
+
+async function saveNewUser() {
+    // Validate
+    let valid = true;
+
+    const fullName = document.getElementById('addFullName').value.trim();
+    const userName = document.getElementById('addUserName').value.trim();
+    const role     = document.getElementById('addRole').value;
+    const password = document.getElementById('addPassword').value;
+    const confirm  = document.getElementById('addConfirmPassword').value;
+
+    if (!fullName) {
+        document.getElementById('addFullNameError').textContent = 'الاسم الكامل مطلوب';
+        valid = false;
+    } else {
+        document.getElementById('addFullNameError').textContent = '';
+    }
+
+    if (!userName) {
+        document.getElementById('addUserNameError').textContent = 'اسم المستخدم مطلوب';
+        valid = false;
+    } else {
+        document.getElementById('addUserNameError').textContent = '';
+    }
+
+    if (!role) {
+        document.getElementById('addRoleError').textContent = 'الدور الوظيفي مطلوب';
+        valid = false;
+    } else {
+        document.getElementById('addRoleError').textContent = '';
+    }
+
+    if (password.length < 6) {
+        document.getElementById('addPasswordError').textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+        valid = false;
+    } else {
+        document.getElementById('addPasswordError').textContent = '';
+    }
+
+    if (password !== confirm) {
+        document.getElementById('addConfirmError').textContent = 'كلمتا المرور غير متطابقتين';
+        valid = false;
+    } else {
+        document.getElementById('addConfirmError').textContent = '';
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById('addSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري الإنشاء...';
+
+    try {
+        const res = await fetch('/Settings/CreateUser', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                fullName,
+                userName,
+                email:           document.getElementById('addEmail').value.trim(),
+                phoneNumber:     document.getElementById('addPhone').value.trim(),
+                role,
+                password,
+                confirmPassword: confirm
+            })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            showToast(result.message, 'success');
+            closeAddModal();
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showToast(result.message, 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-user-plus me-1"></i>إنشاء المستخدم';
+    }
+}
+
+// ============================================
+// EDIT USER MODAL
+// ============================================
+async function openEditModal(id) {
+    const res  = await fetch(`/Settings/GetUser/${id}`);
+    const data = await res.json();
+
+    if (!data.success) { showToast('خطأ في تحميل البيانات', 'error'); return; }
+
+    document.getElementById('editUserId').value         = data.id;
+    document.getElementById('editFullName').value       = data.fullName;
+    document.getElementById('editUserName').value       = data.userName;
+    document.getElementById('editEmail').value          = data.email || '';
+    document.getElementById('editPhone').value          = data.phoneNumber || '';
+    document.getElementById('editRole').value           = data.role;
+    document.getElementById('editIsActive').checked     = data.isActive;
+    document.getElementById('editAvatarPreview').textContent  = data.fullName[0].toUpperCase();
+    document.getElementById('editNamePreview').textContent    = data.fullName;
+    document.getElementById('editUserNamePreview').textContent = String.fromCharCode(64) + data.userName;
+    document.getElementById('editIsActiveLabel').textContent  = data.isActive ? 'نشط' : 'معطل';
+    document.getElementById('editIsActiveLabel').className    =
+        'fw-bold ' + (data.isActive ? 'text-success' : 'text-danger');
+
+    document.getElementById('editUserModal').classList.add('show');
+}
+
+function closeEditModal() {
+    document.getElementById('editUserModal').classList.remove('show');
+}
+
+document.getElementById('editIsActive').addEventListener('change', function() {
+    document.getElementById('editIsActiveLabel').textContent  = this.checked ? 'نشط' : 'معطل';
+    document.getElementById('editIsActiveLabel').className    =
+        'fw-bold ' + (this.checked ? 'text-success' : 'text-danger');
+});
+
+async function saveEditUser() {
+    const btn = document.getElementById('editSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري الحفظ...';
+
+    try {
+        const res = await fetch('/Settings/EditUser', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                id:          document.getElementById('editUserId').value,
+                fullName:    document.getElementById('editFullName').value.trim(),
+                userName:    document.getElementById('editUserName').value.trim(),
+                email:       document.getElementById('editEmail').value.trim(),
+                phoneNumber: document.getElementById('editPhone').value.trim(),
+                role:        document.getElementById('editRole').value,
+                isActive:    document.getElementById('editIsActive').checked
+            })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            showToast(result.message, 'success');
+            closeEditModal();
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showToast(result.message, 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-1"></i>حفظ التغييرات';
+    }
+}
+
+// ============================================
+// PASSWORD MODAL
+// ============================================
+function openPasswordModal(id, name) {
+    document.getElementById('passUserId').value          = id;
+    document.getElementById('passUserName').textContent  = name;
+    document.getElementById('newPassword').value         = '';
+    document.getElementById('confirmNewPassword').value  = '';
+    document.getElementById('passConfirmError').textContent = '';
+    document.getElementById('newPassStrength').style.display = 'none';
+    document.getElementById('passwordModal').classList.add('show');
+}
+
+function closePasswordModal() {
+    document.getElementById('passwordModal').classList.remove('show');
+}
+
+document.getElementById('newPassword').addEventListener('input', function() {
+    checkPasswordStrength(this.value, 'newPassStrength', 'newStrengthFill', 'newStrengthText');
+});
+
+async function savePassword() {
+    const newPass  = document.getElementById('newPassword').value;
+    const confirm  = document.getElementById('confirmNewPassword').value;
+
+    if (newPass.length < 6) {
+        showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+        return;
+    }
+
+    if (newPass !== confirm) {
+        document.getElementById('passConfirmError').textContent = 'كلمتا المرور غير متطابقتين';
+        return;
+    }
+
+    document.getElementById('passConfirmError').textContent = '';
+
+    const btn = document.getElementById('passSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري التغيير...';
+
+    try {
+        const res = await fetch('/Settings/ChangePassword', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                userId:          document.getElementById('passUserId').value,
+                newPassword:     newPass,
+                confirmPassword: confirm
+            })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            showToast(result.message, 'success');
+            closePasswordModal();
+        } else {
+            showToast(result.message, 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-key me-1"></i>تغيير كلمة المرور';
+    }
+}
+
+// ============================================
+// TOGGLE USER
+// ============================================
+async function toggleUser(id, name, isActive) {
+    const action = isActive ? 'تعطيل' : 'تفعيل';
+    if (!confirm(`هل تريد ${action} حساب "${name}"؟`)) return;
+
+    try {
+        const res    = await fetch(`/Settings/ToggleUser?id=${id}`, { method: 'POST' });
+        const result = await res.json();
+
+        if (result.success) {
+            showToast(result.message, 'success');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showToast(result.message, 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال', 'error');
+    }
+}
+
+// ============================================
+// DELETE USER
+// ============================================
+function deleteUser(id, name) {
+    document.getElementById('deleteUserMessage').textContent = `هل تريد حذف المستخدم "${name}"؟`;
+    document.getElementById('confirmDeleteUserBtn').onclick  = () => confirmDeleteUser(id);
+    document.getElementById('deleteUserModal').classList.add('show');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteUserModal').classList.remove('show');
+}
+
+async function confirmDeleteUser(id) {
+    const btn = document.getElementById('confirmDeleteUserBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري الحذف...';
+
+    try {
+        const res    = await fetch(`/Settings/DeleteUser?id=${id}`, { method: 'POST' });
+        const result = await res.json();
+
+        if (result.success) {
+            showToast(result.message, 'success');
+            closeDeleteModal();
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showToast(result.message, 'error');
+        }
+    } catch(e) {
+        showToast('خطأ في الاتصال', 'error');
+    }
+}
+
+// ============================================
+// PASSWORD STRENGTH CHECKER
+// ============================================
+function checkPasswordStrength(password, containerId, fillId, textId) {
+    const container = document.getElementById(containerId);
+    const fill      = document.getElementById(fillId);
+    const text      = document.getElementById(textId);
+
+    if (!password) { container.style.display = 'none'; return; }
+    container.style.display = 'flex';
+
+    let score = 0;
+    if (password.length >= 6)  score++;
+    if (password.length >= 10) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    const levels = [
+        { w: '20%',  bg: '#ef4444', label: 'ضعيفة جداً' },
+        { w: '40%',  bg: '#f97316', label: 'ضعيفة' },
+        { w: '60%',  bg: '#eab308', label: 'متوسطة' },
+        { w: '80%',  bg: '#22c55e', label: 'قوية' },
+        { w: '100%', bg: '#16a34a', label: 'قوية جداً' },
+    ];
+
+    const level = levels[Math.min(score, 4)];
+    fill.style.width      = level.w;
+    fill.style.background = level.bg;
+    text.textContent      = level.label;
+    text.style.color      = level.bg;
+}
+
+// ============================================
+// TOGGLE PASSWORD VISIBILITY
+// ============================================
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon  = document.getElementById(iconId);
+    if (input.type === 'password') {
+        input.type       = 'text';
+        icon.className   = 'fas fa-eye-slash';
+    } else {
+        input.type       = 'password';
+        icon.className   = 'fas fa-eye';
+    }
+}
+
+// ============================================
+// CLOSE ON OVERLAY CLICK
+// ============================================
+['addUserModal','editUserModal','passwordModal','deleteUserModal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+    });
+});
+
+// ============================================
+// TOAST
+// ============================================
+function showToast(message, type = 'success') {
+    const icons = {
+        success: 'fa-check-circle',
+        error:   'fa-times-circle',
+        warning: 'fa-exclamation-triangle'
+    };
+    const toast = document.createElement('div');
+    toast.className = `sg-toast ${type}`;
+    toast.innerHTML = `<i class="fas ${icons[type]}"></i> ${message}`;
+    document.getElementById('toastContainer').appendChild(toast);
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.4s';
+        toast.style.opacity    = '0';
+        setTimeout(() => toast.remove(), 400);
+    }, 3500);
+}
+</script>
+}
+
+@functions {
+    dynamic GetRoleInfo(string role)
+    {
+        return role switch
+        {
+            "مدير النظام"      => new { Color = "#b45309", Bg = "#fef3c7", Icon = "fas fa-crown" },
+            "مدير المخزن"      => new { Color = "#15803d", Bg = "#dcfce7", Icon = "fas fa-warehouse" },
+            "مسؤول المبيعات"   => new { Color = "#1d4ed8", Bg = "#dbeafe", Icon = "fas fa-cash-register" },
+            "مسؤول المشتريات"  => new { Color = "#7c3aed", Bg = "#ede9fe", Icon = "fas fa-shopping-cart" },
+            _                  => new { Color = "#0E4D3A", Bg = "#f0f9f4", Icon = "fas fa-user" }
+        };
+    }
+}

@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "التقارير";
+}
+
+<div class="sg-page-header">
+    <h1 class="sg-page-title-main"><i class="fas fa-file-alt me-2"></i>التقارير</h1>
+    <p class="sg-page-subtitle">تقارير شاملة لمتابعة أداء مؤسستك</p>
+</div>
+
+<div class="sg-reports-grid">
+    <a href="@Url.Action("Stock")" class="sg-report-card">
+        <div class="sg-report-icon" style="background:#dbeafe; color:#2563eb;">
+            <i class="fas fa-warehouse"></i>
+        </div>
+        <h3>تقرير المخزون الحالي</h3>
+        <p>عرض كامل لجميع المنتجات وكمياتها وقيمتها</p>
+        <span class="sg-report-btn">عرض التقرير ←</span>
+    </a>
+
+    <a href="@Url.Action("LowStock")" class="sg-report-card">
+        <div class="sg-report-icon" style="background:#fef3c7; color:#d97706;">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3>المنتجات منخفضة المخزون</h3>
+        <p>قائمة المنتجات التي تحتاج إعادة تموين</p>
+        <span class="sg-report-btn">عرض التقرير ←</span>
+    </a>
+
+    <a href="@Url.Action("Sales")" class="sg-report-card">
+        <div class="sg-report-icon" style="background:#dcfce7; color:#16a34a;">
+            <i class="fas fa-cash-register"></i>
+        </div>
+        <h3>تقرير المبيعات</h3>
+        <p>تفاصيل جميع عمليات البيع حسب الفترة</p>
+        <span class="sg-report-btn">عرض التقرير ←</span>
+    </a>
+
+    <a href="@Url.Action("Purchases")" class="sg-report-card">
+        <div class="sg-report-icon" style="background:#ede9fe; color:#7c3aed;">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h3>تقرير المشتريات</h3>
+        <p>تفاصيل جميع عمليات الشراء من الموردين</p>
+        <span class="sg-report-btn">عرض التقرير ←</span>
+    </a>
+
+    <a href="@Url.Action("Statistics")" class="sg-report-card">
+        <div class="sg-report-icon" style="background:#fce7f3; color:#db2777;">
+            <i class="fas fa-chart-bar"></i>
+        </div>
+        <h3>الإحصائيات العامة</h3>
+        <p>مؤشرات الأداء الرئيسية والتحليلات</p>
+        <span class="sg-report-btn">عرض التقرير ←</span>
+    </a>
+</div>
+
+<style>
+    .sg-reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .sg-report-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: var(--sg-shadow);
+        text-decoration: none;
+        color: var(--sg-text);
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+        .sg-report-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--sg-shadow-hover);
+            text-decoration: none;
+            color: var(--sg-text);
+        }
+
+    .sg-report-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .sg-report-card h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .sg-report-card p {
+        font-size: 13px;
+        color: var(--sg-text-light);
+        margin: 0;
+    }
+
+    .sg-report-btn {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--sg-primary);
+        margin-top: auto;
+    }
+</style>

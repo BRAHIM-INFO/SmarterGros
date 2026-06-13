@@ -1,0 +1,177 @@
+﻿<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SmarterGros</title>
+
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Bootstrap RTL -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.rtl.min.css" rel="stylesheet" />
+
+    <!-- Font Awesome - CDN مع crossorigin -->
+    <script src="https://kit.fontawesome.com/3ae94e5958.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LQ=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer" />
+
+    <!-- Site CSS -->
+    <link href="~/css/site.css" rel="stylesheet" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="sg-body"> 
+    <div class="sg-wrapper">
+        <!-- Sidebar -->
+        <aside class="sg-sidebar" id="sidebar">
+            <div class="sg-sidebar-header">
+                <div class="sg-logo">
+                    <div class="sg-logo-icon">SG</div>
+                    <div class="sg-logo-text">
+                        <span class="sg-logo-name">SmartGros</span>
+                        <span class="sg-logo-sub">نظام تسيير المخزون</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sg-nav">
+                <div class="sg-nav-section">
+                    <span class="sg-nav-label">رئيسية</span>
+                    <a href="@Url.Action("Index", "Dashboard")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                        <i class="fas fa-th-large"></i>
+                        <span>لوحة التحكم</span>
+                    </a>
+                </div>
+
+                <div class="sg-nav-section">
+                    <span class="sg-nav-label">المخزن</span>
+                    <a href="@Url.Action("Index", "Products")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")">
+                        <i class="fas fa-box"></i>
+                        <span>المنتجات</span>
+                    </a>
+                    <a href="@Url.Action("Index", "StockMovements")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "StockMovements" ? "active" : "")">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>حركات المخزون</span>
+                        @{
+                            var lowCount = ViewBag.LowStockCount as int?;
+                        }
+                    </a>
+                    <a href="@Url.Action("Index", "Categories")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")">
+                        <i class="fas fa-tags"></i>
+                        <span>الفئات</span>
+                    </a>
+                </div>
+
+                <div class="sg-nav-section">
+                    <span class="sg-nav-label">التجارة</span>
+                    <a href="@Url.Action("Index", "Purchases")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Purchases" ? "active" : "")">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>المشتريات</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Sales")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Sales" ? "active" : "")">
+                        <i class="fas fa-cash-register"></i>
+                        <span>المبيعات</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Suppliers")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Suppliers" ? "active" : "")">
+                        <i class="fas fa-truck"></i>
+                        <span>الموردون</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Customers")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Customers" ? "active" : "")">
+                        <i class="fas fa-users"></i>
+                        <span>العملاء</span>
+                    </a>
+                </div>
+
+                <div class="sg-nav-section">
+                    <span class="sg-nav-label">التحليل</span>
+                    <a href="@Url.Action("Statistics", "Reports")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" && ViewContext.RouteData.Values["action"]?.ToString() == "Statistics" ? "active" : "")">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>الإحصائيات</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Reports")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                        <i class="fas fa-file-alt"></i>
+                        <span>التقارير</span>
+                    </a>
+                </div>
+
+                <div class="sg-nav-section">
+                    <a href="@Url.Action("Index", "Settings")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
+                        <i class="fas fa-cog"></i>
+                        <span>الإعدادات</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sg-sidebar-footer">
+                <div class="sg-user-info">
+                    <div class="sg-user-avatar">@(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "م")</div>
+                    <div class="sg-user-details">
+                        <span class="sg-user-name">مدير النظام</span>
+                        <span class="sg-user-role">Administrator</span>
+                    </div>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="sg-logout-btn" title="تسجيل الخروج">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="sg-main">
+            <!-- Top Bar -->
+            <header class="sg-topbar">
+                <div class="sg-topbar-right">
+                    <button class="sg-sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="sg-notification">
+                        <i class="fas fa-bell"></i>
+                        <span class="sg-badge">3</span>
+                    </div>
+                    <div class="sg-date-display">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="currentDate"></span>
+                    </div>
+                </div>
+                <div class="sg-topbar-left">
+                    <div class="sg-search">
+                        <input type="text" placeholder="بحث عن منتج، مورد، فاتورة..." id="globalSearch" />
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <span class="sg-page-title">@ViewData["Title"]</span>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="sg-content">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show sg-alert" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show sg-alert" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="~/js/site.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

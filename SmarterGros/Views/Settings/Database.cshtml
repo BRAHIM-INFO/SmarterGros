@@ -1,0 +1,1213 @@
+﻿@{
+    ViewData["Title"] = "إدارة قاعدة البيانات";
+}
+
+<!-- Settings Tabs -->
+<div class="sg-settings-tabs">
+    <a href="@Url.Action("Index", "Settings")" class="sg-tab-btn">
+        <i class="fas fa-building me-1"></i>بيانات المؤسسة
+    </a>
+    <a href="@Url.Action("Users", "Settings")" class="sg-tab-btn">
+        <i class="fas fa-users me-1"></i>المستخدمون
+    </a>
+    <a href="@Url.Action("Database", "Settings")" class="sg-tab-btn active">
+        <i class="fas fa-database me-1"></i>قاعدة البيانات
+    </a>
+    <a href="@Url.Action("Support", "Settings")" class="sg-tab-btn">
+        <i class="fas fa-headset me-1"></i>الدعم
+    </a>
+</div>
+
+<!-- Page Header -->
+<div class="db-page-header">
+    <div class="db-header-icon">
+        <i class="fas fa-database"></i>
+    </div>
+    <div>
+        <h1 class="db-header-title">إدارة قاعدة البيانات المحلية</h1>
+        <p class="db-header-sub">
+            التطبيق يعمل بالكامل داخل المتصفح، وقاعدة البيانات المتصلة حالياً محلية ومحفوظة على جهازك فقط.
+        </p>
+        <p class="db-header-sub">
+            من هنا يمكنك متابعة حالة قاعدة البيانات الحالية، تنزيل نسخة احتياطية، استعادة قاعدة بيانات سابقة، أو مسح البيانات المحلية والعودة إلى المعالج من جديد.
+        </p>
+    </div>
+</div>
+
+<!-- Error/Success Messages -->
+<div id="dbAlertContainer"></div>
+
+<!-- Main Grid -->
+<div class="db-main-grid">
+
+    <!-- ===== قاعدة البيانات المتصلة ===== -->
+    <div class="db-card">
+        <div class="db-card-header">
+            <h3><i class="fas fa-server me-2"></i>قاعدة البيانات المتصلة حالياً</h3>
+        </div>
+        <div class="db-card-body">
+            <p class="db-card-desc">
+                هذه هي القاعدة التي يعمل عليها التطبيق الآن داخل هذا المتصفح.
+                مع نسخة محفوظة بشكل دائم في التخزين المحلي للمتصفح.
+            </p>
+
+            <div class="db-info-list">
+                <div class="db-info-item">
+                    <span class="db-info-label">اسم قاعدة البيانات</span>
+                    <span class="db-info-value">@ViewBag.DbName</span>
+                </div>
+                <div class="db-info-item">
+                    <span class="db-info-label">اسم السيرفر</span>
+                    <span class="db-info-value">@ViewBag.ServerName</span>
+                </div>
+                <div class="db-info-item">
+                    <span class="db-info-label">موقع الحفظ الدائم</span>
+                    <span class="db-info-value">SQL Server Local</span>
+                </div>
+                <div class="db-info-item">
+                    <span class="db-info-label">الحجم الحالي التقريبي</span>
+                    <span class="db-info-value">
+                        @if (ViewBag.DbSizeKB != null && (long)ViewBag.DbSizeKB > 0)
+                        {
+                            <text>@ViewBag.DbSizeKB KB</text>
+                        }
+                        else
+                        {
+                            <text>—</text>
+                        }
+                    </span>
+                </div>
+                <div class="db-info-item">
+                    <span class="db-info-label">آخر نسخة احتياطية مسجلة</span>
+                    <span class="db-info-value">
+                        @if (ViewBag.LastBackupDate != null)
+                        {
+                            <text>@((DateTime)ViewBag.LastBackupDate).ToString("hh:mm tt - yyyy/MM/dd")</text>
+                        }
+                        else
+                        {
+                            <text>لا توجد نسخة</text>
+                        }
+                    </span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="db-stats-grid">
+                <div class="db-stat-item">
+                    <i class="fas fa-box"></i>
+                    <span class="db-stat-num">@ViewBag.TotalProducts</span>
+                    <span class="db-stat-label">منتج</span>
+                </div>
+                <div class="db-stat-item">
+                    <i class="fas fa-truck"></i>
+                    <span class="db-stat-num">@ViewBag.TotalSuppliers</span>
+                    <span class="db-stat-label">مورد</span>
+                </div>
+                <div class="db-stat-item">
+                    <i class="fas fa-users"></i>
+                    <span class="db-stat-num">@ViewBag.TotalCustomers</span>
+                    <span class="db-stat-label">عميل</span>
+                </div>
+                <div class="db-stat-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="db-stat-num">@ViewBag.TotalSales</span>
+                    <span class="db-stat-label">فاتورة بيع</span>
+                </div>
+                <div class="db-stat-item">
+                    <i class="fas fa-file-invoice"></i>
+                    <span class="db-stat-num">@ViewBag.TotalPurchases</span>
+                    <span class="db-stat-label">فاتورة شراء</span>
+                </div>
+                <div class="db-stat-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span class="db-stat-num">@ViewBag.TotalMovements</span>
+                    <span class="db-stat-label">حركة مخزون</span>
+                </div>
+            </div>
+
+            <div class="db-status-badge">
+                <i class="fas fa-check-circle me-1"></i>
+                القاعدة محفوظة محلياً في المتصفح
+                <br>
+                <small>وجاهزة للعمل بدون إنترنت بعد التحميل الأول.</small>
+            </div>
+
+            <button class="db-btn-refresh" onclick="refreshDbInfo()">
+                <i class="fas fa-sync-alt me-1"></i>تحديث معلومات القاعدة
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== تنزيل نسخة احتياطية ===== -->
+    <div class="db-card">
+        <div class="db-card-header">
+            <h3><i class="fas fa-download me-2"></i>تنزيل نسخة احتياطية</h3>
+        </div>
+        <div class="db-card-body">
+            <p class="db-card-desc">
+                ينشئ ملفاً محلياً يحتوي قاعدة بياناتك الحالية
+                كما هي على هذا المتصفح.
+            </p>
+
+            @if (ViewBag.LastBackupDate != null)
+            {
+                <div class="db-last-backup">
+                    <div class="db-last-backup-label">آخر نسخة احتياطية معروفة</div>
+                    <div class="db-last-backup-date">
+                        @((DateTime)ViewBag.LastBackupDate).ToString("hh:mm tt - yyyy/MM/dd")
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="db-last-backup empty">
+                    <div class="db-last-backup-label">آخر نسخة احتياطية معروفة</div>
+                    <div class="db-last-backup-date">لا توجد نسخة سابقة</div>
+                </div>
+            }
+
+            <button class="db-btn-download" id="backupBtn" onclick="createBackup()">
+                <i class="fas fa-download me-2"></i>تنزيل النسخة الاحتياطية
+            </button>
+
+            <!-- قائمة النسخ السابقة -->
+            <div class="db-backups-list" id="backupsList" style="display:none;">
+                <div class="db-backups-title">
+                    <i class="fas fa-history me-1"></i>النسخ الاحتياطية السابقة
+                </div>
+                <div id="backupsItems"></div>
+            </div>
+
+            <button class="db-btn-show-backups" onclick="loadBackups()">
+                <i class="fas fa-list me-1"></i>عرض النسخ السابقة
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== استعادة نسخة احتياطية ===== -->
+    <div class="db-card">
+        <div class="db-card-header">
+            <h3><i class="fas fa-upload me-2"></i>استعادة نسخة احتياطية</h3>
+        </div>
+        <div class="db-card-body">
+            <p class="db-card-desc">
+                اختر ملف النسخة الاحتياطية المحلي ثم نُنفّذ
+                الاستعادة. سيتم تحديث بياناتك المحلية الحالية
+                داخل المتصفح.
+            </p>
+
+            <div class="db-upload-zone" id="uploadZone" onclick="document.getElementById('backupFileInput').click()">
+                <i class="fas fa-folder-open fa-2x mb-2"></i>
+                <span>اختيار ملف النسخة الاحتياطية</span>
+                <small>.bak فقط</small>
+                <input type="file"
+                       id="backupFileInput"
+                       accept=".bak"
+                       style="display:none"
+                       onchange="handleFileSelect(this)" />
+            </div>
+
+            <div class="db-selected-file" id="selectedFileInfo" style="display:none;">
+                <div class="db-file-icon">
+                    <i class="fas fa-file-archive"></i>
+                </div>
+                <div>
+                    <div class="db-file-name" id="selectedFileName"></div>
+                    <div class="db-file-size" id="selectedFileSize"></div>
+                </div>
+                <button class="db-btn-remove-file" onclick="removeFile()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="db-restore-warning">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                <strong>تنبيه:</strong> الاستعادة ستستبدل جميع البيانات الحالية
+            </div>
+
+            <button class="db-btn-restore" id="restoreBtn"
+                    onclick="restoreBackup()" disabled>
+                <i class="fas fa-undo me-2"></i>استعادة النسخة الاحتياطية
+            </button>
+
+            <button class="db-btn-cancel-restore" onclick="removeFile()" style="display:none;" id="cancelRestoreBtn">
+                <i class="fas fa-times me-1"></i>إلغاء التحديد
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== تصفير قاعدة البيانات ===== -->
+<div class="db-danger-zone">
+    <div class="db-danger-header">
+        <i class="fas fa-trash-alt me-2"></i>تصفير البيانات المحلية
+    </div>
+    <div class="db-danger-body">
+        <div class="db-danger-info">
+            <h4>تصفير البيانات المحلية</h4>
+            <p>
+                يحذف هذا الخيار جميع بياناتك من هذا المتصفح فقط.
+                ثم يفتح المعالج الإعداد من جديد لتبدأ من الصفر.
+            </p>
+            <div class="db-danger-warning">
+                <strong>تنبيه مهم</strong>
+                <p>
+                    إذا كانت لديك بيانات مهمة، نزّل نسخة احتياطية مهمة.
+                    نزّل نسخة احتياطية قبل التصفير لأن الحذف
+                    نهائي على هذا المتصفح.
+                </p>
+            </div>
+        </div>
+        <div class="db-danger-action">
+            <button class="db-btn-danger" onclick="confirmClearDatabase()">
+                <i class="fas fa-trash me-2"></i>
+                حذف كل البيانات وفتح المعالج
+            </button>
+        </div>
+    </div>
+    <div class="db-danger-footer">
+        <i class="fas fa-info-circle me-1"></i>
+        <strong>مهم:</strong> بياناتك هنا محلية على جهازك.
+        بعد الاستعادة أو التصفير سيتم إعادة تحميل التطبيق لقراءة الحالة الجديدة من التخزين المحلي للمتصفح.
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="db-loading" id="dbLoading" style="display:none;">
+    <div class="db-loading-box">
+        <i class="fas fa-spinner fa-spin fa-2x mb-3" style="color: var(--sg-primary);"></i>
+        <p id="loadingText" class="fw-bold">جاري المعالجة...</p>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toastContainer" style="position:fixed; top:80px; left:20px; z-index:9999;"></div>
+
+@section Styles {
+    <style>
+        /* ===== PAGE HEADER ===== */
+        .db-page-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            background: linear-gradient(135deg, var(--sg-primary), var(--sg-primary-light));
+            border-radius: 16px;
+            padding: 28px 30px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .db-header-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+
+        .db-header-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0 0 8px;
+        }
+
+        .db-header-sub {
+            font-size: 13px;
+            opacity: 0.85;
+            margin: 0 0 4px;
+            line-height: 1.6;
+        }
+
+        /* ===== MAIN GRID ===== */
+        .db-main-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        /* ===== CARD ===== */
+        .db-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--sg-shadow);
+            overflow: hidden;
+            border: 1px solid rgba(14,77,58,0.06);
+        }
+
+        .db-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--sg-border);
+            background: #fafcfb;
+        }
+
+            .db-card-header h3 {
+                font-size: 15px;
+                font-weight: 800;
+                color: var(--sg-text);
+                margin: 0;
+            }
+
+        .db-card-body {
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .db-card-desc {
+            font-size: 13px;
+            color: var(--sg-text-light);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* ===== INFO LIST ===== */
+        .db-info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border: 1px solid var(--sg-border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .db-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f4f2;
+            transition: background 0.15s;
+        }
+
+            .db-info-item:last-child {
+                border-bottom: none;
+            }
+
+            .db-info-item:hover {
+                background: #f8fbf9;
+            }
+
+        .db-info-label {
+            font-size: 11px;
+            color: var(--sg-text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .db-info-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--sg-text);
+            font-family: monospace !important;
+        }
+
+        /* ===== STATS GRID ===== */
+        .db-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .db-stat-item {
+            background: #f8fbf9;
+            border: 1px solid #e8f5ef;
+            border-radius: 10px;
+            padding: 10px 8px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+            .db-stat-item i {
+                font-size: 16px;
+                color: var(--sg-primary);
+                opacity: 0.7;
+            }
+
+        .db-stat-num {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--sg-text);
+            line-height: 1.2;
+        }
+
+        .db-stat-label {
+            font-size: 10px;
+            color: var(--sg-text-light);
+            font-weight: 600;
+        }
+
+        /* ===== STATUS BADGE ===== */
+        .db-status-badge {
+            background: #f0f9f4;
+            border: 1px solid #c8e6d4;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--sg-primary);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+            .db-status-badge small {
+                display: block;
+                font-size: 11px;
+                font-weight: 400;
+                opacity: 0.8;
+            }
+
+        /* ===== BUTTONS ===== */
+        .db-btn-refresh,
+        .db-btn-show-backups,
+        .db-btn-cancel-restore {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            color: var(--sg-primary);
+            border: 1.5px solid var(--sg-primary);
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif !important;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+            .db-btn-refresh:hover,
+            .db-btn-show-backups:hover,
+            .db-btn-cancel-restore:hover {
+                background: #f0f9f4;
+            }
+
+        .db-btn-download {
+            width: 100%;
+            padding: 12px;
+            background: var(--sg-primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif !important;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(14,77,58,0.25);
+        }
+
+            .db-btn-download:hover {
+                background: var(--sg-primary-dark);
+                transform: translateY(-1px);
+            }
+
+        .db-btn-restore {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif !important;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+            .db-btn-restore:disabled {
+                background: #94a3b8;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .db-btn-restore:not(:disabled):hover {
+                background: #1d4ed8;
+                transform: translateY(-1px);
+            }
+
+        /* ===== LAST BACKUP ===== */
+        .db-last-backup {
+            background: #f0f9f4;
+            border: 1px solid #c8e6d4;
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+
+            .db-last-backup.empty {
+                background: #fafafa;
+                border-color: var(--sg-border);
+            }
+
+        .db-last-backup-label {
+            font-size: 11px;
+            color: var(--sg-text-light);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .db-last-backup-date {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--sg-primary);
+        }
+
+        .db-last-backup.empty .db-last-backup-date {
+            color: var(--sg-text-light);
+        }
+
+        /* ===== UPLOAD ZONE ===== */
+        .db-upload-zone {
+            border: 2px dashed var(--sg-border);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: var(--sg-text-light);
+        }
+
+            .db-upload-zone:hover {
+                border-color: var(--sg-primary);
+                background: #f0f9f4;
+                color: var(--sg-primary);
+            }
+
+            .db-upload-zone span {
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            .db-upload-zone small {
+                font-size: 11px;
+            }
+
+        /* ===== SELECTED FILE ===== */
+        .db-selected-file {
+            background: #f0f9f4;
+            border: 1.5px solid #c8e6d4;
+            border-radius: 10px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .db-file-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--sg-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .db-file-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--sg-text);
+            word-break: break-all;
+        }
+
+        .db-file-size {
+            font-size: 11px;
+            color: var(--sg-text-light);
+        }
+
+        .db-btn-remove-file {
+            margin-right: auto;
+            background: #fee2e2;
+            border: none;
+            color: #b91c1c;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* ===== RESTORE WARNING ===== */
+        .db-restore-warning {
+            background: #fff8e1;
+            border: 1px solid #ffd54f;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #b45309;
+            font-weight: 600;
+        }
+
+        /* ===== BACKUPS LIST ===== */
+        .db-backups-list {
+            border: 1px solid var(--sg-border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .db-backups-title {
+            background: #f8fbf9;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--sg-text-light);
+            border-bottom: 1px solid var(--sg-border);
+            text-transform: uppercase;
+        }
+
+        .db-backup-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f4f2;
+            transition: background 0.15s;
+        }
+
+            .db-backup-item:last-child {
+                border-bottom: none;
+            }
+
+            .db-backup-item:hover {
+                background: #f8fbf9;
+            }
+
+        .db-backup-icon {
+            width: 34px;
+            height: 34px;
+            background: #e8f5ef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--sg-primary);
+            flex-shrink: 0;
+        }
+
+        .db-backup-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .db-backup-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--sg-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .db-backup-meta {
+            font-size: 10px;
+            color: var(--sg-text-light);
+            font-weight: 500;
+        }
+
+        .db-backup-download {
+            background: var(--sg-primary);
+            color: white;
+            border: none;
+            border-radius: 7px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif !important;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+            .db-backup-download:hover {
+                background: var(--sg-primary-dark);
+            }
+
+        /* ===== DANGER ZONE ===== */
+        .db-danger-zone {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--sg-shadow);
+            overflow: hidden;
+            border: 1.5px solid #fee2e2;
+            margin-bottom: 20px;
+        }
+
+        .db-danger-header {
+            background: #fee2e2;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #b91c1c;
+        }
+
+        .db-danger-body {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .db-danger-info {
+            flex: 1;
+        }
+
+            .db-danger-info h4 {
+                font-size: 15px;
+                font-weight: 800;
+                color: var(--sg-text);
+                margin-bottom: 8px;
+            }
+
+            .db-danger-info p {
+                font-size: 13px;
+                color: var(--sg-text-light);
+                margin: 0 0 12px;
+                line-height: 1.6;
+            }
+
+        .db-danger-warning {
+            background: #fff8e1;
+            border: 1px solid #ffd54f;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 12px;
+            color: #b45309;
+        }
+
+            .db-danger-warning strong {
+                display: block;
+                font-size: 13px;
+                margin-bottom: 4px;
+            }
+
+            .db-danger-warning p {
+                margin: 0;
+                color: #b45309;
+            }
+
+        .db-danger-action {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .db-btn-danger {
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-family: 'Cairo', sans-serif !important;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .db-btn-danger:hover {
+                background: #b91c1c;
+                transform: translateY(-1px);
+                box-shadow: 0 5px 15px rgba(220,38,38,0.3);
+            }
+
+        .db-danger-footer {
+            background: #fafafa;
+            border-top: 1px solid var(--sg-border);
+            padding: 12px 20px;
+            font-size: 12px;
+            color: var(--sg-text-light);
+        }
+
+        /* ===== LOADING ===== */
+        .db-loading {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(3px);
+        }
+
+        .db-loading-box {
+            background: white;
+            border-radius: 16px;
+            padding: 35px 50px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        /* ===== TOAST ===== */
+        .sg-toast {
+            padding: 12px 18px;
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            animation: slideInLeft 0.3s ease;
+            min-width: 250px;
+        }
+
+            .sg-toast.success {
+                background: var(--sg-primary);
+            }
+
+            .sg-toast.error {
+                background: var(--sg-danger);
+            }
+
+            .sg-toast.warning {
+                background: var(--sg-warning);
+                color: #333;
+            }
+
+        @@keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @@media (max-width: 1100px) {
+            .db-main-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .db-main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .db-danger-body {
+                flex-direction: column;
+            }
+
+            .db-page-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .db-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        var selectedFile = null;
+
+        // ============================================
+        // CREATE BACKUP
+        // ============================================
+        async function createBackup() {
+            showLoading('جاري إنشاء النسخة الاحتياطية...');
+            var btn = document.getElementById('backupBtn');
+            btn.disabled = true;
+
+            try {
+                var res    = await fetch('/Settings/CreateBackup', { method: 'POST' });
+                var result = await res.json();
+
+                hideLoading();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+
+                    // Download the file
+                    window.location.href = '/Settings/DownloadBackup?fileName=' + result.fileName;
+
+                    // Update last backup date display
+                    setTimeout(function() { location.reload(); }, 2000);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch(e) {
+                hideLoading();
+                showToast('خطأ في إنشاء النسخة الاحتياطية', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ============================================
+        // LOAD BACKUPS LIST
+        // ============================================
+        async function loadBackups() {
+            try {
+                var res    = await fetch('/Settings/GetBackups');
+                var result = await res.json();
+
+                var listDiv = document.getElementById('backupsList');
+                var items   = document.getElementById('backupsItems');
+
+                if (!result.backups || result.backups.length === 0) {
+                    items.innerHTML = '<div style="padding:15px; text-align:center; color:#999; font-size:13px;">لا توجد نسخ احتياطية سابقة</div>';
+                } else {
+                    items.innerHTML = result.backups.map(function(b) {
+                        return '<div class="db-backup-item">' +
+                            '<div class="db-backup-icon"><i class="fas fa-file-archive"></i></div>' +
+                            '<div class="db-backup-info">' +
+                                '<div class="db-backup-name">' + b.fileName + '</div>' +
+                                '<div class="db-backup-meta">' + b.date + ' — ' + b.sizeMB + ' MB</div>' +
+                            '</div>' +
+                            '<button class="db-backup-download" onclick="downloadBackup(\'' + b.fileName + '\')">' +
+                                '<i class="fas fa-download"></i> تنزيل' +
+                            '</button>' +
+                        '</div>';
+                    }).join('');
+                }
+
+                listDiv.style.display = listDiv.style.display === 'none' ? 'block' : 'none';
+
+            } catch(e) {
+                showToast('خطأ في تحميل قائمة النسخ', 'error');
+            }
+        }
+
+        function downloadBackup(fileName) {
+            window.location.href = '/Settings/DownloadBackup?fileName=' + fileName;
+        }
+
+        // ============================================
+        // FILE SELECT
+        // ============================================
+        function handleFileSelect(input) {
+            if (!input.files || !input.files[0]) return;
+
+            selectedFile = input.files[0];
+            var sizeKB   = (selectedFile.size / 1024).toFixed(1);
+            var sizeMB   = (selectedFile.size / 1024 / 1024).toFixed(2);
+            var sizeText = selectedFile.size > 1048576 ? sizeMB + ' MB' : sizeKB + ' KB';
+
+            document.getElementById('selectedFileName').textContent = selectedFile.name;
+            document.getElementById('selectedFileSize').textContent = sizeText;
+            document.getElementById('selectedFileInfo').style.display = 'flex';
+            document.getElementById('uploadZone').style.display       = 'none';
+            document.getElementById('restoreBtn').disabled            = false;
+            document.getElementById('cancelRestoreBtn').style.display = 'flex';
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            document.getElementById('backupFileInput').value          = '';
+            document.getElementById('selectedFileInfo').style.display = 'none';
+            document.getElementById('uploadZone').style.display       = 'flex';
+            document.getElementById('restoreBtn').disabled            = true;
+            document.getElementById('cancelRestoreBtn').style.display = 'none';
+        }
+
+        // ============================================
+        // RESTORE BACKUP
+        // ============================================
+        async function restoreBackup() {
+            if (!selectedFile) {
+                showToast('يرجى اختيار ملف النسخة الاحتياطية', 'error');
+                return;
+            }
+
+            if (!confirm('⚠️ هل أنت متأكد من استعادة قاعدة البيانات؟\n\nسيتم استبدال جميع البيانات الحالية بالبيانات في الملف المحدد.')) {
+                return;
+            }
+
+            showLoading('جاري استعادة قاعدة البيانات...');
+
+            var formData = new FormData();
+            formData.append('backupFile', selectedFile);
+
+            try {
+                var res    = await fetch('/Settings/RestoreBackup', {
+                    method: 'POST',
+                    body:   formData
+                });
+                var result = await res.json();
+
+                hideLoading();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    setTimeout(function() { location.reload(); }, 2000);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch(e) {
+                hideLoading();
+                showToast('خطأ في استعادة قاعدة البيانات', 'error');
+            }
+        }
+
+        // ============================================
+        // REFRESH DB INFO
+        // ============================================
+        function refreshDbInfo() {
+            showLoading('جاري تحديث معلومات القاعدة...');
+            setTimeout(function() {
+                hideLoading();
+                location.reload();
+            }, 1000);
+        }
+
+        // ============================================
+        // CLEAR DATABASE
+        // ============================================
+        function confirmClearDatabase() {
+            var confirmed = confirm(
+                '⚠️ تحذير خطير!\n\n' +
+                'هل أنت متأكد من حذف جميع البيانات؟\n\n' +
+                'سيتم حذف:\n' +
+                '• جميع المنتجات\n' +
+                '• جميع الفئات\n' +
+                '• جميع الموردين والعملاء\n' +
+                '• جميع فواتير البيع والشراء\n' +
+                '• جميع حركات المخزون\n\n' +
+                'هذا الإجراء لا يمكن التراجع عنه!'
+            );
+
+            if (!confirmed) return;
+
+            var confirmed2 = confirm('تأكيد أخير: هل قمت بتنزيل نسخة احتياطية قبل المتابعة؟');
+            if (!confirmed2) return;
+
+            showLoading('جاري مسح البيانات...');
+
+            fetch('/Settings/ClearDatabase', { method: 'POST' })
+                .then(function(res) { return res.json(); })
+                .then(function(result) {
+                    hideLoading();
+                    if (result.success) {
+                        showToast(result.message, 'success');
+                        setTimeout(function() { location.reload(); }, 2000);
+                    } else {
+                        showToast(result.message, 'error');
+                    }
+                })
+                .catch(function() {
+                    hideLoading();
+                    showToast('خطأ في مسح البيانات', 'error');
+                });
+        }
+
+        // ============================================
+        // DRAG AND DROP
+        // ============================================
+        var uploadZone = document.getElementById('uploadZone');
+
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--sg-primary)';
+            this.style.background  = '#f0f9f4';
+        });
+
+        uploadZone.addEventListener('dragleave', function() {
+            this.style.borderColor = 'var(--sg-border)';
+            this.style.background  = '';
+        });
+
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--sg-border)';
+            this.style.background  = '';
+            var file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.bak')) {
+                var fakeInput    = document.getElementById('backupFileInput');
+                var dt           = new DataTransfer();
+                dt.items.add(file);
+                fakeInput.files  = dt.files;
+                handleFileSelect(fakeInput);
+            } else {
+                showToast('يرجى اختيار ملف .bak فقط', 'error');
+            }
+        });
+
+        // ============================================
+        // LOADING
+        // ============================================
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text || 'جاري المعالجة...';
+            document.getElementById('dbLoading').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('dbLoading').style.display = 'none';
+        }
+
+        // ============================================
+        // TOAST
+        // ============================================
+        function showToast(message, type) {
+            type = type || 'success';
+            var icons = {
+                success: 'fa-check-circle',
+                error:   'fa-times-circle',
+                warning: 'fa-exclamation-triangle'
+            };
+            var toast = document.createElement('div');
+            toast.className = 'sg-toast ' + type;
+            toast.innerHTML = '<i class="fas ' + icons[type] + '"></i> ' + message;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(function() {
+                toast.style.transition = 'opacity 0.4s';
+                toast.style.opacity    = '0';
+                setTimeout(function() { toast.remove(); }, 400);
+            }, 4000);
+        }
+    </script>
+}

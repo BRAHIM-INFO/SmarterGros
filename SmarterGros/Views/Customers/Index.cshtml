@@ -1,0 +1,1760 @@
+﻿@model IEnumerable<SmarterGros.Models.Customer>
+@{
+    ViewData["Title"] = "العملاء";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div dir="rtl" class="customers-page">
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="page-header">
+        <h4 class="page-title">
+            <i class="fas fa-truck me-2"></i> إدارة العملاء
+        </h4>
+        <button class="btn-add-customer" onclick="openAddModal()">
+            <i class="fas fa-user-plus me-2"></i>
+            إضافة عميل جديد
+        </button>
+    </div>
+
+    <!-- ===== SEARCH BAR ===== -->
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text"
+                   id="searchInput"
+                   class="search-input"
+                   placeholder="البحث في أسماء العملاء..."
+                   onkeyup="filterCustomers()" />
+        </div>
+    </div>
+
+    <!-- ===== customerS LIST ===== -->
+    <div class="customers-list" id="customersList">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var customer in Model)
+            {
+                <div class="customer-card" data-name="@customer.Name.ToLower()">
+
+                    <!-- Right Color Bar -->
+                    <div class="customer-card-bar"></div>
+
+                    <!-- Avatar -->
+                    <div class="customer-avatar-wrap">
+                        <div class="customer-avatar">
+                            @customer.Name.Substring(0, 1).ToUpper()
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="customer-actions-top">
+                        <button class="action-btn delete-btn"
+                                onclick="deleteCustomer(@customer.Id, '@customer.Name')"
+                                title="حذف">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="action-btn edit-btn"
+                                onclick="openEditModal(@customer.Id)"
+                                title="تعديل">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="customer-info">
+                        <h5 class="customer-name">@customer.Name</h5>
+                        @if (!string.IsNullOrEmpty(customer.Address))
+                        {
+                            <p class="customer-address">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                @customer.Address
+                            </p>
+                        }
+                    </div>
+
+                    <!-- Details -->
+                    <div class="customer-details">
+                        @if (!string.IsNullOrEmpty(customer.Phone))
+                        {
+                            <div class="detail-row">
+                                <span class="detail-label">رقم الهاتف</span>
+                                <span class="detail-value">@customer.Phone</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(customer.NIF))
+                        {
+                            <div class="detail-row">
+                                <span class="detail-label text-teal">NIF</span>
+                                <span class="detail-value">@customer.NIF</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(customer.RC))
+                        {
+                            <div class="detail-row">
+                                <span class="detail-label text-teal">RC</span>
+                                <span class="detail-value">@customer.RC</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- View Button -->
+                    <div class="customer-footer">
+                        <button class="btn-view-details"
+                                onclick="openCustomerFile(@customer.Id)">
+                            <i class="fas fa-file-invoice me-2"></i>
+                            عرض المبيعات والديون
+                        </button>
+                    </div>
+
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-truck-loading"></i>
+                <p>لا يوجد عملاء مسجلون بعد</p>
+                <button class="btn-add-customer" onclick="openAddModal()">
+                    <i class="fas fa-plus me-2"></i> إضافة أول عميل
+                </button>
+            </div>
+        }
+    </div>
+
+    <!-- ===== PAGINATION ===== -->
+    <div class="pagination-bar">
+        <button class="page-btn" id="prevBtn" onclick="changePage(-1)">السابق</button>
+        <span class="page-info" id="pageInfo">صفحة 1 من 1</span>
+        <button class="page-btn" id="nextBtn" onclick="changePage(1)">التالي</button>
+    </div>
+
+</div>
+
+<!-- ================================================================
+     MODAL: إضافة / تعديل عميل
+     ================================================================ -->
+<div class="modal-overlay" id="customerModal" onclick="closeModalOutside(event)">
+    <div class="modal-box" id="customerModalBox">
+
+        <!-- Modal Header -->
+        <div class="modal-header-custom">
+            <h5 class="modal-title-custom" id="modalTitle">إضافة عميل جديد</h5>
+            <button class="modal-close-btn" onclick="closeCustomerModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- استبدل modal body في Index.cshtml بهذا -->
+        <div class="modal-body-custom">
+            <form id="customerForm">
+                <input type="hidden" id="customerId" value="0" />
+
+                <!-- اسم العميل -->
+                <div class="form-group-custom">
+                    <label class="form-label-custom">
+                        العميل / اسم الشركة <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="customerName"
+                           class="form-input-custom" required />
+                </div>
+
+                <!-- النشاط التجاري -->
+                <div class="form-group-custom">
+                    <label class="form-label-custom">النشاط التجاري</label>
+                    <input type="text" id="customerBusinessActivity"
+                           class="form-input-custom"
+                           placeholder="مثال: مواد غذائية، إلكترونيات..." />
+                </div>
+
+                <!-- الهاتف والمدينة -->
+                <div class="form-row-custom">
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">رقم الهاتف الأساسي</label>
+                        <input type="text" id="customerPhone"
+                               class="form-input-custom" />
+                    </div>
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">رقم الهاتف الثاني</label>
+                        <input type="text" id="customerPhone2"
+                               class="form-input-custom" />
+                    </div>
+                </div>
+
+                <!-- البريد والعنوان -->
+                <div class="form-row-custom">
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">البريد الإلكتروني</label>
+                        <input type="email" id="customerEmail"
+                               class="form-input-custom" />
+                    </div>
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">المدينة</label>
+                        <input type="text" id="customerCity"
+                               class="form-input-custom" />
+                    </div>
+                </div>
+
+                <!-- العنوان كامل -->
+                <div class="form-group-custom">
+                    <label class="form-label-custom">العنوان والموقع</label>
+                    <input type="text" id="customerAddress"
+                           class="form-input-custom" />
+                </div>
+
+                <!-- السجل التجاري والضريبي -->
+                <div class="form-section-box">
+                    <h6 class="form-section-title">
+                        <i class="fas fa-file-alt me-2 text-teal"></i>
+                        السجل التجاري والمعلومات الضريبية
+                    </h6>
+                    <div class="form-row-custom">
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">RC (السجل التجاري)</label>
+                            <input type="text" id="customerRC"
+                                   class="form-input-custom" />
+                        </div>
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">NIF (الرقم الجبائي)</label>
+                            <input type="text" id="customerNIF"
+                                   class="form-input-custom" />
+                        </div>
+                    </div>
+                    <div class="form-row-custom">
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">AI (المادة الجبائية)</label>
+                            <input type="text" id="customerAI"
+                                   class="form-input-custom" />
+                        </div>
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">NIS (رقم الإحصاء)</label>
+                            <input type="text" id="customerNIS"
+                                   class="form-input-custom" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- المعلومات البنكية -->
+                <div class="form-section-box">
+                    <h6 class="form-section-title">
+                        <i class="fas fa-university me-2 text-teal"></i>
+                        المعلومات البنكية
+                    </h6>
+                    <div class="form-row-custom">
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">اسم البنك</label>
+                            <input type="text" id="customerBankName"
+                                   class="form-input-custom" />
+                        </div>
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">رقم الحساب البنكي</label>
+                            <input type="text" id="customerBankAccount"
+                                   class="form-input-custom" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الدين الابتدائي -->
+                <div class="form-debt-box">
+                    <label class="form-label-custom">
+                        الدين الابتدائي
+                        <small>(مبلغ تَدين به لهذا العميل قبل بدء استخدام البرنامج)</small>
+                    </label>
+                    <div class="debt-input-wrap">
+                        <span class="currency-label">دج</span>
+                        <input type="number" id="customerInitialDebt"
+                               class="form-input-custom debt-input"
+                               value="0" min="0" step="0.01" />
+                    </div>
+                    <small class="debt-hint">
+                        سيُضاف هذا المبلغ إلى دينك الإجمالي لهذا العميل.
+                        اتركه 0 إذا لم يكن هناك دين سابق.
+                    </small>
+                </div>
+
+                <!-- حالة العميل -->
+                <div class="form-group-custom">
+                    <label class="form-check-label-custom">
+                        <input type="checkbox" id="customerIsActive"
+                               checked class="form-check-input me-2" />
+                        العميل نشط
+                    </label>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="modal-footer-custom">
+                    <button type="button" class="btn-cancel"
+                            onclick="closecustomerModal()">
+                        إلغاء
+                    </button>
+                    <button type="button" class="btn-save"
+                            onclick="savecustomer()">
+                        <i class="fas fa-save me-2"></i>
+                        حفظ العميل
+                    </button>
+                </div>
+            </form>
+        </div> 
+    </div>
+</div>
+
+<!-- ================================================================
+     MODAL: ملف العميل (المشتريات والديون)
+     ================================================================ -->
+<div class="modal-overlay" id="customerFileModal" onclick="closeFileModalOutside(event)">
+    <div class="modal-box modal-box-lg" id="customerFileModalBox">
+
+        <!-- Modal Header -->
+        <div class="modal-header-custom file-header">
+            <div class="file-header-info">
+                <h5 class="modal-title-custom" id="filecustomerName">ملف العميل: ---</h5>
+                <div class="file-header-sub">
+                    <span id="filecustomerPhone">رقم الهاتف: ---</span>
+                    <span id="filecustomerID">ID: ---</span>
+                </div>
+            </div>
+            <div class="file-header-left">
+                <div class="file-avatar" id="filecustomerAvatar">؟</div>
+                <button class="modal-close-btn" onclick="closeFileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="file-stats-row">
+            <div class="file-stat-card stat-purchases">
+                <span class="stat-label">إجمالي المبيعات من هذا العميل</span>
+                <span class="stat-value green" id="statTotalPurchases">0.00 دج</span>
+            </div>
+            <div class="file-stat-card stat-paid">
+                <span class="stat-label">إجمالي المدفوعات</span>
+                <span class="stat-value green" id="statTotalPaid">0.00 دج</span>
+            </div>
+            <div class="file-stat-card stat-debt">
+                <span class="stat-label">الديون المستحقة للعميل</span>
+                <span class="stat-value red" id="statTotalDebt">0.00 دج</span>
+                <div class="stat-debt-bar"></div>
+            </div>
+        </div>
+
+        <!-- Initial Debt Box -->
+        <div class="initial-debt-box" id="initialDebtBox" style="display:none">
+            <div class="initial-debt-right">
+                <h6 class="initial-debt-title">الدين الابتدائي للعميل</h6>
+                <p class="initial-debt-sub">
+                    الدين الابتدائي (ديون سابقة قبل بدء استخدام البرنامج):
+                    <span id="initialDebtAmount" class="text-orange fw-bold">0.00 دج</span>
+                </p>
+            </div>
+            <div class="initial-debt-left">
+                <span class="initial-debt-badge-label">الدين الابتدائي (الباقي)</span>
+                <span class="initial-debt-value" id="initialDebtRemaining">0.00 دج</span>
+            </div>
+        </div>
+
+        <!-- Payment Section -->
+        <div class="payment-section">
+            <h6 class="payment-title">
+                <i class="fas fa-cash-register me-2"></i>
+                تسديد دفعة للعميل
+            </h6>
+            <div class="payment-form-row">
+                <button class="btn-confirm-payment" onclick="confirmPayment()">
+                    <i class="fas fa-check-circle me-2"></i>
+                    تأكيد التسديد
+                </button>
+                <div class="payment-field">
+                    <label>التاريخ</label>
+                    <input type="date" id="paymentDate" class="payment-input"
+                           value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="payment-field flex-1">
+                    <label>المبلغ المدفوع</label>
+                    <input type="number" id="paymentAmount"
+                           class="payment-input payment-amount"
+                           value="0.00" min="0" step="0.01" />
+                </div>
+            </div>
+            <small class="payment-note">
+                يُسدَّد الدين الابتدائي أولاً ثم الفواتير الأقدم فالأحدث.
+            </small>
+        </div>
+
+        <!-- Tables Row -->
+        <div class="file-tables-row">
+
+            <!-- Invoices Table -->
+            <div class="file-table-wrap">
+                <h6 class="table-title">
+                    <i class="fas fa-file-invoice me-2 text-teal"></i>
+                    فواتير المبيعات
+                </h6>
+                <div class="table-responsive">
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الفاتورة / التاريخ</th>
+                                <th>الإجمالي</th>
+                                <th>المدفوع</th>
+                                <th class="text-red">المتبقي (الديون)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">
+                                    لا توجد فواتير.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payments Table -->
+            <div class="file-table-wrap">
+                <h6 class="table-title">
+                    <i class="fas fa-history me-2 text-teal"></i>
+                    سجل الدفعات المتراكمة
+                </h6>
+                <div class="table-responsive">
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>المبلغ المدفوع</th>
+                                <th>رقم الفاتورة المرتبطة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody">
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">
+                                    لا يوجد سجل دفعات.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     DELETE CONFIRM MODAL
+     ================================================================ -->
+<div class="modal-overlay" id="deleteModal" onclick="closeDeleteModalOutside(event)">
+    <div class="modal-box modal-box-sm">
+        <div class="modal-header-custom">
+            <h5 class="modal-title-custom text-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                تأكيد الحذف
+            </h5>
+            <button class="modal-close-btn" onclick="closeDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body-custom text-center py-4">
+            <p class="mb-1">هل أنت متأكد من حذف العميل:</p>
+            <h5 class="text-danger fw-bold" id="deletecustomerName">---</h5>
+            <p class="text-muted small mt-2">لا يمكن التراجع عن هذا الإجراء.</p>
+        </div>
+        <div class="modal-footer-custom justify-content-center gap-3">
+            <button class="btn-cancel" onclick="closeDeleteModal()">إلغاء</button>
+            <button class="btn-delete-confirm" onclick="confirmDelete()">
+                <i class="fas fa-trash me-2"></i> حذف
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+
+        /* ==============================
+                   GLOBAL
+                   ============================== */
+        .customers-page {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        /* ==============================
+                   PAGE HEADER
+                   ============================== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a3a2a;
+            margin: 0;
+        }
+
+        .btn-add-customer {
+            background: #3b5bdb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+            .btn-add-customer:hover {
+                background: #2f4ac5;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 14px rgba(59,91,219,0.35);
+            }
+
+        /* ==============================
+                   SEARCH
+                   ============================== */
+        .search-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .search-icon {
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        .search-input {
+            border: none;
+            outline: none;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            color: #374151;
+            background: transparent;
+            width: 100%;
+            text-align: right;
+        }
+
+            .search-input::placeholder {
+                color: #9ca3af;
+            }
+
+        /* ==============================
+                   customer CARD
+                   ============================== */
+        .customers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .customer-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            padding: 18px 18px 18px 22px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+            transition: box-shadow 0.2s;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            grid-template-rows: auto auto auto;
+            gap: 8px 14px;
+        }
+
+            .customer-card:hover {
+                box-shadow: 0 4px 18px rgba(0,0,0,0.09);
+            }
+
+        /* Right Color Bar */
+        .customer-card-bar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: #1a8a5c;
+            border-radius: 0 12px 12px 0;
+        }
+
+        /* Avatar */
+        .customer-avatar-wrap {
+            grid-column: 3;
+            grid-row: 1 / 3;
+            display: flex;
+            align-items: flex-start;
+            padding-top: 2px;
+        }
+
+        .customer-avatar {
+            width: 52px;
+            height: 52px;
+            background: #e8f5ee;
+            color: #1a8a5c;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Actions Top */
+        .customer-actions-top {
+            grid-column: 3;
+            grid-row: 1;
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        /* Re-layout with absolute positioning for cleaner look */
+        .customer-card {
+            display: block;
+            padding: 16px 70px 16px 16px;
+        }
+
+        .customer-avatar-wrap {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+        }
+
+        .customer-actions-top {
+            position: absolute;
+            top: 16px;
+            left: 76px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.2s;
+            color: #6b7280;
+        }
+
+            .action-btn:hover {
+                background: #f3f4f6;
+            }
+
+        .delete-btn:hover {
+            color: #ef4444;
+            border-color: #fca5a5;
+            background: #fef2f2;
+        }
+
+        .edit-btn:hover {
+            color: #3b82f6;
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+
+        /* Info */
+        .customer-info {
+            margin-bottom: 10px;
+        }
+
+        .customer-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 3px;
+            text-align: right;
+        }
+
+        .customer-address {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 0;
+            text-align: right;
+        }
+
+        /* Details */
+        .customer-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 14px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13.5px;
+        }
+
+        .detail-label {
+            color: #6b7280;
+        }
+
+            .detail-label.text-teal {
+                color: #1a8a5c;
+                font-weight: 600;
+            }
+
+        .detail-value {
+            font-weight: 600;
+            color: #111827;
+            direction: ltr;
+        }
+
+        /* Footer */
+        .customer-footer {
+            text-align: right;
+        }
+
+        .btn-view-details {
+            background: #e8f5ee;
+            color: #1a8a5c;
+            border: 1px solid #a7f3d0;
+            padding: 9px 18px;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .btn-view-details:hover {
+                background: #1a8a5c;
+                color: white;
+                transform: translateY(-1px);
+            }
+
+        /* ==============================
+                   PAGINATION
+                   ============================== */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            padding: 12px 20px;
+        }
+
+        .page-btn {
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+            .page-btn:hover:not(:disabled) {
+                background: #f3f4f6;
+                color: #111827;
+            }
+
+            .page-btn:disabled {
+                opacity: 0.4;
+                cursor: default;
+            }
+
+        .page-info {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        /* ==============================
+                   EMPTY STATE
+                   ============================== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+            .empty-state i {
+                font-size: 48px;
+                margin-bottom: 14px;
+                display: block;
+            }
+
+            .empty-state p {
+                font-size: 15px;
+                margin-bottom: 18px;
+            }
+
+        /* ==============================
+                   MODAL BASE
+                   ============================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+
+            .modal-overlay.show {
+                display: flex;
+            }
+
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+            animation: modalSlide 0.25s ease;
+        }
+
+        .modal-box-lg {
+            max-width: 960px;
+        }
+
+        .modal-box-sm {
+            max-width: 420px;
+        }
+
+        @@keyframes modalSlide {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ==============================
+                   MODAL HEADER
+                   ============================== */
+        .modal-header-custom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .modal-title-custom {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+        }
+
+        .modal-close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+            .modal-close-btn:hover {
+                background: #fef2f2;
+                color: #ef4444;
+                border-color: #fca5a5;
+            }
+
+        /* ==============================
+                   MODAL BODY
+                   ============================== */
+        .modal-body-custom {
+            padding: 20px 24px;
+        }
+
+        .form-group-custom {
+            margin-bottom: 16px;
+        }
+
+        .form-label-custom {
+            display: block;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 7px;
+            text-align: right;
+        }
+
+            .form-label-custom small {
+                font-weight: 400;
+                color: #9ca3af;
+                font-size: 12px;
+            }
+
+        .form-input-custom {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            color: #111827;
+            outline: none;
+            transition: border-color 0.2s;
+            text-align: right;
+            background: white;
+        }
+
+            .form-input-custom:focus {
+                border-color: #1a8a5c;
+                box-shadow: 0 0 0 3px rgba(26,138,92,0.1);
+            }
+
+        .form-row-custom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .form-col-custom {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Section Box */
+        .form-section-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 14px;
+            text-align: right;
+        }
+
+        /* Debt Box */
+        .form-debt-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .debt-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .currency-label {
+            background: #e5e7eb;
+            padding: 11px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #374151;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .debt-input {
+            text-align: left !important;
+        }
+
+        .debt-hint {
+            color: #b45309;
+            font-size: 12px;
+        }
+
+        /* ==============================
+                   MODAL FOOTER
+                   ============================== */
+        .modal-footer-custom {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 10px;
+            border-top: 1px solid #f3f4f6;
+            margin-top: 16px;
+        }
+
+        .btn-cancel {
+            background: white;
+            border: 1.5px solid #e5e7eb;
+            color: #374151;
+            padding: 9px 20px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.2s;
+        }
+
+            .btn-cancel:hover {
+                background: #f9fafb;
+            }
+
+        .btn-save {
+            background: #1a5c38;
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+            .btn-save:hover {
+                background: #145230;
+            }
+
+        .btn-delete-confirm {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+            .btn-delete-confirm:hover {
+                background: #dc2626;
+            }
+
+        /* ==============================
+                   FILE MODAL SPECIFIC
+                   ============================== */
+        .file-header {
+            background: linear-gradient(135deg,#1a3a2a,#1a5c38);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            border-bottom: none;
+            padding: 20px 24px;
+        }
+
+        .file-header-info {
+            flex: 1;
+        }
+
+        .file-header .modal-title-custom {
+            color: white;
+            font-size: 20px;
+        }
+
+        .file-header-sub {
+            display: flex;
+            gap: 20px;
+            margin-top: 6px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.75);
+        }
+
+        .file-header-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .file-avatar {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.35);
+        }
+
+        /* Stats Row */
+        .file-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 16px 20px;
+            background: #f9fafb;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .file-stat-card {
+            background: white;
+            border-radius: 11px;
+            border: 1.5px solid #e5e7eb;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: right;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-debt {
+            border-bottom: 3px solid #ef4444;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+            .stat-value.green {
+                color: #1a8a5c;
+            }
+
+            .stat-value.red {
+                color: #ef4444;
+            }
+
+        .stat-debt-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #ef4444;
+        }
+
+        /* Initial Debt Box */
+        .initial-debt-box {
+            margin: 0 20px 0;
+            background: linear-gradient(135deg,#fffbeb,#fef3c7);
+            border: 1px solid #fde68a;
+            border-radius: 11px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .initial-debt-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 4px;
+        }
+
+        .initial-debt-sub {
+            font-size: 12.5px;
+            color: #78350f;
+            margin: 0;
+        }
+
+        .text-orange {
+            color: #d97706;
+        }
+
+        .initial-debt-badge-label {
+            font-size: 11px;
+            color: #92400e;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .initial-debt-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #d97706;
+        }
+
+        /* Payment Section */
+        .payment-section {
+            background: #f0fdf9;
+            border: 1px solid #a7f3d0;
+            border-radius: 11px;
+            margin: 14px 20px;
+            padding: 16px;
+        }
+
+        .payment-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a3a2a;
+            margin-bottom: 14px;
+            text-align: right;
+        }
+
+        .payment-form-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            flex-direction: row-reverse;
+        }
+
+        .payment-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            text-align: right;
+        }
+
+            .payment-field label {
+                font-size: 12px;
+                color: #374151;
+                font-weight: 600;
+            }
+
+            .payment-field.flex-1 {
+                flex: 1;
+            }
+
+        .payment-input {
+            padding: 10px 12px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+            .payment-input:focus {
+                border-color: #1a8a5c;
+            }
+
+        .payment-amount {
+            text-align: left;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .btn-confirm-payment {
+            background: #1a5c38;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+            .btn-confirm-payment:hover {
+                background: #145230;
+            }
+
+        .payment-note {
+            font-size: 12px;
+            color: #1a8a5c;
+            display: block;
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        /* Tables Row */
+        .file-tables-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            padding: 0 20px 20px;
+            margin-top: 14px;
+        }
+
+        .file-table-wrap {
+            background: white;
+            border-radius: 11px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .table-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a3a2a;
+            padding: 12px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #f9fafb;
+            margin: 0;
+            text-align: right;
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            direction: rtl;
+        }
+
+            .file-table thead tr {
+                background: #f0fdf4;
+            }
+
+            .file-table th {
+                padding: 10px 12px;
+                font-weight: 700;
+                color: #374151;
+                border-bottom: 1.5px solid #e5e7eb;
+                text-align: right;
+            }
+
+            .file-table td {
+                padding: 10px 12px;
+                border-bottom: 1px solid #f3f4f6;
+                color: #374151;
+                text-align: right;
+            }
+
+            .file-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .file-table tbody tr:hover {
+                background: #fafafa;
+            }
+
+        .text-red {
+            color: #ef4444 !important;
+            font-weight: 700;
+        }
+
+        .text-teal {
+            color: #1a8a5c;
+        }
+
+        @@media (max-width: 768px) {
+            .file-stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .file-tables-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row-custom {
+                grid-template-columns: 1fr;
+            }
+
+            .payment-form-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // ================================================
+        //  PAGINATION
+        // ================================================
+        const ITEMS_PER_PAGE = 10;
+        let currentPage = 1;
+        let allCards = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            allCards = Array.from(document.querySelectorAll('.customer-card'));
+            renderPage();
+        });
+
+        function renderPage() {
+            const visible = allCards.filter(c => c.style.display !== 'none');
+            const total   = Math.ceil(visible.length / ITEMS_PER_PAGE) || 1;
+            if (currentPage > total) currentPage = total;
+
+            visible.forEach((c, i) => {
+                c.style.visibility = (i >= (currentPage-1)*ITEMS_PER_PAGE &&
+                                      i <  currentPage*ITEMS_PER_PAGE) ? '' : 'hidden';
+                c.style.position   = (i >= (currentPage-1)*ITEMS_PER_PAGE &&
+                                      i <  currentPage*ITEMS_PER_PAGE) ? '' : 'absolute';
+            });
+
+            document.getElementById('pageInfo').textContent =
+                `صفحة ${currentPage} من ${total}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === total;
+        }
+
+        function changePage(dir) {
+            currentPage += dir;
+            renderPage();
+        }
+
+        // ================================================
+        //  SEARCH / FILTER
+        // ================================================
+        function filtercustomers() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            allCards.forEach(c => {
+                const name = c.dataset.name || '';
+                c.style.display = name.includes(q) ? '' : 'none';
+            });
+            currentPage = 1;
+            renderPage();
+        }
+
+        // ================================================
+        //  ADD MODAL
+        // ================================================
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'إضافة عميل جديد';
+            document.getElementById('customerId').value = '0';
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';
+            document.getElementById('customerAddress').value = '';
+            document.getElementById('customerRC').value = '';
+            document.getElementById('customerNIF').value = '';
+            document.getElementById('customerAI').value = '';
+            document.getElementById('customerNIS').value = '';
+            document.getElementById('customerInitialDebt').value = '0';
+            document.getElementById('customerModal').classList.add('show');
+        }
+
+        function closecustomerModal() {
+            document.getElementById('customerModal').classList.remove('show');
+        }
+
+        function closeModalOutside(e) {
+            if (e.target.id === 'customerModal') closecustomerModal();
+        }
+
+        // ================================================
+        //  EDIT MODAL
+        // ================================================
+               // تحديث openEditModal
+        function openEditModal(id) {
+            fetch(`/customers/GetById/${id}`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('modalTitle').textContent
+                        = 'تعديل بيانات العميل';
+                    document.getElementById('customerId').value
+                        = data.id;
+                    document.getElementById('customerName').value
+                        = data.name || '';
+                    document.getElementById('customerBusinessActivity').value
+                        = data.businessActivity || '';
+                    document.getElementById('customerPhone').value
+                        = data.phone || '';
+                    document.getElementById('customerPhone2').value
+                        = data.phone2 || '';
+                    document.getElementById('customerEmail').value
+                        = data.email || '';
+                    document.getElementById('customerAddress').value
+                        = data.address || '';
+                    document.getElementById('customerCity').value
+                        = data.city || '';
+                    document.getElementById('customerRC').value
+                        = data.RC || '';
+                    document.getElementById('customerNIF').value
+                        = data.NIF || '';
+                    document.getElementById('customerAI').value
+                        = data.ai || '';
+                    document.getElementById('customerNIS').value
+                        = data.nis || '';
+                    document.getElementById('customerBankName').value
+                        = data.bankName || '';
+                    document.getElementById('customerBankAccount').value
+                        = data.bankAccount || '';
+                    document.getElementById('customerInitialDebt').value
+                        = data.initialDebt || 0;
+                    document.getElementById('customerIsActive').checked
+                        = data.isActive;
+
+                    document.getElementById('customerModal').classList.add('show');
+                });
+        }
+
+        // ================================================
+        //  SAVE customer
+        // ================================================
+               // تحديث savecustomer
+        function savecustomer() {
+            const id   = parseInt(document.getElementById('customerId').value);
+            const name = document.getElementById('customerName').value.trim();
+
+            if (!name) {
+                alert('اسم العميل مطلوب!');
+                document.getElementById('customerName').focus();
+                return;
+            }
+
+            const payload = {
+                id:                 id,
+                name:               name,
+                businessActivity:   document.getElementById('customerBusinessActivity').value.trim(),
+                phone:              document.getElementById('customerPhone').value.trim(),
+                phone2:             document.getElementById('customerPhone2').value.trim(),
+                email:              document.getElementById('customerEmail').value.trim(),
+                address:            document.getElementById('customerAddress').value.trim(),
+                city:               document.getElementById('customerCity').value.trim(),
+                RC: document.getElementById('customerRC').value.trim(),
+                NIF:          document.getElementById('customerNIF').value.trim(),
+                ai:                 document.getElementById('customerAI').value.trim(),
+                nis:                document.getElementById('customerNIS').value.trim(),
+                bankName:           document.getElementById('customerBankName').value.trim(),
+                bankAccount:        document.getElementById('customerBankAccount').value.trim(),
+                initialDebt:        parseFloat(document.getElementById('customerInitialDebt').value) || 0,
+                isActive:           document.getElementById('customerIsActive').checked
+            };
+
+            const url = id === 0 ? '/customers/Create' : '/customers/Edit';
+
+            fetch(url, {
+                method:  'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getToken()
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    closecustomerModal();
+                    location.reload();
+                } else {
+                    alert(res.message || 'حدث خطأ!');
+                }
+            })
+            .catch(() => alert('تعذر الاتصال بالخادم!'));
+        }
+
+        // ================================================
+        //  DELETE MODAL
+        // ================================================
+        let deleteTargetId = 0;
+
+        function deletecustomer(id, name) {
+            deleteTargetId = id;
+            document.getElementById('deletecustomerName').textContent = name;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        function closeDeleteModalOutside(e) {
+            if (e.target.id === 'deleteModal') closeDeleteModal();
+        }
+
+        function confirmDelete() {
+            fetch(`/customers/Delete/${deleteTargetId}`, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': getToken() }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) { closeDeleteModal(); location.reload(); }
+                else alert(res.message || 'حدث خطأ أثناء الحذف!');
+            });
+        }
+
+        // ================================================
+        //  customer FILE MODAL
+        // ================================================
+        function openCustomerFile(id) {
+            fetch(`/customers/GetFile/${id}`)
+                .then(r => r.json())
+                .then(data => {
+                    // Header
+                    document.getElementById('filecustomerName').textContent =
+                        'ملف العميل: ' + data.name;
+                    document.getElementById('filecustomerPhone').textContent =
+                        'رقم الهاتف: ' + (data.phone || '---');
+                    document.getElementById('filecustomerID').textContent =
+                        'ID: ' + data.id;
+                    document.getElementById('filecustomerAvatar').textContent =
+                        data.name.substring(0,1).toUpperCase();
+
+                    // Stats
+                    document.getElementById('statTotalPurchases').textContent =
+                        formatMoney(data.totalPurchases) + ' دج';
+                    document.getElementById('statTotalPaid').textContent =
+                        formatMoney(data.totalPaid) + ' دج';
+                    document.getElementById('statTotalDebt').textContent =
+                        formatMoney(data.totalDebt) + ' دج';
+
+                    // Initial Debt
+                    if (data.initialDebt > 0) {
+                        document.getElementById('initialDebtBox').style.display = 'flex';
+                        document.getElementById('initialDebtAmount').textContent =
+                            formatMoney(data.initialDebt) + ' دج';
+                        document.getElementById('initialDebtRemaining').textContent =
+                            formatMoney(data.initialDebtRemaining) + ' دج';
+                    } else {
+                        document.getElementById('initialDebtBox').style.display = 'none';
+                    }
+
+                    // Invoices Table
+                    const invBody = document.getElementById('invoicesTableBody');
+                    invBody.innerHTML = '';
+                    if (data.initialDebt > 0) {
+                        invBody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <strong class="text-orange">الدين الابتدائي (ديون سابقة قبل بدء استخدام البرنامج)</strong>
+                                    <br/><small class="text-muted">الرصيد الافتتاحي</small>
+                                </td>
+                                <td>${formatMoney(data.initialDebt)}</td>
+                                <td class="text-teal">${formatMoney(data.initialDebt - data.initialDebtRemaining)}</td>
+                                <td class="text-red">${formatMoney(data.initialDebtRemaining)}</td>
+                            </tr>`;
+                    }
+                    if (data.invoices && data.invoices.length > 0) {
+                        data.invoices.forEach(inv => {
+                            invBody.innerHTML += `
+                                <tr>
+                                    <td>
+                                        <strong>${inv.invoiceNumber}</strong>
+                                        <br/><small class="text-muted">${inv.date}</small>
+                                    </td>
+                                    <td>${formatMoney(inv.total)}</td>
+                                    <td class="text-teal">${formatMoney(inv.paid)}</td>
+                                    <td class="${inv.remaining > 0 ? 'text-red' : 'text-teal'}">
+                                        ${formatMoney(inv.remaining)}
+                                    </td>
+                                </tr>`;
+                        });
+                    } else if (data.initialDebt === 0) {
+                        invBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">لا توجد فواتير.</td></tr>';
+                    }
+
+                    // Payments Table
+                    const payBody = document.getElementById('paymentsTableBody');
+                    payBody.innerHTML = '';
+                    if (data.payments && data.payments.length > 0) {
+                        data.payments.forEach(p => {
+                            payBody.innerHTML += `
+                                <tr>
+                                    <td>${p.date}</td>
+                                    <td class="text-teal fw-bold">${formatMoney(p.amount)}</td>
+                                    <td>${p.invoiceRef || '—'}</td>
+                                </tr>`;
+                        });
+                    } else {
+                        payBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">لا يوجد سجل دفعات.</td></tr>';
+                    }
+
+                    // Payment date default
+                    document.getElementById('paymentDate').value =
+                        new Date().toISOString().split('T')[0];
+                    document.getElementById('paymentAmount').value = '0.00';
+                    document.getElementById('paymentAmount').dataset.customerId = id;
+
+                    document.getElementById('customerFileModal').classList.add('show');
+                });
+        }
+
+        function closeFileModal() {
+            document.getElementById('customerFileModal').classList.remove('show');
+        }
+
+        function closeFileModalOutside(e) {
+            if (e.target.id === 'customerFileModal') closeFileModal();
+        }
+
+        // ================================================
+        //  CONFIRM PAYMENT
+        // ================================================
+        function confirmPayment() {
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const date   = document.getElementById('paymentDate').value;
+            const suppId = parseInt(document.getElementById('paymentAmount').dataset.customerId);
+
+            if (!amount || amount <= 0) {
+                alert('يرجى إدخال مبلغ صحيح!');
+                return;
+            }
+
+            fetch('/customers/Pay', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json',
+                           'RequestVerificationToken': getToken() },
+                body: JSON.stringify({ customerId: suppId, amount: amount, date: date })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) { openCustomerFile(suppId); }
+                else alert(res.message || 'حدث خطأ!');
+            });
+        }
+
+        // ================================================
+        //  HELPERS
+        // ================================================
+        function formatMoney(val) {
+            return parseFloat(val || 0).toLocaleString('fr-DZ', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getToken() {
+            const el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el ? el.value : '';
+        }
+    </script>
+}

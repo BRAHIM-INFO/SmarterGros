@@ -1,0 +1,289 @@
+﻿@model SmarterGros.ViewModels.LoginViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>دخول - SmarterGros</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.rtl.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #fff; overflow: hidden; }
+        .login-wrapper { display: flex; height: 100vh; }
+        .login-left {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            background: #fff;
+        }
+        .login-right {
+            width: 50%;
+            background: linear-gradient(135deg, #1a5c38 0%, #2d8653 50%, #1a5c38 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-right::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+        .login-right::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            bottom: -80px;
+            left: -80px;
+        }
+        .login-logo {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #8B6914, #C4A23A);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(139,105,20,0.3);
+            flex-direction: column;
+        }
+        .login-logo span { font-size: 11px; }
+        .login-title { font-size: 26px; font-weight: 700; color: #1a5c38; margin-bottom: 30px; }
+        .login-form { width: 100%; max-width: 380px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; display: block; text-align: right; }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #fffff0;
+            border: 1.5px solid #e8e8a0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .input-wrapper input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            background: transparent;
+            font-family: 'Cairo', sans-serif;
+            font-size: 15px;
+            text-align: right;
+            outline: none;
+            color: #333;
+        }
+        .input-wrapper .input-icon {
+            padding: 0 12px;
+            color: #999;
+            font-size: 16px;
+        }
+        .input-wrapper .toggle-pass {
+            padding: 0 12px;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+            font-size: 16px;
+        }
+        .input-wrapper:focus-within {
+            border-color: #2d8653;
+            background: #f0fff4;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a5c38, #2d8653);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        .btn-login:hover { background: linear-gradient(135deg, #144d2f, #267a4a); transform: translateY(-1px); box-shadow: 0 5px 20px rgba(29,92,56,0.3); }
+        .login-footer { margin-top: 25px; font-size: 13px; color: #999; text-align: center; }
+        .error-msg { color: #dc3545; font-size: 13px; margin-top: 5px; text-align: right; }
+        .right-illustration {
+            z-index: 1;
+            text-align: center;
+        }
+        .right-illustration img { width: 350px; max-width: 90%; }
+        .right-decorations {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 1;
+        }
+        .right-decorations .deco-line {
+            width: 4px;
+            height: 60px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 2px;
+        }
+        .right-decorations .deco-circle {
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+        }
+        .deco-dots {
+            position: absolute;
+            top: 50px;
+            right: 60px;
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 6px;
+            z-index: 1;
+        }
+        .deco-dots span { width: 5px; height: 5px; background: rgba(255,255,255,0.3); border-radius: 50%; display: block; }
+        .bottom-circle {
+            position: absolute;
+            bottom: 60px;
+            left: 40px;
+            width: 50px;
+            height: 50px;
+            background: #00BCD4;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .cross-icon {
+            position: absolute;
+            bottom: 130px;
+            left: 100px;
+            font-size: 24px;
+            color: rgba(255,255,255,0.5);
+            z-index: 1;
+        }
+        .validation-summary { background: #fff5f5; border: 1px solid #fcc; border-radius: 8px; padding: 10px 15px; margin-bottom: 15px; }
+        .validation-summary ul { margin: 0; padding: 0 20px; color: #dc3545; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-left">
+            <div class="login-logo">
+                <i class="fas fa-chart-line" style="font-size:35px; margin-bottom:3px;"></i>
+                <span>SMARTGROS</span>
+            </div>
+            <div class="login-title">دخول آمن للنظام</div>
+
+            <form asp-action="Login" method="post" class="login-form">
+                @Html.AntiForgeryToken()
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="validation-summary">
+                        <ul>
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <div class="form-group">
+                    <label class="form-label">اسم المستخدم</label>
+                    <div class="input-wrapper">
+                        <input asp-for="UserName" placeholder="admin" />
+                        <span class="input-icon"><i class="fas fa-user"></i></span>
+                    </div>
+                    <span asp-validation-for="UserName" class="error-msg"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">كلمة المرور</label>
+                    <div class="input-wrapper">
+                        <button type="button" class="toggle-pass" onclick="togglePass()">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                        <input asp-for="Password" type="password" id="passwordField" placeholder="••••••••" />
+                        <span class="input-icon"><i class="fas fa-lock"></i></span>
+                    </div>
+                    <span asp-validation-for="Password" class="error-msg"></span>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt me-2"></i>تسجيل الدخول
+                </button>
+
+                <div class="login-footer">
+                    نظام إدارة المخزون الذكي © 2026
+                </div>
+            </form>
+        </div>
+
+        <div class="login-right">
+            <div class="right-decorations">
+                <div class="deco-line"></div>
+                <div class="deco-circle"></div>
+            </div>
+            <div class="deco-dots">
+                @for (int i = 0; i < 9; i++)
+                {
+                    <span></span>
+                }
+            </div>
+            <div class="right-illustration">
+                <svg width="350" height="300" viewBox="0 0 350 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="80" y="60" width="190" height="180" rx="15" fill="rgba(255,255,255,0.15)" />
+                    <rect x="95" y="75" width="80" height="110" rx="8" fill="#FF6B35" opacity="0.9" />
+                    <rect x="185" y="75" width="70" height="75" rx="8" fill="#4ECDC4" opacity="0.9" />
+                    <rect x="185" y="160" width="70" height="25" rx="5" fill="rgba(255,255,255,0.4)" />
+                    <circle cx="135" cy="200" r="40" fill="#FFE66D" opacity="0.9" />
+                    <path d="M120 200 L130 215 L155 188" stroke="#1a5c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    <rect x="60" y="140" width="30" height="80" rx="5" fill="#FF6B35" opacity="0.7" />
+                    <circle cx="215" cy="55" r="20" fill="rgba(255,255,255,0.2)" />
+                    <rect x="200" y="30" width="4" height="30" rx="2" fill="rgba(255,255,255,0.6)" />
+                    <circle cx="280" cy="150" r="12" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+                    <path d="M230 240 Q280 220 310 250" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none" />
+                </svg>
+            </div>
+            <div class="cross-icon">✕</div>
+            <div class="bottom-circle"></div>
+        </div>
+    </div>
+
+    <script>
+        function togglePass() {
+            const field = document.getElementById('passwordField');
+            const icon = document.getElementById('eyeIcon');
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                field.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+    </script>
+</body>
+</html>

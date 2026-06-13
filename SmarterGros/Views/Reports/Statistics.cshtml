@@ -1,0 +1,107 @@
+﻿@{
+    ViewData["Title"] = "الإحصائيات";
+}
+
+<div class="sg-page-header">
+    <h1 class="sg-page-title-main"><i class="fas fa-chart-bar me-2"></i>الإحصائيات</h1>
+</div>
+
+<div class="sg-kpi-row">
+    <div class="sg-kpi-card">
+        <div class="sg-kpi-body">
+            <div class="sg-kpi-info">
+                <span class="sg-kpi-num text-success">@(((decimal)ViewBag.TotalSales).ToString("N2")) دج</span>
+                <span class="sg-kpi-label">إجمالي المبيعات</span>
+            </div>
+            <div class="sg-kpi-icon green"><i class="fas fa-chart-line"></i></div>
+        </div>
+    </div>
+    <div class="sg-kpi-card">
+        <div class="sg-kpi-body">
+            <div class="sg-kpi-info">
+                <span class="sg-kpi-num text-primary">@(((decimal)ViewBag.TotalPurchases).ToString("N2")) دج</span>
+                <span class="sg-kpi-label">إجمالي المشتريات</span>
+            </div>
+            <div class="sg-kpi-icon blue"><i class="fas fa-shopping-cart"></i></div>
+        </div>
+    </div>
+    <div class="sg-kpi-card">
+        <div class="sg-kpi-body">
+            <div class="sg-kpi-info">
+                <span class="sg-kpi-num text-warning">@(((decimal)ViewBag.TotalProfit).ToString("N2")) دج</span>
+                <span class="sg-kpi-label">إجمالي الأرباح</span>
+            </div>
+            <div class="sg-kpi-icon gold"><i class="fas fa-coins"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="sg-main-grid">
+    <div class="sg-card">
+        <div class="sg-card-header">
+            <h3 class="sg-card-title"><i class="fas fa-fire me-2 text-danger"></i>أكثر المنتجات مبيعاً</h3>
+        </div>
+        <div class="sg-card-body">
+            <canvas id="topProductsChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <div class="sg-card">
+        <div class="sg-card-header">
+            <h3 class="sg-card-title"><i class="fas fa-star me-2 text-warning"></i>أفضل العملاء</h3>
+        </div>
+        <div class="sg-card-body p-0">
+            <table class="sg-table">
+                <thead>
+                    <tr>
+                        <th>العميل</th>
+                        <th>المبلغ</th>
+                        <th>الفواتير</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.TopCustomers != null)
+                    {
+                        foreach (var c in ViewBag.TopCustomers)
+                        {
+                            <tr>
+                                <td>@c.Name</td>
+                                <td>@c.Total.ToString("N2") دج</td>
+                                <td>@c.Count</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const topProducts = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.TopProducts));
+        const labels = topProducts.map(p => p.Name);
+        const data = topProducts.map(p => p.Qty);
+
+        new Chart(document.getElementById('topProductsChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'الكمية المباعة',
+                    data,
+                    backgroundColor: ['#1a5c38','#2d8653','#c4a23a','#4ade80','#60a5fa'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { font: { family: 'Cairo' } } },
+                    x: { ticks: { font: { family: 'Cairo' } } }
+                }
+            }
+        });
+    </script>
+}

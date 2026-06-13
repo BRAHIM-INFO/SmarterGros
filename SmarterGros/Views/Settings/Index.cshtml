@@ -1,0 +1,140 @@
+﻿@model SmarterGros.Models.CompanySettings
+@{
+    ViewData["Title"] = "الإعدادات";
+}
+
+<div class="sg-page-header">
+    <h1 class="sg-page-title-main"><i class="fas fa-cog me-2"></i>الإعدادات</h1>
+</div>
+
+<div class="sg-settings-tabs">
+    <button class="sg-tab-btn active" onclick="showTab('company')">
+        <i class="fas fa-building me-1"></i>بيانات المؤسسة
+    </button>
+    <a href="@Url.Action("Users")" class="sg-tab-btn">
+        <i class="fas fa-users me-1"></i>المستخدمون
+    </a>
+    <a href="@Url.Action("Database")" class="sg-tab-btn">
+        <i class="fas fa-database me-1"></i>قاعدة البيانات
+    </a>
+    <a href="@Url.Action("Support")" class="sg-tab-btn">
+        <i class="fas fa-headset me-1"></i>الدعم
+    </a>
+</div>
+
+<div id="companyTab">
+    <div class="sg-card">
+        <div class="sg-card-header">
+            <h3 class="sg-card-title">بيانات المؤسسة الرسمية</h3>
+        </div>
+        <div class="sg-card-body">
+            <form asp-action="SaveCompany" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <div class="sg-form-row">
+                    <div class="sg-form-group">
+                        <label>اسم المؤسسة *</label>
+                        <input asp-for="CompanyName" class="sg-form-input" />
+                    </div>
+                    <div class="sg-form-group">
+                        <label>نوع المؤسسة</label>
+                        <input asp-for="CompanyType" class="sg-form-input" placeholder="تجارة بالجملة، استيراد..." />
+                    </div>
+                </div>
+                <div class="sg-form-row">
+                    <div class="sg-form-group">
+                        <label>رقم التسجيل التجاري</label>
+                        <input asp-for="RC" class="sg-form-input" />
+                    </div>
+                    <div class="sg-form-group">
+                        <label>الرقم الضريبي</label>
+                        <input asp-for="NIF" class="sg-form-input" />
+                    </div>
+                </div>
+                <div class="sg-form-row">
+                    <div class="sg-form-group">
+                        <label>تاريخ التأسيس</label>
+                        <input asp-for="FoundingDate" type="date" class="sg-form-input" />
+                    </div>
+                    <div class="sg-form-group">
+                        <label>العملة</label>
+                        <input asp-for="Currency" class="sg-form-input" />
+                    </div>
+                </div>
+                <div class="sg-form-row">
+                    <div class="sg-form-group">
+                        <label>الهاتف</label>
+                        <input asp-for="Phone" class="sg-form-input" />
+                    </div>
+                    <div class="sg-form-group">
+                        <label>البريد الإلكتروني</label>
+                        <input asp-for="Email" type="email" class="sg-form-input" />
+                    </div>
+                </div>
+                <div class="sg-form-row">
+                    <div class="sg-form-group">
+                        <label>الموقع الإلكتروني</label>
+                        <input asp-for="Website" class="sg-form-input" />
+                    </div>
+                    <div class="sg-form-group">
+                        <label>المدينة</label>
+                        <input asp-for="City" class="sg-form-input" />
+                    </div>
+                </div>
+                <div class="sg-form-row">
+                    <div class="sg-form-group">
+                        <label>العنوان</label>
+                        <input asp-for="Address" class="sg-form-input" />
+                    </div>
+                    <div class="sg-form-group">
+                        <label>الرمز البريدي</label>
+                        <input asp-for="PostalCode" class="sg-form-input" />
+                    </div>
+                </div>
+                <div class="sg-form-group">
+                    <label>شعار المؤسسة</label>
+                    <input type="file" name="logoFile" class="sg-form-input" accept="image/*" />
+                    @if (!string.IsNullOrEmpty(Model?.LogoPath))
+                    {
+                        <img src="@Model.LogoPath" style="max-height:60px; margin-top:10px; border-radius:8px;" />
+                    }
+                </div>
+
+                <button type="submit" class="sg-btn-next">
+                    <i class="fas fa-save me-1"></i>حفظ البيانات
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .sg-settings-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .sg-tab-btn {
+        padding: 10px 20px;
+        background: white;
+        border: 1.5px solid var(--sg-border);
+        border-radius: 10px;
+        font-family: 'Cairo', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--sg-text);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+        .sg-tab-btn.active, .sg-tab-btn:hover {
+            background: var(--sg-primary);
+            color: white;
+            border-color: var(--sg-primary);
+            text-decoration: none;
+        }
+</style>

@@ -1,0 +1,1613 @@
+﻿@{
+    ViewData["Title"] = "الدعم والتواصل";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div dir="rtl"> 
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="settings-page-header">
+        <h4 class="settings-title">
+            <i class="fas fa-cog me-2"></i> التواصل والدعم
+        </h4>
+
+        <!-- ===== TABS NAV ===== -->
+        <div class="settings-tabs">
+            <a href="@Url.Action("Index", "Settings")"
+               class="settings-tab @(ViewData["ActiveTab"]?.ToString() == "company" ? "active" : "")">
+                <i class="fas fa-building me-1"></i> بيانات المؤسسة
+            </a>
+            <a href="@Url.Action("Users", "Settings")"
+               class="settings-tab @(ViewData["ActiveTab"]?.ToString() == "users" ? "active" : "")">
+                <i class="fas fa-users me-1"></i> المستخدمون
+            </a>
+            <a href="@Url.Action("Database", "Settings")"
+               class="settings-tab @(ViewData["ActiveTab"]?.ToString() == "database" ? "active" : "")">
+                <i class="fas fa-database me-1"></i> قاعدة البيانات
+            </a>
+            <a href="@Url.Action("Support", "Settings")"
+               class="settings-tab @(ViewData["ActiveTab"]?.ToString() == "support" ? "active" : "")">
+                <i class="fas fa-headset me-1"></i> الدعم
+            </a>
+        </div>
+    </div>
+
+    <!-- ===== SUPPORT CONTENT ===== -->
+    <div class="support-wrapper">
+
+        <!-- HERO BANNER -->
+        <div class="support-hero">
+            <div class="hero-badge">
+                <i class="fas fa-heart text-danger me-1"></i>
+                🏅  نسخة مرخَّصة رسمياً
+            </div>
+            <h1 class="hero-title">تواصل معي وأرسل ملاحظاتك</h1>
+            <p class="hero-subtitle">
+                إذا واجهت مشكلة، أو لديك اقتراح لتطوير البرنامج، أو تريد برنامجاً خاصاً،
+                فبإمكانك التواصل المباشر معي عبر LinkedIn أو WhatsApp.
+                ويمكنك أيضاً متابعة صفحتي على Facebook للمحتوى التعليمي التقني.
+            </p>
+            <div class="hero-buttons">
+                <a href="https://www.linkedin.com/in/ibrahim-benyounes-08471532/"
+                   target="_blank" class="btn-hero btn-linkedin">
+                    <i class="fab fa-linkedin me-2"></i>
+                    تواصل على LinkedIn
+                </a>
+                <a href="https://www.facebook.com/brahiminfobenyounes/"
+                   target="_blank" class="btn-hero btn-facebook">
+                    <i class="fab fa-facebook me-2"></i>
+                    صفحة Facebook
+                </a>
+            </div>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="row g-4 mt-1">
+
+            <!-- ===== RIGHT COLUMN ===== -->
+            <div class="col-lg-5">
+
+                <!-- About Developer Card -->
+                <div class="support-card">
+                    <div class="support-card-header green-header">
+                        <i class="fas fa-user-circle me-2"></i>
+                        نبذة عن المطوّر
+                    </div>
+                    <div class="support-card-body">
+
+                        <!-- Profile -->
+                        <div class="dev-profile">
+                            <div class="dev-avatar">ب.إ</div>
+                            <div class="dev-info">
+                                <h5 class="dev-name">بن يونس ابراهيم</h5>
+                                <p class="dev-title">
+                                    مهندس برمجيات | ماستر إعلام آلي<br />
+                                    <small class="text-muted">أنظمة معلومات متقدمة</small>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <p class="dev-desc">
+                            مرحباً بك، أنا <strong>بن يونس ابراهيم</strong>، مهندس برمجيات
+                            وحاصل على ماستر في إعلام آلي تخصص أنظمة معلومات متقدمة.
+                            أقدم حلولاً برمجية متكاملة في مجال إدارة المخزون والتجارة
+                            بالجملة مع التركيز على الجودة والأداء.
+                        </p>
+
+                        <!-- Quick Links -->
+                        <div class="quick-links">
+                            <a href="https://www.linkedin.com/in/ibrahim-benyounes-08471532/"
+                               target="_blank" class="quick-link">
+                                <i class="fab fa-linkedin text-primary"></i>
+                                <span>linkedin.com/in/ibrahim-benyounes</span>
+                                <i class="fas fa-external-link-alt ms-auto text-muted small"></i>
+                            </a>
+                            <a href="https://www.facebook.com/brahiminfobenyounes/"
+                               target="_blank" class="quick-link">
+                                <i class="fab fa-facebook" style="color:#1877f2"></i>
+                                <span>facebook.com/brahiminfobenyounes</span>
+                                <i class="fas fa-external-link-alt ms-auto text-muted small"></i>
+                            </a>
+                            <a href="https://wa.me/213551735294"
+                               target="_blank" class="quick-link">
+                                <i class="fab fa-whatsapp text-success"></i>
+                                <span dir="ltr">+213 551-73-52-94</span>
+                                <i class="fas fa-external-link-alt ms-auto text-muted small"></i>
+                            </a>
+                            <div class="quick-link non-link">
+                                <i class="fas fa-phone text-success"></i>
+                                <span dir="ltr">0790-05-86-77</span>
+                            </div>
+                        </div>
+
+                        <!-- System Note -->
+                        <div class="system-note">
+                            <i class="fas fa-shield-alt me-2 text-warning"></i>
+                             <strong>SmarterGros</strong> جميع حقوق هذا البرنامج محفوظة،
+                            | 📜  رقم الترخيص : SG-PRO-2025-DZ-IBY-7834
+                        </div>
+
+                        <!-- Skills -->
+                        <div class="skills-section">
+                            <p class="skills-title">
+                                <i class="fas fa-code me-1"></i> التخصصات التقنية
+                            </p>
+                            <div class="skills-tags">
+                                <span class="skill-tag"><i class="fab fa-microsoft me-1"></i>ASP.NET Core</span>
+                                <span class="skill-tag"><i class="fas fa-database me-1"></i>SQL Server</span>
+                                <span class="skill-tag"><i class="fab fa-js me-1"></i>JavaScript</span>
+                                <span class="skill-tag"><i class="fas fa-layer-group me-1"></i>EF Core</span>
+                                <span class="skill-tag"><i class="fas fa-boxes me-1"></i>إدارة المخزون</span>
+                                <span class="skill-tag"><i class="fas fa-chart-bar me-1"></i>التقارير</span>
+                                <span class="skill-tag"><i class="fas fa-cogs me-1"></i>أنظمة ERP</span>
+                                <span class="skill-tag"><i class="fas fa-graduation-cap me-1"></i>أنظمة المعلومات</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== LEFT COLUMN ===== -->
+            <div class="col-lg-7">
+
+                <!-- Card 1: إرسال مشكلة -->
+                <div class="support-card mb-4">
+                    <div class="support-card-header">
+                        <i class="fas fa-bug text-danger me-2"></i>
+                        إرسال مشكلة أو ملاحظة
+                    </div>
+                    <div class="support-card-body">
+                        <p class="card-desc">
+                            إذا ظهر خطأ في النظام أو لديك اقتراح تحسين أو ملاحظة واجهة،
+                            أرسلها مباشرة عبر واتساب مع صورة أو وصف مختصر للمشكلة.
+                        </p>
+                        <a href="https://wa.me/213551735294"
+                           target="_blank"
+                           class="contact-btn whatsapp-btn">
+                            <div class="contact-icon whatsapp-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div class="contact-text">
+                                <span class="contact-label">فتح واتساب</span>
+                                <span class="contact-sub" dir="ltr">+213 551-73-52-94</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 2: التواصل المباشر -->
+                <div class="support-card mb-4">
+                    <div class="support-card-header">
+                        <i class="fas fa-phone-alt text-success me-2"></i>
+                        التواصل المباشر
+                    </div>
+                    <div class="support-card-body">
+                        <p class="card-desc">
+                            يمكنك الاتصال المباشر أو إرسال رسالة عبر الأرقام التالية
+                            لطلب دعم فوري أو الاستفسار عن تطوير برنامج خاص.
+                        </p>
+                        <div class="phone-list">
+                            <div class="phone-item">
+                                <div class="phone-icon-wrap">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="phone-details">
+                                    <span class="phone-label">رقم الهاتف الأول</span>
+                                    <span class="phone-num" dir="ltr">0551-73-52-94</span>
+                                </div>
+                                <a href="tel:+213551735294" class="call-btn">
+                                    <i class="fas fa-phone me-1"></i> اتصال
+                                </a>
+                            </div>
+                            <div class="phone-item">
+                                <div class="phone-icon-wrap">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="phone-details">
+                                    <span class="phone-label">رقم الهاتف الثاني</span>
+                                    <span class="phone-num" dir="ltr">0790-05-86-77</span>
+                                </div>
+                                <a href="tel:+213790058677" class="call-btn">
+                                    <i class="fas fa-phone me-1"></i> اتصال
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: LinkedIn -->
+                <div class="support-card mb-4">
+                    <div class="support-card-header">
+                        <i class="fab fa-linkedin text-primary me-2"></i>
+                        تواصل عبر LinkedIn
+                    </div>
+                    <div class="support-card-body">
+                        <p class="card-desc">
+                            للتواصل المهني وطلب التعاون في المشاريع البرمجية
+                            أو الاستفسار عن الخدمات التقنية.
+                        </p>
+                        <a href="https://www.linkedin.com/in/ibrahim-benyounes-08471532/"
+                           target="_blank"
+                           class="contact-btn linkedin-btn">
+                            <div class="contact-icon linkedin-icon">
+                                <i class="fab fa-linkedin"></i>
+                            </div>
+                            <div class="contact-text">
+                                <span class="contact-label">فتح LinkedIn</span>
+                                <span class="contact-sub">ibrahim-benyounes-08471532</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 4: Facebook -->
+                <div class="support-card">
+                    <div class="support-card-header">
+                        <i class="fab fa-facebook me-2" style="color:#1877f2"></i>
+                        صفحة Facebook
+                    </div>
+                    <div class="support-card-body">
+                        <p class="card-desc">
+                            تابع الصفحة على Facebook لمتابعة المحتوى التقني
+                            والدروس التعليمية والمستجدات البرمجية.
+                        </p>
+                        <a href="https://www.facebook.com/brahiminfobenyounes/"
+                           target="_blank"
+                           class="contact-btn facebook-btn">
+                            <div class="contact-icon facebook-icon">
+                                <i class="fab fa-facebook-f"></i>
+                            </div>
+                            <div class="contact-text">
+                                <span class="contact-label">فتح الصفحة</span>
+                                <span class="contact-sub">brahiminfobenyounes</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+
+        /* =============================
+           SETTINGS HEADER & TABS
+           ============================= */
+        .settings-page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .settings-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a3a2a;
+            margin: 0;
+        }
+
+        .settings-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .settings-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 9px 18px;
+            border-radius: 10px;
+            border: 1.5px solid #d1d5db;
+            background: white;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+            .settings-tab:hover {
+                border-color: #1a5c38;
+                color: #1a5c38;
+                background: #f0fdf4;
+            }
+
+            .settings-tab.active {
+                background: #1a5c38;
+                border-color: #1a5c38;
+                color: white;
+                font-weight: 600;
+            }
+
+        /* =============================
+           SUPPORT WRAPPER
+           ============================= */
+        .support-wrapper {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        /* =============================
+           HERO BANNER
+           ============================= */
+        .support-hero {
+            background: linear-gradient(135deg, #1a5c38 0%, #2d8653 55%, #3aa870 100%);
+            color: white;
+            padding: 36px 32px 32px;
+            border-radius: 14px;
+            margin-bottom: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .support-hero::before {
+                content: '';
+                position: absolute;
+                top: -60px;
+                left: -60px;
+                width: 220px;
+                height: 220px;
+                background: rgba(255,255,255,0.06);
+                border-radius: 50%;
+            }
+
+            .support-hero::after {
+                content: '';
+                position: absolute;
+                bottom: -80px;
+                right: 80px;
+                width: 280px;
+                height: 280px;
+                background: rgba(255,255,255,0.04);
+                border-radius: 50%;
+            }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .hero-title {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero-subtitle {
+            font-size: 14px;
+            opacity: 0.88;
+            line-height: 1.8;
+            max-width: 700px;
+            margin-bottom: 22px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn-hero {
+            display: inline-flex;
+            align-items: center;
+            padding: 9px 20px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.22s;
+            border: 2px solid transparent;
+        }
+
+        .btn-linkedin {
+            background: #0077b5;
+            color: white;
+            border-color: #0077b5;
+        }
+
+            .btn-linkedin:hover {
+                background: white;
+                color: #0077b5;
+            }
+
+        .btn-facebook {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-color: rgba(255,255,255,0.4);
+        }
+
+            .btn-facebook:hover {
+                background: white;
+                color: #1877f2;
+                border-color: white;
+            }
+
+        /* =============================
+           SUPPORT CARDS
+           ============================= */
+        .support-card {
+            background: white;
+            border-radius: 13px;
+            border: 1px solid #e5ebe7;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: box-shadow 0.22s;
+        }
+
+            .support-card:hover {
+                box-shadow: 0 6px 22px rgba(0,0,0,0.09);
+            }
+
+        .support-card-header {
+            display: flex;
+            align-items: center;
+            padding: 15px 18px;
+            border-bottom: 1px solid #f0f4f1;
+            background: #fafcfb;
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a3a2a;
+        }
+
+            .support-card-header.green-header {
+                background: linear-gradient(135deg, #1a5c38, #2d8653);
+                color: white;
+                border-bottom: none;
+            }
+
+        .support-card-body {
+            padding: 18px;
+        }
+
+        .card-desc {
+            font-size: 13.5px;
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        /* =============================
+           CONTACT BUTTONS
+           ============================= */
+        .contact-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 13px 16px;
+            border-radius: 11px;
+            text-decoration: none;
+            border: 2px solid;
+            transition: all 0.22s;
+        }
+
+        .whatsapp-btn {
+            background: #f0fdf4;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+
+            .whatsapp-btn:hover {
+                background: #22c55e;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 18px rgba(34,197,94,0.28);
+            }
+
+        .linkedin-btn {
+            background: #eff6ff;
+            border-color: #0077b5;
+            color: #0077b5;
+        }
+
+            .linkedin-btn:hover {
+                background: #0077b5;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 18px rgba(0,119,181,0.28);
+            }
+
+        .facebook-btn {
+            background: #eff6ff;
+            border-color: #1877f2;
+            color: #1877f2;
+        }
+
+            .facebook-btn:hover {
+                background: #1877f2;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 18px rgba(24,119,242,0.28);
+            }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .whatsapp-icon {
+            background: linear-gradient(135deg,#25d366,#128c7e);
+            color: white;
+        }
+
+        .linkedin-icon {
+            background: linear-gradient(135deg,#0077b5,#00a0dc);
+            color: white;
+        }
+
+        .facebook-icon {
+            background: linear-gradient(135deg,#1877f2,#42a5f5);
+            color: white;
+        }
+
+        .contact-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .contact-label {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .contact-sub {
+            font-size: 12.5px;
+            opacity: 0.7;
+        }
+
+        /* =============================
+           PHONE LIST
+           ============================= */
+        .phone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .phone-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fffe;
+            border: 1px solid #d1fae5;
+            border-radius: 10px;
+            padding: 11px 14px;
+        }
+
+        .phone-icon-wrap {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg,#1a5c38,#2d8653);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .phone-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .phone-label {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .phone-num {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a3a2a;
+        }
+
+        .call-btn {
+            background: linear-gradient(135deg,#1a5c38,#2d8653);
+            color: white;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+            .call-btn:hover {
+                background: linear-gradient(135deg,#145230,#256b45);
+                color: white;
+                transform: scale(1.04);
+            }
+
+        /* =============================
+           DEVELOPER PROFILE (RIGHT)
+           ============================= */
+        .dev-profile {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f0f4f1;
+        }
+
+        .dev-avatar {
+            width: 58px;
+            height: 58px;
+            background: linear-gradient(135deg,#1a5c38,#3aa870);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            border: 3px solid #d1fae5;
+            flex-shrink: 0;
+        }
+
+        .dev-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a3a2a;
+            margin-bottom: 3px;
+        }
+
+        .dev-title {
+            font-size: 12.5px;
+            color: #4b7a5e;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .dev-desc {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 14px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f0f4f1;
+        }
+
+        /* =============================
+           QUICK LINKS
+           ============================= */
+        .quick-links {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 14px;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            background: #f8fffe;
+            border: 1px solid #e2f0e8;
+            border-radius: 9px;
+            text-decoration: none;
+            color: #374151;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+            .quick-link:hover {
+                background: #f0fdf4;
+                border-color: #86efac;
+                color: #1a3a2a;
+                transform: translateX(-3px);
+            }
+
+            .quick-link.non-link {
+                cursor: default;
+            }
+
+                .quick-link.non-link:hover {
+                    transform: none;
+                }
+
+            .quick-link i:first-child {
+                width: 18px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+
+            .quick-link span {
+                flex: 1;
+                font-weight: 500;
+            }
+
+        /* =============================
+           SYSTEM NOTE
+           ============================= */
+        .system-note {
+            background: linear-gradient(135deg,#fffbeb,#fef3c7);
+            border: 1px solid #fde68a;
+            border-radius: 9px;
+            padding: 11px 13px;
+            font-size: 13px;
+            color: #92400e;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        /* =============================
+           SKILLS
+           ============================= */
+        .skills-section {
+            border-top: 1px solid #f0f4f1;
+            padding-top: 14px;
+        }
+
+        .skills-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a3a2a;
+            margin-bottom: 10px;
+        }
+
+        .skills-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .skill-tag {
+            background: linear-gradient(135deg,#f0fdf4,#dcfce7);
+            border: 1px solid #86efac;
+            color: #15803d;
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* =============================
+           RESPONSIVE
+           ============================= */
+        @@media (max-width: 768px) {
+            .settings-page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .hero-title {
+                font-size: 1.4rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .btn-hero {
+                justify-content: center;
+            }
+        }
+    </style>
+}
+@* @{
+    ViewData["Title"] = "الدعم والتواصل";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="support-page" dir="rtl">
+
+    <!-- ===== HERO BANNER ===== -->
+    <div class="support-hero">
+        <div class="hero-badge">
+            <i class="fas fa-heart text-danger me-1"></i>
+            البرنامج مجاني دائماً
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title">تواصل معي وأرسل ملاحظاتك</h1>
+            <p class="hero-subtitle">
+                إذا واجهت مشكلة، أو لديك اقتراح لتطوير البرنامج، أو تريد برنامجاً خاصاً،
+                فبإمكانك التواصل المباشر معي عبر LinkedIn أو WhatsApp.
+                ويمكنك أيضاً متابعة صفحتي على Facebook للمحتوى التعليمي التقني.
+            </p>
+            <div class="hero-buttons">
+                <a href="https://www.linkedin.com/in/ibrahim-benyounes-08471532/"
+                   target="_blank" class="btn-hero btn-linkedin">
+                    <i class="fab fa-linkedin me-2"></i>
+                    تواصل على LinkedIn
+                </a>
+                <a href="https://www.facebook.com/brahiminfobenyounes/"
+                   target="_blank" class="btn-hero btn-facebook">
+                    <i class="fab fa-facebook me-2"></i>
+                    صفحة Facebook
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="support-body">
+        <div class="row g-4">
+
+            <!-- ===== LEFT Column: Contact Cards ===== -->
+            <div class="col-lg-7">
+
+                <!-- Card 1: إرسال مشكلة -->
+                <div class="support-card mb-4">
+                    <div class="support-card-header">
+                        <i class="fas fa-bug text-danger me-2"></i>
+                        <div>
+                            <h5 class="mb-0">إرسال مشكلة أو ملاحظة</h5>
+                            <p class="text-muted small mb-0">
+                                إذا ظهر خطأ في النظام أو لديك اقتراح تحسين أو ملاحظة واجهة،
+                                أرسلها مباشرة عبر واتساب مع صورة أو وصف مختصر للمشكلة.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="support-card-body">
+                        <a href="https://wa.me/213551735294"
+                           target="_blank"
+                           class="contact-btn whatsapp-btn">
+                            <div class="contact-btn-icon whatsapp-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div class="contact-btn-text">
+                                <span class="contact-label">فتح واتساب</span>
+                                <span class="contact-number">+213 551-73-52-94</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 2: التواصل المباشر -->
+                <div class="support-card mb-4">
+                    <div class="support-card-header">
+                        <i class="fas fa-phone-alt text-success me-2"></i>
+                        <div>
+                            <h5 class="mb-0">التواصل المباشر</h5>
+                            <p class="text-muted small mb-0">
+                                يمكنك الاتصال المباشر أو إرسال رسالة عبر الأرقام التالية
+                                لطلب دعم فوري أو الاستفسار عن تطوير برنامج خاص.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="support-card-body">
+                        <div class="phone-list">
+                            <div class="phone-item">
+                                <div class="phone-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="phone-info">
+                                    <span class="phone-label">رقم الهاتف الأول</span>
+                                    <span class="phone-number" dir="ltr">0551-73-52-94</span>
+                                </div>
+                                <a href="tel:+213551735294" class="phone-call-btn">
+                                    <i class="fas fa-phone"></i>
+                                    اتصال
+                                </a>
+                            </div>
+                            <div class="phone-item">
+                                <div class="phone-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="phone-info">
+                                    <span class="phone-label">رقم الهاتف الثاني</span>
+                                    <span class="phone-number" dir="ltr">0790-05-86-77</span>
+                                </div>
+                                <a href="tel:+213790058677" class="phone-call-btn">
+                                    <i class="fas fa-phone"></i>
+                                    اتصال
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: LinkedIn -->
+                <div class="support-card mb-4">
+                    <div class="support-card-header">
+                        <i class="fab fa-linkedin text-primary me-2"></i>
+                        <div>
+                            <h5 class="mb-0">تواصل عبر LinkedIn</h5>
+                            <p class="text-muted small mb-0">
+                                للتواصل المهني وطلب التعاون في المشاريع البرمجية
+                                أو الاستفسار عن الخدمات التقنية.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="support-card-body">
+                        <a href="https://www.linkedin.com/in/ibrahim-benyounes-08471532/"
+                           target="_blank"
+                           class="contact-btn linkedin-btn">
+                            <div class="contact-btn-icon linkedin-icon">
+                                <i class="fab fa-linkedin"></i>
+                            </div>
+                            <div class="contact-btn-text">
+                                <span class="contact-label">فتح LinkedIn</span>
+                                <span class="contact-number">ibrahim-benyounes</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 4: Facebook -->
+                <div class="support-card">
+                    <div class="support-card-header">
+                        <i class="fab fa-facebook text-primary me-2"></i>
+                        <div>
+                            <h5 class="mb-0">صفحة Facebook</h5>
+                            <p class="text-muted small mb-0">
+                                تابع الصفحة على Facebook لمتابعة المحتوى التقني
+                                والدروس التعليمية والمستجدات البرمجية.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="support-card-body">
+                        <a href="https://www.facebook.com/brahiminfobenyounes/"
+                           target="_blank"
+                           class="contact-btn facebook-btn">
+                            <div class="contact-btn-icon facebook-icon">
+                                <i class="fab fa-facebook-f"></i>
+                            </div>
+                            <div class="contact-btn-text">
+                                <span class="contact-label">فتح الصفحة</span>
+                                <span class="contact-number">brahiminfobenyounes</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ===== Right Column: About Developer ===== -->
+            <div class="col-lg-5">
+
+                <!-- About Card -->
+                <div class="about-card">
+                    <div class="about-header">
+                        <i class="fas fa-user-circle me-2"></i>
+                        نبذة عن المطوّر
+                    </div>
+                    <div class="about-body">
+
+                        <!-- Developer Profile -->
+                        <div class="developer-profile">
+                            <div class="developer-avatar">
+                                <span>ب.إ</span>
+                            </div>
+                            <div class="developer-info">
+                                <h4 class="developer-name">بن يونس ابراهيم</h4>
+                                <p class="developer-title">
+                                    مهندس برمجيات | ماستر إعلام آلي<br />
+                                    <span class="text-muted small">أنظمة معلومات متقدمة</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Developer Description -->
+                        <div class="developer-desc">
+                            <p>
+                                مرحباً بك، أنا <strong>بن يونس ابراهيم</strong>، مهندس برمجيات
+                                وحاصل على ماستر في إعلام آلي تخصص أنظمة معلومات متقدمة.
+                                أقدم حلولاً برمجية متكاملة في مجال إدارة المخزون والتجارة
+                                بالجملة مع التركيز على الجودة والأداء.
+                            </p>
+                        </div>
+
+                        <!-- Quick Links -->
+                        <div class="quick-links">
+
+                            <a href="https://www.linkedin.com/in/ibrahim-benyounes-08471532/"
+                               target="_blank" class="quick-link-item">
+                                <i class="fab fa-linkedin text-primary"></i>
+                                <span>linkedin.com/in/ibrahim-benyounes</span>
+                                <i class="fas fa-external-link-alt text-muted ms-auto small"></i>
+                            </a>
+
+                            <a href="https://www.facebook.com/brahiminfobenyounes/"
+                               target="_blank" class="quick-link-item">
+                                <i class="fab fa-facebook text-primary"></i>
+                                <span>facebook.com/brahiminfobenyounes</span>
+                                <i class="fas fa-external-link-alt text-muted ms-auto small"></i>
+                            </a>
+
+                            <a href="https://wa.me/213551735294"
+                               target="_blank" class="quick-link-item">
+                                <i class="fab fa-whatsapp text-success"></i>
+                                <span dir="ltr">+213 551-73-52-94</span>
+                                <i class="fas fa-external-link-alt text-muted ms-auto small"></i>
+                            </a>
+
+                            <div class="quick-link-item non-link">
+                                <i class="fas fa-phone text-success"></i>
+                                <span dir="ltr">0790-05-86-77</span>
+                            </div>
+
+                        </div>
+
+                        <!-- System Note -->
+                        <div class="system-note">
+                            <i class="fas fa-info-circle me-2 text-warning"></i>
+                            نظام <strong>SmarterGros</strong> يبقى مجانياً دائماً،
+                            وبيانات المستخدم لا تغادر جهازه.
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Skills Card -->
+                <div class="skills-card mt-4">
+                    <div class="skills-header">
+                        <i class="fas fa-code me-2"></i>
+                        التخصصات التقنية
+                    </div>
+                    <div class="skills-body">
+                        <div class="skill-tag">
+                            <i class="fab fa-microsoft me-1"></i> ASP.NET Core
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-database me-1"></i> SQL Server
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fab fa-js me-1"></i> JavaScript
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-layer-group me-1"></i> EF Core
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-boxes me-1"></i> إدارة المخزون
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-chart-bar me-1"></i> التقارير
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-cogs me-1"></i> أنظمة ERP
+                        </div>
+                        <div class="skill-tag">
+                            <i class="fas fa-graduation-cap me-1"></i> أنظمة المعلومات
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* ==============================
+                   SUPPORT PAGE STYLES
+                   ============================== */
+
+        .support-page {
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        /* --- HERO --- */
+        .support-hero {
+            background: linear-gradient(135deg, #1a5c38 0%, #2d8653 50%, #3aa870 100%);
+            color: white;
+            padding: 40px 35px 35px;
+            border-radius: 16px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .support-hero::before {
+                content: '';
+                position: absolute;
+                top: -50px;
+                left: -50px;
+                width: 200px;
+                height: 200px;
+                background: rgba(255,255,255,0.05);
+                border-radius: 50%;
+            }
+
+            .support-hero::after {
+                content: '';
+                position: absolute;
+                bottom: -80px;
+                right: 100px;
+                width: 300px;
+                height: 300px;
+                background: rgba(255,255,255,0.03);
+                border-radius: 50%;
+            }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(4px);
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .hero-subtitle {
+            font-size: 14px;
+            opacity: 0.88;
+            line-height: 1.8;
+            max-width: 680px;
+            margin-bottom: 24px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s;
+            border: 2px solid transparent;
+        }
+
+        .btn-linkedin {
+            background: #0077b5;
+            color: white;
+            border-color: #0077b5;
+        }
+
+            .btn-linkedin:hover {
+                background: white;
+                color: #0077b5;
+            }
+
+        .btn-facebook {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-color: rgba(255,255,255,0.4);
+        }
+
+            .btn-facebook:hover {
+                background: white;
+                color: #1877f2;
+                border-color: white;
+            }
+
+        /* --- SUPPORT BODY --- */
+        .support-body {
+            padding: 0;
+        }
+
+        /* --- SUPPORT CARDS --- */
+        .support-card {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #e8f0eb;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            transition: box-shadow 0.25s;
+        }
+
+            .support-card:hover {
+                box-shadow: 0 6px 24px rgba(0,0,0,0.09);
+            }
+
+        .support-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid #f0f4f1;
+            background: #fafcfb;
+        }
+
+            .support-card-header i {
+                font-size: 20px;
+                margin-top: 2px;
+                flex-shrink: 0;
+            }
+
+            .support-card-header h5 {
+                font-size: 15px;
+                font-weight: 700;
+                color: #1a3a2a;
+            }
+
+        .support-card-body {
+            padding: 20px;
+        }
+
+        /* --- CONTACT BUTTONS --- */
+        .contact-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.25s;
+            border: 2px solid;
+        }
+
+        .whatsapp-btn {
+            background: #f0fdf4;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+
+            .whatsapp-btn:hover {
+                background: #22c55e;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(34,197,94,0.3);
+            }
+
+        .linkedin-btn {
+            background: #eff6ff;
+            border-color: #0077b5;
+            color: #0077b5;
+        }
+
+            .linkedin-btn:hover {
+                background: #0077b5;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,119,181,0.3);
+            }
+
+        .facebook-btn {
+            background: #eff6ff;
+            border-color: #1877f2;
+            color: #1877f2;
+        }
+
+            .facebook-btn:hover {
+                background: #1877f2;
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(24,119,242,0.3);
+            }
+
+        .contact-btn-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .whatsapp-icon {
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            color: white;
+        }
+
+        .linkedin-icon {
+            background: linear-gradient(135deg, #0077b5, #00a0dc);
+            color: white;
+        }
+
+        .facebook-icon {
+            background: linear-gradient(135deg, #1877f2, #42a5f5);
+            color: white;
+        }
+
+        .contact-btn-text {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .contact-label {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .contact-number {
+            font-size: 13px;
+            opacity: 0.75;
+            direction: ltr;
+            text-align: right;
+        }
+
+        /* --- PHONE LIST --- */
+        .phone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .phone-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #f8fffe;
+            border: 1px solid #d1fae5;
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+
+        .phone-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #1a5c38, #2d8653);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .phone-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .phone-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .phone-number {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a3a2a;
+            letter-spacing: 0.5px;
+        }
+
+        .phone-call-btn {
+            background: linear-gradient(135deg, #1a5c38, #2d8653);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+            .phone-call-btn:hover {
+                background: linear-gradient(135deg, #145230, #256b45);
+                color: white;
+                transform: scale(1.04);
+            }
+
+        /* --- ABOUT CARD --- */
+        .about-card {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #e8f0eb;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        .about-header {
+            background: linear-gradient(135deg, #1a5c38, #2d8653);
+            color: white;
+            padding: 16px 20px;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .about-body {
+            padding: 20px;
+        }
+
+        /* --- DEVELOPER PROFILE --- */
+        .developer-profile {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f4f1;
+        }
+
+        .developer-avatar {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #1a5c38, #3aa870);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            flex-shrink: 0;
+            border: 3px solid #d1fae5;
+        }
+
+        .developer-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1a3a2a;
+            margin-bottom: 4px;
+        }
+
+        .developer-title {
+            font-size: 13px;
+            color: #4b7a5e;
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+
+        /* --- DEVELOPER DESC --- */
+        .developer-desc {
+            font-size: 13.5px;
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f4f1;
+        }
+
+        /* --- QUICK LINKS --- */
+        .quick-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .quick-link-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: #f8fffe;
+            border: 1px solid #e2f0e8;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #374151;
+            font-size: 13px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+            .quick-link-item:hover {
+                background: #f0fdf4;
+                border-color: #86efac;
+                color: #1a3a2a;
+                transform: translateX(-3px);
+            }
+
+            .quick-link-item.non-link:hover {
+                transform: none;
+                cursor: default;
+            }
+
+            .quick-link-item i:first-child {
+                font-size: 16px;
+                width: 20px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+
+            .quick-link-item span {
+                flex: 1;
+                font-weight: 500;
+            }
+
+        /* --- SYSTEM NOTE --- */
+        .system-note {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #92400e;
+            line-height: 1.6;
+        }
+
+        /* --- SKILLS CARD --- */
+        .skills-card {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #e8f0eb;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        .skills-header {
+            background: #f8fffe;
+            border-bottom: 1px solid #e8f0eb;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a3a2a;
+            display: flex;
+            align-items: center;
+        }
+
+        .skills-body {
+            padding: 16px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-tag {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 1px solid #86efac;
+            color: #15803d;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        /* --- RESPONSIVE --- */
+        @@media (max-width: 768px) {
+            .support-hero {
+                padding: 25px 20px;
+            }
+
+            .hero-title {
+                font-size: 1.4rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .btn-hero {
+                justify-content: center;
+            }
+        }
+    </style>
+} *@

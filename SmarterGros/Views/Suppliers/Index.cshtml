@@ -1,0 +1,2063 @@
+﻿@model IEnumerable<SmarterGros.Models.Supplier>
+@{
+    ViewData["Title"] = "الموردون";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div dir="rtl" class="suppliers-page">
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="page-header">
+        <h4 class="page-title">
+            <i class="fas fa-truck me-2"></i> إدارة الموردين
+        </h4>
+        <button class="btn-add-supplier" onclick="openAddModal()">
+            <i class="fas fa-user-plus me-2"></i>
+            إضافة مورد جديد
+        </button>
+    </div>
+
+    <!-- ===== SEARCH BAR ===== -->
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text"
+                   id="searchInput"
+                   class="search-input"
+                   placeholder="البحث في أسماء الموردين..."
+                   onkeyup="filterSuppliers()" />
+        </div>
+    </div>
+
+    <!-- ===== SUPPLIERS LIST ===== -->
+    <div class="suppliers-list" id="suppliersList">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var supplier in Model)
+            {
+                <div class="supplier-card" data-name="@supplier.Name.ToLower()">
+
+                    <!-- Right Color Bar -->
+                    <div class="supplier-card-bar"></div>
+
+                    <!-- Avatar -->
+                    <div class="supplier-avatar-wrap">
+                        <div class="supplier-avatar">
+                            @supplier.Name.Substring(0, 1).ToUpper()
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="supplier-actions-top">
+                        <button class="action-btn delete-btn"
+                                onclick="deleteSupplier(@supplier.Id, '@supplier.Name')"
+                                title="حذف">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="action-btn edit-btn"
+                                onclick="openEditModal(@supplier.Id)"
+                                title="تعديل">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="supplier-info">
+                        <h5 class="supplier-name">@supplier.Name</h5>
+                        @if (!string.IsNullOrEmpty(supplier.Address))
+                        {
+                            <p class="supplier-address">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                @supplier.Address
+                            </p>
+                        }
+                    </div>
+
+                    <!-- Details -->
+                    <div class="supplier-details">
+                        @if (!string.IsNullOrEmpty(supplier.Phone))
+                        {
+                            <div class="detail-row">
+                                <span class="detail-label">رقم الهاتف</span>
+                                <span class="detail-value">@supplier.Phone</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(supplier.NIF))
+                        {
+                            <div class="detail-row">
+                                <span class="detail-label text-teal">NIF</span>
+                                <span class="detail-value">@supplier.NIF</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(supplier.RC))
+                        {
+                            <div class="detail-row">
+                                <span class="detail-label text-teal">RC</span>
+                                <span class="detail-value">@supplier.RC</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- View Button -->
+                    <div class="supplier-footer">
+                        <button class="btn-view-details"
+                                onclick="openSupplierFile(@supplier.Id)">
+                            <i class="fas fa-file-invoice me-2"></i>
+                            عرض المشتريات والديون
+                        </button>
+                    </div>
+
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-truck-loading"></i>
+                <p>لا يوجد موردون مسجلون بعد</p>
+                <button class="btn-add-supplier" onclick="openAddModal()">
+                    <i class="fas fa-plus me-2"></i> إضافة أول مورد
+                </button>
+            </div>
+        }
+    </div>
+
+    <!-- ===== PAGINATION ===== -->
+    <div class="pagination-bar">
+        <button class="page-btn" id="prevBtn" onclick="changePage(-1)">السابق</button>
+        <span class="page-info" id="pageInfo">صفحة 1 من 1</span>
+        <button class="page-btn" id="nextBtn" onclick="changePage(1)">التالي</button>
+    </div>
+
+</div>
+
+<!-- ================================================================
+     MODAL: إضافة / تعديل مورد
+     ================================================================ -->
+<div class="modal-overlay" id="supplierModal" onclick="closeModalOutside(event)">
+    <div class="modal-box" id="supplierModalBox">
+
+        <!-- Modal Header -->
+        <div class="modal-header-custom">
+            <h5 class="modal-title-custom" id="modalTitle">إضافة مورد جديد</h5>
+            <button class="modal-close-btn" onclick="closeSupplierModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- استبدل modal body في Index.cshtml بهذا -->
+        <div class="modal-body-custom">
+            <form id="supplierForm">
+                <input type="hidden" id="supplierId" value="0" />
+
+                <!-- اسم المورد -->
+                <div class="form-group-custom">
+                    <label class="form-label-custom">
+                        المورد / اسم الشركة <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="supplierName"
+                           class="form-input-custom" required />
+                </div>
+
+                <!-- النشاط التجاري -->
+                <div class="form-group-custom">
+                    <label class="form-label-custom">النشاط التجاري</label>
+                    <input type="text" id="supplierBusinessActivity"
+                           class="form-input-custom"
+                           placeholder="مثال: مواد غذائية، إلكترونيات..." />
+                </div>
+
+                <!-- الهاتف والمدينة -->
+                <div class="form-row-custom">
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">رقم الهاتف الأساسي</label>
+                        <input type="text" id="supplierPhone"
+                               class="form-input-custom" />
+                    </div>
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">رقم الهاتف الثاني</label>
+                        <input type="text" id="supplierPhone2"
+                               class="form-input-custom" />
+                    </div>
+                </div>
+
+                <!-- البريد والعنوان -->
+                <div class="form-row-custom">
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">البريد الإلكتروني</label>
+                        <input type="email" id="supplierEmail"
+                               class="form-input-custom" />
+                    </div>
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">المدينة</label>
+                        <input type="text" id="supplierCity"
+                               class="form-input-custom" />
+                    </div>
+                </div>
+
+                <!-- العنوان كامل -->
+                <div class="form-group-custom">
+                    <label class="form-label-custom">العنوان والموقع</label>
+                    <input type="text" id="supplierAddress"
+                           class="form-input-custom" />
+                </div>
+
+                <!-- السجل التجاري والضريبي -->
+                <div class="form-section-box">
+                    <h6 class="form-section-title">
+                        <i class="fas fa-file-alt me-2 text-teal"></i>
+                        السجل التجاري والمعلومات الضريبية
+                    </h6>
+                    <div class="form-row-custom">
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">RC (السجل التجاري)</label>
+                            <input type="text" id="supplierRC"
+                                   class="form-input-custom" />
+                        </div>
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">NIF (الرقم الجبائي)</label>
+                            <input type="text" id="supplierNIF"
+                                   class="form-input-custom" />
+                        </div>
+                    </div>
+                    <div class="form-row-custom">
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">AI (المادة الجبائية)</label>
+                            <input type="text" id="supplierAI"
+                                   class="form-input-custom" />
+                        </div>
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">NIS (رقم الإحصاء)</label>
+                            <input type="text" id="supplierNIS"
+                                   class="form-input-custom" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- المعلومات البنكية -->
+                <div class="form-section-box">
+                    <h6 class="form-section-title">
+                        <i class="fas fa-university me-2 text-teal"></i>
+                        المعلومات البنكية
+                    </h6>
+                    <div class="form-row-custom">
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">اسم البنك</label>
+                            <input type="text" id="supplierBankName"
+                                   class="form-input-custom" />
+                        </div>
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">رقم الحساب البنكي</label>
+                            <input type="text" id="supplierBankAccount"
+                                   class="form-input-custom" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الدين الابتدائي -->
+                <div class="form-debt-box">
+                    <label class="form-label-custom">
+                        الدين الابتدائي
+                        <small>(مبلغ تَدين به لهذا المورد قبل بدء استخدام البرنامج)</small>
+                    </label>
+                    <div class="debt-input-wrap">
+                        <span class="currency-label">دج</span>
+                        <input type="number" id="supplierInitialDebt"
+                               class="form-input-custom debt-input"
+                               value="0" min="0" step="0.01" />
+                    </div>
+                    <small class="debt-hint">
+                        سيُضاف هذا المبلغ إلى دينك الإجمالي لهذا المورد.
+                        اتركه 0 إذا لم يكن هناك دين سابق.
+                    </small>
+                </div>
+
+                <!-- حالة المورد -->
+                <div class="form-group-custom">
+                    <label class="form-check-label-custom">
+                        <input type="checkbox" id="supplierIsActive"
+                               checked class="form-check-input me-2" />
+                        المورد نشط
+                    </label>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="modal-footer-custom">
+                    <button type="button" class="btn-cancel"
+                            onclick="closeSupplierModal()">
+                        إلغاء
+                    </button>
+                    <button type="button" class="btn-save"
+                            onclick="saveSupplier()">
+                        <i class="fas fa-save me-2"></i>
+                        حفظ المورد
+                    </button>
+                </div>
+            </form>
+        </div>
+       @*  <!-- Modal Body -->
+        <div class="modal-body-custom">
+            <form id="supplierForm">
+                <input type="hidden" id="supplierId" value="0" />
+
+                <!-- اسم المورد -->
+                <div class="form-group-custom">
+                    <label class="form-label-custom">المورد / اسم الشركة</label>
+                    <input type="text" id="supplierName" class="form-input-custom"
+                           placeholder="" required />
+                </div>
+
+                <!-- الهاتف والعنوان -->
+                <div class="form-row-custom">
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">رقم الهاتف الأساسي</label>
+                        <input type="text" id="supplierPhone" class="form-input-custom" />
+                    </div>
+                    <div class="form-col-custom">
+                        <label class="form-label-custom">العنوان والموقع</label>
+                        <input type="text" id="supplierAddress" class="form-input-custom" />
+                    </div>
+                </div>
+
+                <!-- السجل التجاري والمعلومات الضريبية -->
+                <div class="form-section-box">
+                    <h6 class="form-section-title">السجل التجاري والمعلومات الضريبية</h6>
+
+                    <div class="form-row-custom">
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">RC (السجل التجاري)</label>
+                            <input type="text" id="supplierRC" class="form-input-custom" />
+                        </div>
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">NIF (الرقم الجبائي)</label>
+                            <input type="text" id="supplierNIF" class="form-input-custom" />
+                        </div>
+                    </div>
+
+                    <div class="form-row-custom">
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">AI (المادة الجبائية)</label>
+                            <input type="text" id="supplierAI" class="form-input-custom" />
+                        </div>
+                        <div class="form-col-custom">
+                            <label class="form-label-custom">NIS (رقم الإحصاء)</label>
+                            <input type="text" id="supplierNIS" class="form-input-custom" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الدين الابتدائي -->
+                <div class="form-debt-box">
+                    <label class="form-label-custom">
+                        الدين الابتدائي
+                        <small>(مبلغ تَدين به لهذا المورد قبل بدء استخدام البرنامج)</small>
+                    </label>
+                    <div class="debt-input-wrap">
+                        <span class="currency-label">دج</span>
+                        <input type="number" id="supplierInitialDebt"
+                               class="form-input-custom debt-input"
+                               value="0" min="0" step="0.01" />
+                    </div>
+                    <small class="debt-hint">
+                        سيُضاف هذا المبلغ إلى دينك الإجمالي لهذا المورد.
+                        اتركه 0 إذا لم يكن هناك دين سابق.
+                    </small>
+                </div>
+
+                <!-- Buttons -->
+                <div class="modal-footer-custom">
+                    <button type="button" class="btn-cancel"
+                            onclick="closeSupplierModal()">
+                        إلغاء
+                    </button>
+                    <button type="button" class="btn-save"
+                            onclick="saveSupplier()">
+                        <i class="fas fa-save me-2"></i>
+                        حفظ المورد
+                    </button>
+                </div>
+
+            </form>
+        </div> *@
+    </div>
+</div>
+
+<!-- ================================================================
+     MODAL: ملف المورد (المشتريات والديون)
+     ================================================================ -->
+<div class="modal-overlay" id="supplierFileModal" onclick="closeFileModalOutside(event)">
+    <div class="modal-box modal-box-lg" id="supplierFileModalBox">
+
+        <!-- Modal Header -->
+        <div class="modal-header-custom file-header">
+            <div class="file-header-info">
+                <h5 class="modal-title-custom" id="fileSupplierName">ملف المورد: ---</h5>
+                <div class="file-header-sub">
+                    <span id="fileSupplierPhone">رقم الهاتف: ---</span>
+                    <span id="fileSupplierID">ID: ---</span>
+                </div>
+            </div>
+            <div class="file-header-left">
+                <div class="file-avatar" id="fileSupplierAvatar">؟</div>
+                <button class="modal-close-btn" onclick="closeFileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="file-stats-row">
+            <div class="file-stat-card stat-purchases">
+                <span class="stat-label">إجمالي المشتريات من هذا المورد</span>
+                <span class="stat-value green" id="statTotalPurchases">0.00 دج</span>
+            </div>
+            <div class="file-stat-card stat-paid">
+                <span class="stat-label">إجمالي المدفوعات</span>
+                <span class="stat-value green" id="statTotalPaid">0.00 دج</span>
+            </div>
+            <div class="file-stat-card stat-debt">
+                <span class="stat-label">الديون المستحقة للمورد</span>
+                <span class="stat-value red" id="statTotalDebt">0.00 دج</span>
+                <div class="stat-debt-bar"></div>
+            </div>
+        </div>
+
+        <!-- Initial Debt Box -->
+        <div class="initial-debt-box" id="initialDebtBox" style="display:none">
+            <div class="initial-debt-right">
+                <h6 class="initial-debt-title">الدين الابتدائي للمورد</h6>
+                <p class="initial-debt-sub">
+                    الدين الابتدائي (ديون سابقة قبل بدء استخدام البرنامج):
+                    <span id="initialDebtAmount" class="text-orange fw-bold">0.00 دج</span>
+                </p>
+            </div>
+            <div class="initial-debt-left">
+                <span class="initial-debt-badge-label">الدين الابتدائي (الباقي)</span>
+                <span class="initial-debt-value" id="initialDebtRemaining">0.00 دج</span>
+            </div>
+        </div>
+
+        <!-- Payment Section -->
+        <div class="payment-section">
+            <h6 class="payment-title">
+                <i class="fas fa-cash-register me-2"></i>
+                تسديد دفعة للمورد
+            </h6>
+            <div class="payment-form-row">
+                <button class="btn-confirm-payment" onclick="confirmPayment()">
+                    <i class="fas fa-check-circle me-2"></i>
+                    تأكيد التسديد
+                </button>
+                <div class="payment-field">
+                    <label>التاريخ</label>
+                    <input type="date" id="paymentDate" class="payment-input"
+                           value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="payment-field flex-1">
+                    <label>المبلغ المدفوع</label>
+                    <input type="number" id="paymentAmount"
+                           class="payment-input payment-amount"
+                           value="0.00" min="0" step="0.01" />
+                </div>
+            </div>
+            <small class="payment-note">
+                يُسدَّد الدين الابتدائي أولاً ثم الفواتير الأقدم فالأحدث.
+            </small>
+        </div>
+
+        <!-- Tables Row -->
+        <div class="file-tables-row">
+
+            <!-- Invoices Table -->
+            <div class="file-table-wrap">
+                <h6 class="table-title">
+                    <i class="fas fa-file-invoice me-2 text-teal"></i>
+                    فواتير المشتريات
+                </h6>
+                <div class="table-responsive">
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الفاتورة / التاريخ</th>
+                                <th>الإجمالي</th>
+                                <th>المدفوع</th>
+                                <th class="text-red">المتبقي (الديون)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">
+                                    لا توجد فواتير.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payments Table -->
+            <div class="file-table-wrap">
+                <h6 class="table-title">
+                    <i class="fas fa-history me-2 text-teal"></i>
+                    سجل الدفعات المتراكمة
+                </h6>
+                <div class="table-responsive">
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>المبلغ المدفوع</th>
+                                <th>رقم الفاتورة المرتبطة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody">
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">
+                                    لا يوجد سجل دفعات.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
+     DELETE CONFIRM MODAL
+     ================================================================ -->
+<div class="modal-overlay" id="deleteModal" onclick="closeDeleteModalOutside(event)">
+    <div class="modal-box modal-box-sm">
+        <div class="modal-header-custom">
+            <h5 class="modal-title-custom text-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                تأكيد الحذف
+            </h5>
+            <button class="modal-close-btn" onclick="closeDeleteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body-custom text-center py-4">
+            <p class="mb-1">هل أنت متأكد من حذف المورد:</p>
+            <h5 class="text-danger fw-bold" id="deleteSupplierName">---</h5>
+            <p class="text-muted small mt-2">لا يمكن التراجع عن هذا الإجراء.</p>
+        </div>
+        <div class="modal-footer-custom justify-content-center gap-3">
+            <button class="btn-cancel" onclick="closeDeleteModal()">إلغاء</button>
+            <button class="btn-delete-confirm" onclick="confirmDelete()">
+                <i class="fas fa-trash me-2"></i> حذف
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+
+        /* ==============================
+           GLOBAL
+           ============================== */
+        .suppliers-page {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        /* ==============================
+           PAGE HEADER
+           ============================== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a3a2a;
+            margin: 0;
+        }
+
+        .btn-add-supplier {
+            background: #3b5bdb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+            .btn-add-supplier:hover {
+                background: #2f4ac5;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 14px rgba(59,91,219,0.35);
+            }
+
+        /* ==============================
+           SEARCH
+           ============================== */
+        .search-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .search-icon {
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        .search-input {
+            border: none;
+            outline: none;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            color: #374151;
+            background: transparent;
+            width: 100%;
+            text-align: right;
+        }
+
+            .search-input::placeholder {
+                color: #9ca3af;
+            }
+
+        /* ==============================
+           SUPPLIER CARD
+           ============================== */
+        .suppliers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .supplier-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            padding: 18px 18px 18px 22px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+            transition: box-shadow 0.2s;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            grid-template-rows: auto auto auto;
+            gap: 8px 14px;
+        }
+
+            .supplier-card:hover {
+                box-shadow: 0 4px 18px rgba(0,0,0,0.09);
+            }
+
+        /* Right Color Bar */
+        .supplier-card-bar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: #1a8a5c;
+            border-radius: 0 12px 12px 0;
+        }
+
+        /* Avatar */
+        .supplier-avatar-wrap {
+            grid-column: 3;
+            grid-row: 1 / 3;
+            display: flex;
+            align-items: flex-start;
+            padding-top: 2px;
+        }
+
+        .supplier-avatar {
+            width: 52px;
+            height: 52px;
+            background: #e8f5ee;
+            color: #1a8a5c;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Actions Top */
+        .supplier-actions-top {
+            grid-column: 3;
+            grid-row: 1;
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        /* Re-layout with absolute positioning for cleaner look */
+        .supplier-card {
+            display: block;
+            padding: 16px 70px 16px 16px;
+        }
+
+        .supplier-avatar-wrap {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+        }
+
+        .supplier-actions-top {
+            position: absolute;
+            top: 16px;
+            left: 76px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.2s;
+            color: #6b7280;
+        }
+
+            .action-btn:hover {
+                background: #f3f4f6;
+            }
+
+        .delete-btn:hover {
+            color: #ef4444;
+            border-color: #fca5a5;
+            background: #fef2f2;
+        }
+
+        .edit-btn:hover {
+            color: #3b82f6;
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+
+        /* Info */
+        .supplier-info {
+            margin-bottom: 10px;
+        }
+
+        .supplier-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 3px;
+            text-align: right;
+        }
+
+        .supplier-address {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 0;
+            text-align: right;
+        }
+
+        /* Details */
+        .supplier-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 14px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13.5px;
+        }
+
+        .detail-label {
+            color: #6b7280;
+        }
+
+            .detail-label.text-teal {
+                color: #1a8a5c;
+                font-weight: 600;
+            }
+
+        .detail-value {
+            font-weight: 600;
+            color: #111827;
+            direction: ltr;
+        }
+
+        /* Footer */
+        .supplier-footer {
+            text-align: right;
+        }
+
+        .btn-view-details {
+            background: #e8f5ee;
+            color: #1a8a5c;
+            border: 1px solid #a7f3d0;
+            padding: 9px 18px;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .btn-view-details:hover {
+                background: #1a8a5c;
+                color: white;
+                transform: translateY(-1px);
+            }
+
+        /* ==============================
+           PAGINATION
+           ============================== */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            padding: 12px 20px;
+        }
+
+        .page-btn {
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+            .page-btn:hover:not(:disabled) {
+                background: #f3f4f6;
+                color: #111827;
+            }
+
+            .page-btn:disabled {
+                opacity: 0.4;
+                cursor: default;
+            }
+
+        .page-info {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        /* ==============================
+           EMPTY STATE
+           ============================== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+            .empty-state i {
+                font-size: 48px;
+                margin-bottom: 14px;
+                display: block;
+            }
+
+            .empty-state p {
+                font-size: 15px;
+                margin-bottom: 18px;
+            }
+
+        /* ==============================
+           MODAL BASE
+           ============================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+
+            .modal-overlay.show {
+                display: flex;
+            }
+
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+            animation: modalSlide 0.25s ease;
+        }
+
+        .modal-box-lg {
+            max-width: 960px;
+        }
+
+        .modal-box-sm {
+            max-width: 420px;
+        }
+
+        @@keyframes modalSlide {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ==============================
+           MODAL HEADER
+           ============================== */
+        .modal-header-custom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .modal-title-custom {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+        }
+
+        .modal-close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+            .modal-close-btn:hover {
+                background: #fef2f2;
+                color: #ef4444;
+                border-color: #fca5a5;
+            }
+
+        /* ==============================
+           MODAL BODY
+           ============================== */
+        .modal-body-custom {
+            padding: 20px 24px;
+        }
+
+        .form-group-custom {
+            margin-bottom: 16px;
+        }
+
+        .form-label-custom {
+            display: block;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 7px;
+            text-align: right;
+        }
+
+            .form-label-custom small {
+                font-weight: 400;
+                color: #9ca3af;
+                font-size: 12px;
+            }
+
+        .form-input-custom {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            color: #111827;
+            outline: none;
+            transition: border-color 0.2s;
+            text-align: right;
+            background: white;
+        }
+
+            .form-input-custom:focus {
+                border-color: #1a8a5c;
+                box-shadow: 0 0 0 3px rgba(26,138,92,0.1);
+            }
+
+        .form-row-custom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .form-col-custom {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Section Box */
+        .form-section-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 14px;
+            text-align: right;
+        }
+
+        /* Debt Box */
+        .form-debt-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .debt-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .currency-label {
+            background: #e5e7eb;
+            padding: 11px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #374151;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .debt-input {
+            text-align: left !important;
+        }
+
+        .debt-hint {
+            color: #b45309;
+            font-size: 12px;
+        }
+
+        /* ==============================
+           MODAL FOOTER
+           ============================== */
+        .modal-footer-custom {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 10px;
+            border-top: 1px solid #f3f4f6;
+            margin-top: 16px;
+        }
+
+        .btn-cancel {
+            background: white;
+            border: 1.5px solid #e5e7eb;
+            color: #374151;
+            padding: 9px 20px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.2s;
+        }
+
+            .btn-cancel:hover {
+                background: #f9fafb;
+            }
+
+        .btn-save {
+            background: #1a5c38;
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+            .btn-save:hover {
+                background: #145230;
+            }
+
+        .btn-delete-confirm {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+            .btn-delete-confirm:hover {
+                background: #dc2626;
+            }
+
+        /* ==============================
+           FILE MODAL SPECIFIC
+           ============================== */
+        .file-header {
+            background: linear-gradient(135deg,#1a3a2a,#1a5c38);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            border-bottom: none;
+            padding: 20px 24px;
+        }
+
+        .file-header-info {
+            flex: 1;
+        }
+
+        .file-header .modal-title-custom {
+            color: white;
+            font-size: 20px;
+        }
+
+        .file-header-sub {
+            display: flex;
+            gap: 20px;
+            margin-top: 6px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.75);
+        }
+
+        .file-header-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .file-avatar {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.35);
+        }
+
+        /* Stats Row */
+        .file-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 16px 20px;
+            background: #f9fafb;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .file-stat-card {
+            background: white;
+            border-radius: 11px;
+            border: 1.5px solid #e5e7eb;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: right;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-debt {
+            border-bottom: 3px solid #ef4444;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+            .stat-value.green {
+                color: #1a8a5c;
+            }
+
+            .stat-value.red {
+                color: #ef4444;
+            }
+
+        .stat-debt-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #ef4444;
+        }
+
+        /* Initial Debt Box */
+        .initial-debt-box {
+            margin: 0 20px 0;
+            background: linear-gradient(135deg,#fffbeb,#fef3c7);
+            border: 1px solid #fde68a;
+            border-radius: 11px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .initial-debt-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 4px;
+        }
+
+        .initial-debt-sub {
+            font-size: 12.5px;
+            color: #78350f;
+            margin: 0;
+        }
+
+        .text-orange {
+            color: #d97706;
+        }
+
+        .initial-debt-badge-label {
+            font-size: 11px;
+            color: #92400e;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .initial-debt-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #d97706;
+        }
+
+        /* Payment Section */
+        .payment-section {
+            background: #f0fdf9;
+            border: 1px solid #a7f3d0;
+            border-radius: 11px;
+            margin: 14px 20px;
+            padding: 16px;
+        }
+
+        .payment-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a3a2a;
+            margin-bottom: 14px;
+            text-align: right;
+        }
+
+        .payment-form-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            flex-direction: row-reverse;
+        }
+
+        .payment-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            text-align: right;
+        }
+
+            .payment-field label {
+                font-size: 12px;
+                color: #374151;
+                font-weight: 600;
+            }
+
+            .payment-field.flex-1 {
+                flex: 1;
+            }
+
+        .payment-input {
+            padding: 10px 12px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+            .payment-input:focus {
+                border-color: #1a8a5c;
+            }
+
+        .payment-amount {
+            text-align: left;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .btn-confirm-payment {
+            background: #1a5c38;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+            .btn-confirm-payment:hover {
+                background: #145230;
+            }
+
+        .payment-note {
+            font-size: 12px;
+            color: #1a8a5c;
+            display: block;
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        /* Tables Row */
+        .file-tables-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            padding: 0 20px 20px;
+            margin-top: 14px;
+        }
+
+        .file-table-wrap {
+            background: white;
+            border-radius: 11px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .table-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a3a2a;
+            padding: 12px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #f9fafb;
+            margin: 0;
+            text-align: right;
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            direction: rtl;
+        }
+
+            .file-table thead tr {
+                background: #f0fdf4;
+            }
+
+            .file-table th {
+                padding: 10px 12px;
+                font-weight: 700;
+                color: #374151;
+                border-bottom: 1.5px solid #e5e7eb;
+                text-align: right;
+            }
+
+            .file-table td {
+                padding: 10px 12px;
+                border-bottom: 1px solid #f3f4f6;
+                color: #374151;
+                text-align: right;
+            }
+
+            .file-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .file-table tbody tr:hover {
+                background: #fafafa;
+            }
+
+        .text-red {
+            color: #ef4444 !important;
+            font-weight: 700;
+        }
+
+        .text-teal {
+            color: #1a8a5c;
+        }
+
+        @@media (max-width: 768px) {
+            .file-stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .file-tables-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row-custom {
+                grid-template-columns: 1fr;
+            }
+
+            .payment-form-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // ================================================
+        //  PAGINATION
+        // ================================================
+        const ITEMS_PER_PAGE = 10;
+        let currentPage = 1;
+        let allCards = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            allCards = Array.from(document.querySelectorAll('.supplier-card'));
+            renderPage();
+        });
+
+        function renderPage() {
+            const visible = allCards.filter(c => c.style.display !== 'none');
+            const total   = Math.ceil(visible.length / ITEMS_PER_PAGE) || 1;
+            if (currentPage > total) currentPage = total;
+
+            visible.forEach((c, i) => {
+                c.style.visibility = (i >= (currentPage-1)*ITEMS_PER_PAGE &&
+                                      i <  currentPage*ITEMS_PER_PAGE) ? '' : 'hidden';
+                c.style.position   = (i >= (currentPage-1)*ITEMS_PER_PAGE &&
+                                      i <  currentPage*ITEMS_PER_PAGE) ? '' : 'absolute';
+            });
+
+            document.getElementById('pageInfo').textContent =
+                `صفحة ${currentPage} من ${total}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === total;
+        }
+
+        function changePage(dir) {
+            currentPage += dir;
+            renderPage();
+        }
+
+        // ================================================
+        //  SEARCH / FILTER
+        // ================================================
+        function filterSuppliers() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            allCards.forEach(c => {
+                const name = c.dataset.name || '';
+                c.style.display = name.includes(q) ? '' : 'none';
+            });
+            currentPage = 1;
+            renderPage();
+        }
+
+        // ================================================
+        //  ADD MODAL
+        // ================================================
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'إضافة مورد جديد';
+            document.getElementById('supplierId').value = '0';
+            document.getElementById('supplierName').value = '';
+            document.getElementById('supplierPhone').value = '';
+            document.getElementById('supplierAddress').value = '';
+            document.getElementById('supplierRC').value = '';
+            document.getElementById('supplierNIF').value = '';
+            document.getElementById('supplierAI').value = '';
+            document.getElementById('supplierNIS').value = '';
+            document.getElementById('supplierInitialDebt').value = '0';
+            document.getElementById('supplierModal').classList.add('show');
+        }
+
+        function closeSupplierModal() {
+            document.getElementById('supplierModal').classList.remove('show');
+        }
+
+        function closeModalOutside(e) {
+            if (e.target.id === 'supplierModal') closeSupplierModal();
+        }
+
+        // ================================================
+        //  EDIT MODAL
+        // ================================================
+               // تحديث openEditModal
+        function openEditModal(id) {
+            fetch(`/Suppliers/GetById/${id}`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('modalTitle').textContent
+                        = 'تعديل بيانات المورد';
+                    document.getElementById('supplierId').value
+                        = data.id;
+                    document.getElementById('supplierName').value
+                        = data.name || '';
+                    document.getElementById('supplierBusinessActivity').value
+                        = data.businessActivity || '';
+                    document.getElementById('supplierPhone').value
+                        = data.phone || '';
+                    document.getElementById('supplierPhone2').value
+                        = data.phone2 || '';
+                    document.getElementById('supplierEmail').value
+                        = data.email || '';
+                    document.getElementById('supplierAddress').value
+                        = data.address || '';
+                    document.getElementById('supplierCity').value
+                        = data.city || '';
+                    document.getElementById('supplierRC').value
+                        = data.RC || '';
+                    document.getElementById('supplierNIF').value
+                        = data.NIF || '';
+                    document.getElementById('supplierAI').value
+                        = data.ai || '';
+                    document.getElementById('supplierNIS').value
+                        = data.nis || '';
+                    document.getElementById('supplierBankName').value
+                        = data.bankName || '';
+                    document.getElementById('supplierBankAccount').value
+                        = data.bankAccount || '';
+                    document.getElementById('supplierInitialDebt').value
+                        = data.initialDebt || 0;
+                    document.getElementById('supplierIsActive').checked
+                        = data.isActive;
+
+                    document.getElementById('supplierModal').classList.add('show');
+                });
+        }
+
+        // ================================================
+        //  SAVE SUPPLIER
+        // ================================================
+               // تحديث saveSupplier
+        function saveSupplier() {
+            const id   = parseInt(document.getElementById('supplierId').value);
+            const name = document.getElementById('supplierName').value.trim();
+
+            if (!name) {
+                alert('اسم المورد مطلوب!');
+                document.getElementById('supplierName').focus();
+                return;
+            }
+
+            const payload = {
+                id:                 id,
+                name:               name,
+                businessActivity:   document.getElementById('supplierBusinessActivity').value.trim(),
+                phone:              document.getElementById('supplierPhone').value.trim(),
+                phone2:             document.getElementById('supplierPhone2').value.trim(),
+                email:              document.getElementById('supplierEmail').value.trim(),
+                address:            document.getElementById('supplierAddress').value.trim(),
+                city:               document.getElementById('supplierCity').value.trim(),
+                RC: document.getElementById('supplierRC').value.trim(),
+                NIF:          document.getElementById('supplierNIF').value.trim(),
+                ai:                 document.getElementById('supplierAI').value.trim(),
+                nis:                document.getElementById('supplierNIS').value.trim(),
+                bankName:           document.getElementById('supplierBankName').value.trim(),
+                bankAccount:        document.getElementById('supplierBankAccount').value.trim(),
+                initialDebt:        parseFloat(document.getElementById('supplierInitialDebt').value) || 0,
+                isActive:           document.getElementById('supplierIsActive').checked
+            };
+
+            const url = id === 0 ? '/Suppliers/Create' : '/Suppliers/Edit';
+
+            fetch(url, {
+                method:  'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getToken()
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    closeSupplierModal();
+                    location.reload();
+                } else {
+                    alert(res.message || 'حدث خطأ!');
+                }
+            })
+            .catch(() => alert('تعذر الاتصال بالخادم!'));
+        }
+
+        // ================================================
+        //  DELETE MODAL
+        // ================================================
+        let deleteTargetId = 0;
+
+        function deleteSupplier(id, name) {
+            deleteTargetId = id;
+            document.getElementById('deleteSupplierName').textContent = name;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        function closeDeleteModalOutside(e) {
+            if (e.target.id === 'deleteModal') closeDeleteModal();
+        }
+
+        function confirmDelete() {
+            fetch(`/Suppliers/Delete/${deleteTargetId}`, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': getToken() }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) { closeDeleteModal(); location.reload(); }
+                else alert(res.message || 'حدث خطأ أثناء الحذف!');
+            });
+        }
+
+        // ================================================
+        //  SUPPLIER FILE MODAL
+        // ================================================
+        function openSupplierFile(id) {
+            fetch(`/Suppliers/GetFile/${id}`)
+                .then(r => r.json())
+                .then(data => {
+                    // Header
+                    document.getElementById('fileSupplierName').textContent =
+                        'ملف المورد: ' + data.name;
+                    document.getElementById('fileSupplierPhone').textContent =
+                        'رقم الهاتف: ' + (data.phone || '---');
+                    document.getElementById('fileSupplierID').textContent =
+                        'ID: ' + data.id;
+                    document.getElementById('fileSupplierAvatar').textContent =
+                        data.name.substring(0,1).toUpperCase();
+
+                    // Stats
+                    document.getElementById('statTotalPurchases').textContent =
+                        formatMoney(data.totalPurchases) + ' دج';
+                    document.getElementById('statTotalPaid').textContent =
+                        formatMoney(data.totalPaid) + ' دج';
+                    document.getElementById('statTotalDebt').textContent =
+                        formatMoney(data.totalDebt) + ' دج';
+
+                    // Initial Debt
+                    if (data.initialDebt > 0) {
+                        document.getElementById('initialDebtBox').style.display = 'flex';
+                        document.getElementById('initialDebtAmount').textContent =
+                            formatMoney(data.initialDebt) + ' دج';
+                        document.getElementById('initialDebtRemaining').textContent =
+                            formatMoney(data.initialDebtRemaining) + ' دج';
+                    } else {
+                        document.getElementById('initialDebtBox').style.display = 'none';
+                    }
+
+                    // Invoices Table
+                    const invBody = document.getElementById('invoicesTableBody');
+                    invBody.innerHTML = '';
+                    if (data.initialDebt > 0) {
+                        invBody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <strong class="text-orange">الدين الابتدائي (ديون سابقة قبل بدء استخدام البرنامج)</strong>
+                                    <br/><small class="text-muted">الرصيد الافتتاحي</small>
+                                </td>
+                                <td>${formatMoney(data.initialDebt)}</td>
+                                <td class="text-teal">${formatMoney(data.initialDebt - data.initialDebtRemaining)}</td>
+                                <td class="text-red">${formatMoney(data.initialDebtRemaining)}</td>
+                            </tr>`;
+                    }
+                    if (data.invoices && data.invoices.length > 0) {
+                        data.invoices.forEach(inv => {
+                            invBody.innerHTML += `
+                                <tr>
+                                    <td>
+                                        <strong>${inv.invoiceNumber}</strong>
+                                        <br/><small class="text-muted">${inv.date}</small>
+                                    </td>
+                                    <td>${formatMoney(inv.total)}</td>
+                                    <td class="text-teal">${formatMoney(inv.paid)}</td>
+                                    <td class="${inv.remaining > 0 ? 'text-red' : 'text-teal'}">
+                                        ${formatMoney(inv.remaining)}
+                                    </td>
+                                </tr>`;
+                        });
+                    } else if (data.initialDebt === 0) {
+                        invBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">لا توجد فواتير.</td></tr>';
+                    }
+
+                    // Payments Table
+                    const payBody = document.getElementById('paymentsTableBody');
+                    payBody.innerHTML = '';
+                    if (data.payments && data.payments.length > 0) {
+                        data.payments.forEach(p => {
+                            payBody.innerHTML += `
+                                <tr>
+                                    <td>${p.date}</td>
+                                    <td class="text-teal fw-bold">${formatMoney(p.amount)}</td>
+                                    <td>${p.invoiceRef || '—'}</td>
+                                </tr>`;
+                        });
+                    } else {
+                        payBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">لا يوجد سجل دفعات.</td></tr>';
+                    }
+
+                    // Payment date default
+                    document.getElementById('paymentDate').value =
+                        new Date().toISOString().split('T')[0];
+                    document.getElementById('paymentAmount').value = '0.00';
+                    document.getElementById('paymentAmount').dataset.supplierId = id;
+
+                    document.getElementById('supplierFileModal').classList.add('show');
+                });
+        }
+
+        function closeFileModal() {
+            document.getElementById('supplierFileModal').classList.remove('show');
+        }
+
+        function closeFileModalOutside(e) {
+            if (e.target.id === 'supplierFileModal') closeFileModal();
+        }
+
+        // ================================================
+        //  CONFIRM PAYMENT
+        // ================================================
+        function confirmPayment() {
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const date   = document.getElementById('paymentDate').value;
+            const suppId = parseInt(document.getElementById('paymentAmount').dataset.supplierId);
+
+            if (!amount || amount <= 0) {
+                alert('يرجى إدخال مبلغ صحيح!');
+                return;
+            }
+
+            fetch('/Suppliers/Pay', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json',
+                           'RequestVerificationToken': getToken() },
+                body: JSON.stringify({ supplierId: suppId, amount: amount, date: date })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) { openSupplierFile(suppId); }
+                else alert(res.message || 'حدث خطأ!');
+            });
+        }
+
+        // ================================================
+        //  HELPERS
+        // ================================================
+        function formatMoney(val) {
+            return parseFloat(val || 0).toLocaleString('fr-DZ', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getToken() {
+            const el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el ? el.value : '';
+        }
+    </script>
+}
+
+@* @model List<SmarterGros.Models.Supplier>
+@{
+    ViewData["Title"] = "الموردون";
+}
+
+<div class="sg-page-header">
+    <div class="sg-page-header-top">
+        <div>
+            <h1 class="sg-page-title-main"><i class="fas fa-truck me-2"></i>الموردون</h1>
+            <p class="sg-page-subtitle">@Model.Count مورد نشط</p>
+        </div>
+        <button class="btn sg-btn-primary" onclick="openSupplierModal()">
+            <i class="fas fa-plus me-1"></i>+ مورد جديد
+        </button>
+    </div>
+</div>
+
+<div class="sg-filters-bar">
+    <form method="get" class="d-flex gap-2">
+        <div class="sg-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" name="search" value="@ViewBag.Search" placeholder="بحث..." class="sg-search-input" />
+        </div>
+        <button type="submit" class="btn sg-btn-search">بحث</button>
+    </form>
+</div>
+
+<div class="sg-card">
+    <table class="sg-table sg-table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>اسم المورد</th>
+                <th>النشاط</th>
+                <th>الهاتف</th>
+                <th>المدينة</th>
+                <th>السجل التجاري</th>
+                <th>الإجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td>@s.Id</td>
+                    <td><strong>@s.Name</strong></td>
+                    <td>@s.BusinessActivity</td>
+                    <td>@s.Phone</td>
+                    <td>@s.City</td>
+                    <td>@s.RC</td>
+                    <td>
+                        <button class="sg-btn-sm-edit" onclick="editSupplier(@s.Id)"><i class="fas fa-edit"></i></button>
+                        <button class="sg-btn-sm-delete" onclick="deleteSupplier(@s.Id, '@s.Name')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="sg-modal-overlay" id="supplierModal">
+    <div class="sg-modal">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title" id="supplierModalTitle">إضافة مورد جديد</h2>
+            <button class="sg-modal-close" onclick="closeSupplierModal()">✕</button>
+        </div>
+        <div class="sg-modal-body">
+            <input type="hidden" id="supplierId" value="0" />
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label>اسم المورد *</label>
+                    <input type="text" id="supplierName" class="sg-form-input" />
+                </div>
+                <div class="sg-form-group">
+                    <label>النشاط التجاري</label>
+                    <input type="text" id="supplierActivity" class="sg-form-input" />
+                </div>
+            </div>
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label>الهاتف</label>
+                    <input type="text" id="supplierPhone" class="sg-form-input" />
+                </div>
+                <div class="sg-form-group">
+                    <label>هاتف 2</label>
+                    <input type="text" id="supplierPhone2" class="sg-form-input" />
+                </div>
+            </div>
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="supplierEmail" class="sg-form-input" />
+                </div>
+                <div class="sg-form-group">
+                    <label>المدينة</label>
+                    <input type="text" id="supplierCity" class="sg-form-input" />
+                </div>
+            </div>
+            <div class="sg-form-group">
+                <label>العنوان</label>
+                <input type="text" id="supplierAddress" class="sg-form-input" />
+            </div>
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label>السجل التجاري</label>
+                    <input type="text" id="supplierCR" class="sg-form-input" />
+                </div>
+                <div class="sg-form-group">
+                    <label>الرقم الجبائي</label>
+                    <input type="text" id="supplierTax" class="sg-form-input" />
+                </div>
+            </div>
+            <div class="sg-form-row">
+                <div class="sg-form-group">
+                    <label>رقم الحساب البنكي</label>
+                    <input type="text" id="supplierBank" class="sg-form-input" />
+                </div>
+                <div class="sg-form-group">
+                    <label>اسم البنك</label>
+                    <input type="text" id="supplierBankName" class="sg-form-input" />
+                </div>
+            </div>
+        </div>
+        <div class="sg-modal-footer">
+            <span></span>
+            <div class="sg-modal-btns">
+                <button class="sg-btn-prev" onclick="closeSupplierModal()">إلغاء</button>
+                <button class="sg-btn-next" onclick="saveSupplier()">
+                    <i class="fas fa-save me-1"></i>حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openSupplierModal() {
+            document.getElementById('supplierId').value = '0';
+            document.getElementById('supplierModalTitle').textContent = 'إضافة مورد جديد';
+            clearSupplierForm();
+            document.getElementById('supplierModal').classList.add('show');
+        }
+
+        function closeSupplierModal() {
+            document.getElementById('supplierModal').classList.remove('show');
+        }
+
+        function clearSupplierForm() {
+            ['supplierName','supplierActivity','supplierPhone','supplierPhone2',
+             'supplierEmail','supplierCity','supplierAddress','supplierCR',
+             'supplierTax','supplierBank','supplierBankName'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+        }
+
+        async function editSupplier(id) {
+            const res = await fetch(`/Suppliers/GetSupplier/${id}`);
+            const s = await res.json();
+            document.getElementById('supplierId').value = s.id;
+            document.getElementById('supplierName').value = s.name || '';
+            document.getElementById('supplierActivity').value = s.businessActivity || '';
+            document.getElementById('supplierPhone').value = s.phone || '';
+            document.getElementById('supplierPhone2').value = s.phone2 || '';
+            document.getElementById('supplierEmail').value = s.email || '';
+            document.getElementById('supplierCity').value = s.city || '';
+            document.getElementById('supplierAddress').value = s.address || '';
+            document.getElementById('supplierCR').value = s.RC || '';
+            document.getElementById('supplierTax').value = s.NIF || '';
+            document.getElementById('supplierBank').value = s.bankAccount || '';
+            document.getElementById('supplierBankName').value = s.bankName || '';
+            document.getElementById('supplierModalTitle').textContent = 'تعديل المورد';
+            document.getElementById('supplierModal').classList.add('show');
+        }
+
+        async function saveSupplier() {
+            const id = parseInt(document.getElementById('supplierId').value);
+            const data = {
+                id,
+                name: document.getElementById('supplierName').value,
+                businessActivity: document.getElementById('supplierActivity').value,
+                phone: document.getElementById('supplierPhone').value,
+                phone2: document.getElementById('supplierPhone2').value,
+                email: document.getElementById('supplierEmail').value,
+                city: document.getElementById('supplierCity').value,
+                address: document.getElementById('supplierAddress').value,
+                RC: document.getElementById('supplierCR').value,
+                NIF: document.getElementById('supplierTax').value,
+                bankAccount: document.getElementById('supplierBank').value,
+                bankName: document.getElementById('supplierBankName').value
+            };
+
+            const url = id === 0 ? '/Suppliers/Create' : '/Suppliers/Edit';
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                closeSupplierModal();
+                location.reload();
+            }
+        }
+
+        async function deleteSupplier(id, name) {
+            if (!confirm(`هل تريد حذف المورد: ${name}؟`)) return;
+            const res = await fetch(`/Suppliers/Delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(id)
+            });
+            const result = await res.json();
+            if (result.success) location.reload();
+        }
+    </script>
+} *@
