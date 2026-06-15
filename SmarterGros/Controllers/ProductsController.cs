@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 using SmarterGros.Data;
 using SmarterGros.Models;
-using QRCoder;
+using SmarterGros.Security;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -21,6 +22,7 @@ namespace SmarterGros.Controllers
             _env = env;
         }
 
+        [HasPermission(Permissions.Products.View)]
         public async Task<IActionResult> Index(string? search, int? categoryId, string? view)
         {
             var query = _context.Products
@@ -49,7 +51,8 @@ namespace SmarterGros.Controllers
             return View(products);
         }
 
-        [HttpGet]
+        [HttpPost]
+        [HasPermission(Permissions.Products.Create)]
         public async Task<IActionResult> Create()
         {
             ViewBag.Categories = await _context.Categories.ToListAsync();
@@ -61,6 +64,7 @@ namespace SmarterGros.Controllers
         }
 
         [HttpPost]
+        [HasPermission(Permissions.Products.Create)]
         public async Task<IActionResult> Create(Product product, IFormFile? imageFile)
         {
             if (imageFile != null)
@@ -99,6 +103,7 @@ namespace SmarterGros.Controllers
         }
 
         [HttpGet]
+        [HasPermission(Permissions.Products.Edit)]
         public async Task<IActionResult> Edit(int id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -109,6 +114,7 @@ namespace SmarterGros.Controllers
         }
 
         [HttpPost]
+        [HasPermission(Permissions.Products.Edit)]
         public async Task<IActionResult> Edit(int id, Product product, IFormFile? imageFile)
         {
             var existing = await _context.Products.FindAsync(id);
@@ -177,6 +183,7 @@ namespace SmarterGros.Controllers
         }
 
         [HttpPost]
+        [HasPermission(Permissions.Products.Delete)]
         public async Task<IActionResult> Delete(int id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -188,6 +195,7 @@ namespace SmarterGros.Controllers
         }
 
         [HttpGet]
+        [HasPermission(Permissions.Products.View)]
         public async Task<IActionResult> GetProduct(int id)
         {
             var product = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);

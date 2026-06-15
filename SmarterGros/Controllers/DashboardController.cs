@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmarterGros.Data;
+using SmarterGros.Security;
 using SmarterGros.ViewModels;
 
 namespace SmarterGros.Controllers
 {
     [Authorize]
+    [HasPermission(Permissions.Dashboard.View)]
     public class DashboardController : Controller
     {
         private readonly ApplicationDbContext _context;

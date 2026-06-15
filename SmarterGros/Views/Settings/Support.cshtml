@@ -10,23 +10,22 @@
             <i class="fas fa-cog me-2"></i> التواصل والدعم
         </h4>
 
-        <!-- ===== TABS NAV ===== -->
-        <div class="settings-tabs">
-            <a href="@Url.Action("Index", "Settings")"
-               class="settings-tab @(ViewData["ActiveTab"]?.ToString() == "company" ? "active" : "")">
-                <i class="fas fa-building me-1"></i> بيانات المؤسسة
+        <!-- Settings Tabs -->
+        <div class="sg-settings-tabs">
+            <a href="@Url.Action("Index", "Settings")" class="sg-tab-btn">
+                <i class="fas fa-building me-1"></i>بيانات المؤسسة
             </a>
-            <a href="@Url.Action("Users", "Settings")"
-               class="settings-tab @(ViewData["ActiveTab"]?.ToString() == "users" ? "active" : "")">
-                <i class="fas fa-users me-1"></i> المستخدمون
+            <a href="@Url.Action("Users", "Settings")" class="sg-tab-btn">
+                <i class="fas fa-users me-1"></i>المستخدمون
             </a>
-            <a href="@Url.Action("Database", "Settings")"
-               class="settings-tab @(ViewData["ActiveTab"]?.ToString() == "database" ? "active" : "")">
-                <i class="fas fa-database me-1"></i> قاعدة البيانات
+            <a href="@Url.Action("RolesPermissions", "Settings")" class="sg-tab-btn">
+                <i class="fas fa-user-shield me-1"></i>الصلاحيات
             </a>
-            <a href="@Url.Action("Support", "Settings")"
-               class="settings-tab @(ViewData["ActiveTab"]?.ToString() == "support" ? "active" : "")">
-                <i class="fas fa-headset me-1"></i> الدعم
+            <a href="@Url.Action("Database", "Settings")" class="sg-tab-btn">
+                <i class="fas fa-database me-1"></i>قاعدة البيانات
+            </a>
+            <a href="@Url.Action("Support", "Settings")" class="sg-tab-btn active">
+                <i class="fas fa-headset me-1"></i>الدعم
             </a>
         </div>
     </div>
