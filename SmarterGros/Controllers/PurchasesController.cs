@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmarterGros.Data;
 using SmarterGros.Models;
+using SmarterGros.Models.Enums;
 
 namespace SmarterGros.Controllers
 {
@@ -41,7 +42,7 @@ namespace SmarterGros.Controllers
                 PurchaseDate = model.PurchaseDate,
                 Discount = model.Discount,
                 Notes = model.Notes,
-                Status = "مكتملة"
+                Status = InvoiceStatus.Received
             };
 
             decimal subTotal = 0;

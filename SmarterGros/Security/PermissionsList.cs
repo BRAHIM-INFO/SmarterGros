@@ -111,22 +111,44 @@
                     }
                 },
 
-                // ========== المشتريات ==========
-                new PermissionGroup
-                {
-                    GroupName = "المشتريات",
-                    GroupIcon = "fa-shopping-cart",
-                    GroupColor = "#388e3c",
-                    Permissions = new List<PermissionInfo>
-                    {
-                        new() { Key = Permissions.Purchases.View, DisplayName = "عرض المشتريات", Description = "عرض فواتير المشتريات" },
-                        new() { Key = Permissions.Purchases.Create, DisplayName = "إنشاء فاتورة شراء", Description = "تسجيل فواتير شراء جديدة" },
-                        new() { Key = Permissions.Purchases.Edit, DisplayName = "تعديل المشتريات", Description = "تعديل فواتير الشراء" },
-                        new() { Key = Permissions.Purchases.Delete, DisplayName = "حذف المشتريات", Description = "حذف فواتير الشراء" },
-                        new() { Key = Permissions.Purchases.Print, DisplayName = "طباعة الفواتير", Description = "طباعة فواتير الشراء" },
-                        new() { Key = Permissions.Purchases.Export, DisplayName = "تصدير المشتريات", Description = "تصدير فواتير الشراء" }
-                    }
-                },
+               // ========== المشتريات ==========
+                 new PermissionGroup
+                 {
+                     GroupName = "المشتريات",
+                     GroupIcon = "fa-shopping-cart",
+                     GroupColor = "#388e3c",
+                     Permissions = new List<PermissionInfo>
+                     {
+                         new() { Key = Permissions.Purchases.View, DisplayName = "عرض المشتريات", Description = "عرض فواتير المشتريات" },
+                         new() { Key = Permissions.Purchases.Create, DisplayName = "إنشاء فاتورة شراء", Description = "تسجيل فواتير شراء جديدة" },
+                         new() { Key = Permissions.Purchases.Edit, DisplayName = "تعديل المشتريات", Description = "تعديل فواتير الشراء (مسودة فقط)" },
+                         new() { Key = Permissions.Purchases.Delete, DisplayName = "حذف المشتريات", Description = "حذف فواتير الشراء (مسودة فقط)" },
+                         new() { Key = Permissions.Purchases.Receive, DisplayName = "استلام الفاتورة", Description = "تأكيد استلام البضاعة وتأثير المخزون" },
+                         new() { Key = Permissions.Purchases.Cancel, DisplayName = "إلغاء الفاتورة", Description = "إلغاء فاتورة مستلمة وعكس التأثيرات" },
+                         new() { Key = Permissions.Purchases.ManagePayments, DisplayName = "إدارة الدفعات", Description = "تسجيل دفعات على فواتير الكريدي" },
+                         new() { Key = Permissions.Purchases.Print, DisplayName = "طباعة الفواتير", Description = "طباعة فواتير الشراء" },
+                         new() { Key = Permissions.Purchases.Export, DisplayName = "تصدير المشتريات", Description = "تصدير فواتير الشراء" },
+                         new() { Key = Permissions.Purchases.Duplicate, DisplayName = "نسخ فاتورة", Description = "إنشاء فاتورة جديدة من فاتورة موجودة" }
+                     }
+                 },
+              
+                 // ========== مرتجعات المشتريات - ✅ جديد ==========
+                 new PermissionGroup
+                 {
+                     GroupName = "مرتجعات المشتريات",
+                     GroupIcon = "fa-rotate-left",
+                     GroupColor = "#e91e63",
+                     Permissions = new List<PermissionInfo>
+                     {
+                         new() { Key = Permissions.PurchaseReturns.View, DisplayName = "عرض المرتجعات", Description = "عرض قائمة مرتجعات الشراء" },
+                         new() { Key = Permissions.PurchaseReturns.Create, DisplayName = "إنشاء مرتجع", Description = "إرجاع منتجات للمورد" },
+                         new() { Key = Permissions.PurchaseReturns.Edit, DisplayName = "تعديل المرتجعات", Description = "تعديل بيانات المرتجع" },
+                         new() { Key = Permissions.PurchaseReturns.Delete, DisplayName = "حذف المرتجعات", Description = "حذف مرتجع نهائياً (خطير)" },
+                         new() { Key = Permissions.PurchaseReturns.Cancel, DisplayName = "إلغاء المرتجع", Description = "إلغاء مرتجع وعكس التأثيرات" },
+                         new() { Key = Permissions.PurchaseReturns.Print, DisplayName = "طباعة المرتجعات", Description = "طباعة فواتير المرتجعات" },
+                         new() { Key = Permissions.PurchaseReturns.Export, DisplayName = "تصدير المرتجعات", Description = "تصدير قائمة المرتجعات" }
+                     }
+                 },
 
                 // ========== المبيعات ==========
                 new PermissionGroup

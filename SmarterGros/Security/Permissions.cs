@@ -73,8 +73,26 @@
             public const string Create = "Purchases.Create";
             public const string Edit = "Purchases.Edit";
             public const string Delete = "Purchases.Delete";
+            public const string Receive = "Purchases.Receive";         // ✅ جديد - استلام الفاتورة
+            public const string Cancel = "Purchases.Cancel";           // ✅ جديد - إلغاء الفاتورة
+            public const string ManagePayments = "Purchases.ManagePayments"; // ✅ جديد - إدارة الدفعات
             public const string Print = "Purchases.Print";
             public const string Export = "Purchases.Export";
+            public const string Duplicate = "Purchases.Duplicate";     // ✅ جديد - نسخ فاتورة
+        }
+
+        // ========================================
+        // 🔄 مرتجعات المشتريات - ✅ جديد
+        // ========================================
+        public static class PurchaseReturns
+        {
+            public const string View = "PurchaseReturns.View";
+            public const string Create = "PurchaseReturns.Create";
+            public const string Edit = "PurchaseReturns.Edit";
+            public const string Delete = "PurchaseReturns.Delete";
+            public const string Cancel = "PurchaseReturns.Cancel";
+            public const string Print = "PurchaseReturns.Print";
+            public const string Export = "PurchaseReturns.Export";
         }
 
         // ========================================

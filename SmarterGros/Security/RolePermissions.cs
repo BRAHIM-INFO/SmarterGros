@@ -75,6 +75,9 @@
                 // المشتريات (عرض فقط)
                 Permissions.Purchases.View,
 
+                // مرتجعات المشتريات (عرض فقط) ✅ جديد
+                Permissions.PurchaseReturns.View,
+
                 // المبيعات (عرض فقط)
                 Permissions.Sales.View,
 
@@ -158,13 +161,26 @@
                 // لوحة التحكم
                 Permissions.Dashboard.View,
 
-                // المشتريات (كامل)
+                // المشتريات (كامل) ✅ محدّث
                 Permissions.Purchases.View,
                 Permissions.Purchases.Create,
                 Permissions.Purchases.Edit,
                 Permissions.Purchases.Delete,
+                Permissions.Purchases.Receive,           // ✅ جديد
+                Permissions.Purchases.Cancel,            // ✅ جديد
+                Permissions.Purchases.ManagePayments,    // ✅ جديد
                 Permissions.Purchases.Print,
                 Permissions.Purchases.Export,
+                Permissions.Purchases.Duplicate,         // ✅ جديد
+
+                // مرتجعات المشتريات (كامل) ✅ جديد
+                Permissions.PurchaseReturns.View,
+                Permissions.PurchaseReturns.Create,
+                Permissions.PurchaseReturns.Edit,
+                Permissions.PurchaseReturns.Delete,
+                Permissions.PurchaseReturns.Cancel,
+                Permissions.PurchaseReturns.Print,
+                Permissions.PurchaseReturns.Export,
 
                 // الموردون (كامل)
                 Permissions.Suppliers.View,
@@ -214,6 +230,7 @@
                 Permissions.Suppliers.View,
                 Permissions.Customers.View,
                 Permissions.Purchases.View,
+                Permissions.PurchaseReturns.View,  // ✅ جديد
                 Permissions.Sales.View,
                 Permissions.StockMovements.View,
 
