@@ -217,6 +217,21 @@
                     </div>
                 }
 
+
+                <!-- ═══════════════════════════════════════════════════
+                     📝 سجل النشاطات
+                ═══════════════════════════════════════════════════ -->
+                @if (await HasPermission(Permissions.ActivityLogs.View))
+                {
+                    <div class="sg-nav-section">
+                        <span class="sg-nav-label">المراقبة</span>
+                        <a href="@Url.Action("Index", "ActivityLogs")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "ActivityLogs" ? "active" : "")">
+                            <i class="fas fa-history"></i>
+                            <span>سجل النشاطات</span>
+                        </a>
+                    </div>
+                }
+
                 <!-- ═══════════════════════════════════════════════════
                      ⚙️ الإعدادات
                 ═══════════════════════════════════════════════════ -->
@@ -224,7 +239,8 @@
                     var canViewSettings = await HasPermission(Permissions.CompanySettings.View)
                     || await HasPermission(Permissions.Users.View)
                     || await HasPermission(Permissions.Database.View)
-                    || await HasPermission(Permissions.Support.View);
+                    || await HasPermission(Permissions.Support.View)
+                    || await HasPermission(Permissions.Roles.View);
                 }
                 @if (canViewSettings)
                 {
@@ -235,6 +251,8 @@
                         </a>
                     </div>
                 }
+
+
             </nav>
 
             <!-- ═══════════════════════════════════════════════════

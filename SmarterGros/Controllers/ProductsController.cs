@@ -7,6 +7,7 @@ using SmarterGros.Models;
 using SmarterGros.Security;
 using System.Drawing;
 using System.Drawing.Imaging;
+using SmarterGros.Services; // ✅ جديد
 
 namespace SmarterGros.Controllers
 {
@@ -15,11 +16,17 @@ namespace SmarterGros.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly IActivityLogService _activityLog; // ✅ جديد
 
-        public ProductsController(ApplicationDbContext context, IWebHostEnvironment env)
+
+        public ProductsController(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IActivityLogService activityLog) // ✅ جديد
         {
             _context = context;
             _env = env;
+            _activityLog = activityLog; // ✅ جديد
         }
 
         [HasPermission(Permissions.Products.View)]
@@ -51,7 +58,7 @@ namespace SmarterGros.Controllers
             return View(products);
         }
 
-        [HttpPost]
+        [HttpGet]
         [HasPermission(Permissions.Products.Create)]
         public async Task<IActionResult> Create()
         {
@@ -98,6 +105,24 @@ namespace SmarterGros.Controllers
             _context.StockMovements.Add(movement);
             await _context.SaveChangesAsync();
 
+            // ✅ تسجيل العملية
+            await _activityLog.LogCreateAsync(
+                module: "Products",
+                entityName: "Product",
+                entityId: product.Id,
+                description: $"تم إضافة منتج جديد: {product.Name} (المرجع: {product.Reference})",
+                newValues: new
+                {
+                    product.Name,
+                    product.Reference,
+                    product.CategoryId,
+                    product.StockQuantity,
+                    product.PurchasePriceTTC,
+                    product.RetailPriceTTC
+                }
+            );
+
+
             TempData["Success"] = "تم إضافة المنتج بنجاح";
             return RedirectToAction(nameof(Index));
         }
@@ -119,6 +144,18 @@ namespace SmarterGros.Controllers
         {
             var existing = await _context.Products.FindAsync(id);
             if (existing == null) return NotFound();
+
+            // ✅ حفظ القيم القديمة قبل التعديل
+            var oldValues = new
+            {
+                existing.Name,
+                existing.StockQuantity,
+                existing.PurchasePriceTTC,
+                existing.RetailPriceTTC,
+                existing.WholesalePriceTTC,
+                existing.MinStockAlert
+            };
+
 
             var oldQty = existing.StockQuantity;
 
@@ -178,6 +215,26 @@ namespace SmarterGros.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // ✅ تسجيل العملية مع القيم القديمة والجديدة
+            await _activityLog.LogUpdateAsync(
+                module: "Products",
+                entityName: "Product",
+                entityId: id,
+                description: $"تم تعديل منتج: {existing.Name}",
+                oldValues: oldValues,
+                newValues: new
+                {
+                    existing.Name,
+                    existing.StockQuantity,
+                    existing.PurchasePriceTTC,
+                    existing.RetailPriceTTC,
+                    existing.WholesalePriceTTC,
+                    existing.MinStockAlert
+                }
+            );
+
+
             TempData["Success"] = "تم تعديل المنتج بنجاح";
             return RedirectToAction(nameof(Index));
         }
@@ -188,8 +245,30 @@ namespace SmarterGros.Controllers
         {
             var product = await _context.Products.FindAsync(id);
             if (product == null) return NotFound();
+
+            // ✅ حفظ البيانات قبل الحذف
+            var deletedData = new
+            {
+                product.Name,
+                product.Reference,
+                product.StockQuantity,
+                product.PurchasePriceTTC,
+                product.RetailPriceTTC
+            };
+
+
             product.IsActive = false;
             await _context.SaveChangesAsync();
+
+            // ✅ تسجيل الحذف (Critical تلقائياً)
+            await _activityLog.LogDeleteAsync(
+                module: "Products",
+                entityName: "Product",
+                entityId: id,
+                description: $"تم حذف منتج: {product.Name} (المرجع: {product.Reference})",
+                deletedData: deletedData
+            ); 
+
             TempData["Success"] = "تم حذف المنتج بنجاح";
             return RedirectToAction(nameof(Index));
         }

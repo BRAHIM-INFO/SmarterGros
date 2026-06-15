@@ -1,0 +1,1004 @@
+﻿@model SmarterGros.ViewModels.ActivityLogIndexViewModel
+@{
+    ViewData["Title"] = "سجل النشاطات";
+}
+
+<!-- Header -->
+<div class="sg-page-header">
+    <div class="sg-page-header-top">
+        <div>
+            <h1 class="sg-page-title-main">
+                <i class="fas fa-history me-2"></i>سجل النشاطات
+            </h1>
+            <p class="sg-page-subtitle">
+                تتبع كامل لجميع العمليات في النظام
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn sg-btn-secondary" onclick="openCleanupModal()">
+                <i class="fas fa-broom me-1"></i>تنظيف السجل
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="act-stats-row">
+        <div class="act-stat blue">
+            <i class="fas fa-list"></i>
+            <div>
+                <span class="act-stat-num">@Model.TotalLogs.ToString("N0")</span>
+                <span class="act-stat-label">إجمالي السجلات</span>
+            </div>
+        </div>
+        <div class="act-stat green">
+            <i class="fas fa-calendar-day"></i>
+            <div>
+                <span class="act-stat-num">@Model.TodayLogs</span>
+                <span class="act-stat-label">عمليات اليوم</span>
+            </div>
+        </div>
+        <div class="act-stat red">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <span class="act-stat-num">@Model.CriticalLogs</span>
+                <span class="act-stat-label">عمليات حرجة</span>
+            </div>
+        </div>
+        <div class="act-stat orange">
+            <i class="fas fa-times-circle"></i>
+            <div>
+                <span class="act-stat-num">@Model.FailedLogs</span>
+                <span class="act-stat-label">عمليات فاشلة</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="act-filters">
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">
+                <i class="fas fa-search me-1"></i>بحث
+            </label>
+            <input type="text" name="search" value="@Model.Search"
+                   class="form-control" placeholder="بحث في الأسماء والوصف..." />
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label small fw-bold">
+                <i class="fas fa-user me-1"></i>المستخدم
+            </label>
+            <select name="userId" class="form-select">
+                <option value="">كل المستخدمين</option>
+                @foreach (var user in Model.Users)
+                {
+                    if (user.Id == Model.UserId)
+                    {
+                        <option value="@user.Id" selected>@user.FullName</option>
+                    }
+                    else
+                    {
+                        <option value="@user.Id">@user.FullName</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label small fw-bold">
+                <i class="fas fa-tag me-1"></i>نوع العملية
+            </label>
+            <select name="actionType" class="form-select">
+                <option value="">كل العمليات</option>
+                @foreach (var type in Model.ActionTypes)
+                {
+                    var arabicName = type switch
+                    {
+                        "Create" => "إضافة",
+                        "Update" => "تعديل",
+                        "Delete" => "حذف",
+                        "View" => "عرض",
+                        "Login" => "دخول",
+                        "Logout" => "خروج",
+                        "Export" => "تصدير",
+                        "Import" => "استيراد",
+                        "Print" => "طباعة",
+                        "Backup" => "نسخ احتياطي",
+                        "Restore" => "استعادة",
+                        "Failed" => "فشل",
+                        _ => type
+                    };
+                    if (type == Model.ActionType)
+                    {
+                        <option value="@type" selected>@arabicName</option>
+                    }
+                    else
+                    {
+                        <option value="@type">@arabicName</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label small fw-bold">
+                <i class="fas fa-folder me-1"></i>القسم
+            </label>
+            <select name="module" class="form-select">
+                <option value="">كل الأقسام</option>
+                @foreach (var mod in Model.Modules)
+                {
+                    if (mod == Model.Module)
+                    {
+                        <option value="@mod" selected>@mod</option>
+                    }
+                    else
+                    {
+                        <option value="@mod">@mod</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label small fw-bold">
+                <i class="fas fa-flag me-1"></i>الأهمية
+            </label>
+            <select name="severity" class="form-select">
+                <option value="">الكل</option>
+                @if (Model.Severity == "Info")
+                {
+                    <option value="Info" selected>معلومات</option>
+                }
+                else
+                {
+                    <option value="Info">معلومات</option>
+                }
+                @if (Model.Severity == "Warning")
+                {
+                    <option value="Warning" selected>تحذير</option>
+                }
+                else
+                {
+                    <option value="Warning">تحذير</option>
+                }
+                @if (Model.Severity == "Critical")
+                {
+                    <option value="Critical" selected>حرج</option>
+                }
+                else
+                {
+                    <option value="Critical">حرج</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn sg-btn-primary w-100">
+                <i class="fas fa-filter"></i>
+            </button>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">
+                <i class="fas fa-calendar me-1"></i>من تاريخ
+            </label>
+            <input type="date" name="dateFrom" value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))"
+                   class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">
+                <i class="fas fa-calendar me-1"></i>إلى تاريخ
+            </label>
+            <input type="date" name="dateTo" value="@(Model.DateTo?.ToString("yyyy-MM-dd"))"
+                   class="form-control" />
+        </div>
+
+        <div class="col-md-6 d-flex align-items-end justify-content-end">
+            @if (!string.IsNullOrEmpty(Model.Search) || !string.IsNullOrEmpty(Model.UserId) ||
+                 !string.IsNullOrEmpty(Model.ActionType) || !string.IsNullOrEmpty(Model.Module) ||
+                 !string.IsNullOrEmpty(Model.Severity) || Model.DateFrom.HasValue || Model.DateTo.HasValue)
+            {
+                <a href="@Url.Action("Index")" class="btn sg-btn-secondary me-2">
+                    <i class="fas fa-times me-1"></i>مسح الفلاتر
+                </a>
+            }
+            <span class="text-muted small">
+                <strong>@Model.Logs.Count</strong> من <strong>@Model.TotalLogs</strong> سجل
+            </span>
+        </div>
+    </form>
+</div>
+
+<!-- Logs Timeline -->
+@if (!Model.Logs.Any())
+{
+    <div class="act-empty">
+        <i class="fas fa-inbox"></i>
+        <h3>لا توجد سجلات</h3>
+        <p>لم يتم العثور على أي سجلات تطابق المعايير المحددة</p>
+    </div>
+}
+else
+{
+    <div class="act-timeline">
+        @foreach (var log in Model.Logs)
+        {
+            <div class="act-log @(log.Severity == "Critical" ? "critical" : "") @(!log.IsSuccess ? "failed" : "")">
+                <!-- Icon -->
+                <div class="act-log-icon" style="background: @log.GetActionColor();">
+                    <i class="fas @log.GetActionIcon()"></i>
+                </div>
+
+                <!-- Content -->
+                <div class="act-log-content">
+                    <div class="act-log-header">
+                        <div class="act-log-title">
+                            <span class="act-log-action" style="color: @log.GetActionColor();">
+                                @log.GetActionTypeArabic()
+                            </span>
+                            <span class="act-log-name">@log.ActionName</span>
+                            @if (log.Severity == "Critical")
+                            {
+                                <span class="act-badge critical">حرج</span>
+                            }
+                            else if (log.Severity == "Warning")
+                            {
+                                <span class="act-badge warning">تحذير</span>
+                            }
+                            @if (!log.IsSuccess)
+                            {
+                                <span class="act-badge failed">فشل</span>
+                            }
+                        </div>
+                        <div class="act-log-time">
+                            <i class="fas fa-clock"></i>
+                            <span>@log.GetTimeAgo()</span>
+                            <small class="text-muted">(@log.CreatedAt.ToString("dd/MM/yyyy HH:mm"))</small>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(log.Description))
+                    {
+                        <p class="act-log-desc">@log.Description</p>
+                    }
+
+                    <div class="act-log-meta">
+                        <div class="act-log-user">
+                            <div class="act-log-avatar">@log.GetUserInitial()</div>
+                            <div>
+                                <span class="act-log-username">@(log.UserFullName ?? log.UserName)</span>
+                                @if (!string.IsNullOrEmpty(log.UserRole))
+                                {
+                                    <span class="act-log-role">@log.UserRole</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="act-log-info">
+                            @if (!string.IsNullOrEmpty(log.Module))
+                            {
+                                <span class="act-info-item">
+                                    <i class="fas fa-folder"></i> @log.Module
+                                </span>
+                            }
+                            @if (!string.IsNullOrEmpty(log.IpAddress))
+                            {
+                                <span class="act-info-item">
+                                    <i class="fas fa-globe"></i> @log.IpAddress
+                                </span>
+                            }
+                            <button class="act-btn-details" onclick="viewDetails(@log.Id)">
+                                <i class="fas fa-eye me-1"></i>التفاصيل
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="act-pagination">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new {
+                                search = Model.Search,
+                                userId = Model.UserId,
+                                actionType = Model.ActionType,
+                                module = Model.Module,
+                                severity = Model.Severity,
+                                dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"),
+                                dateTo = Model.DateTo?.ToString("yyyy-MM-dd"),
+                                page = Model.CurrentPage - 1
+                            })">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+
+                    @{
+                        int startPage = Math.Max(1, Model.CurrentPage - 2);
+                        int endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
+                    }
+
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new {
+                                search = Model.Search,
+                                userId = Model.UserId,
+                                actionType = Model.ActionType,
+                                module = Model.Module,
+                                severity = Model.Severity,
+                                dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"),
+                                dateTo = Model.DateTo?.ToString("yyyy-MM-dd"),
+                                page = i
+                            })">@i</a>
+                        </li>
+                    }
+
+                    @if (Model.CurrentPage < Model.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new {
+                                search = Model.Search,
+                                userId = Model.UserId,
+                                actionType = Model.ActionType,
+                                module = Model.Module,
+                                severity = Model.Severity,
+                                dateFrom = Model.DateFrom?.ToString("yyyy-MM-dd"),
+                                dateTo = Model.DateTo?.ToString("yyyy-MM-dd"),
+                                page = Model.CurrentPage + 1
+                            })">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+}
+
+<!-- Modal: تفاصيل السجل -->
+<div class="sg-modal-overlay" id="detailsModal">
+    <div class="sg-modal" style="max-width: 800px;">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title">
+                <i class="fas fa-info-circle me-2"></i>تفاصيل السجل
+            </h2>
+            <button class="sg-modal-close" onclick="closeDetailsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sg-modal-body" id="detailsModalBody">
+            <div class="text-center py-4">
+                <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                <p class="mt-2">جاري التحميل...</p>
+            </div>
+        </div>
+        <div class="sg-modal-footer">
+            <button class="sg-btn-cancel" onclick="closeDetailsModal()">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: تنظيف السجل -->
+<div class="sg-modal-overlay" id="cleanupModal">
+    <div class="sg-modal sg-modal-sm">
+        <div class="sg-modal-header">
+            <h2 class="sg-modal-title text-warning">
+                <i class="fas fa-broom me-2"></i>تنظيف السجل
+            </h2>
+            <button class="sg-modal-close" onclick="closeCleanupModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sg-modal-body">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>تحذير:</strong> هذه العملية لا يمكن التراجع عنها!
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">حذف السجلات الأقدم من:</label>
+                <select id="cleanupDays" class="form-select">
+                    <option value="30">30 يوم</option>
+                    <option value="60">60 يوم</option>
+                    <option value="90" selected>90 يوم (3 أشهر)</option>
+                    <option value="180">180 يوم (6 أشهر)</option>
+                    <option value="365">365 يوم (سنة)</option>
+                </select>
+            </div>
+
+            <hr />
+
+            <div class="text-center">
+                <p class="text-muted small mb-2">أو</p>
+                <button class="btn btn-danger" onclick="deleteAllLogs()">
+                    <i class="fas fa-trash me-1"></i>حذف جميع السجلات
+                </button>
+            </div>
+        </div>
+        <div class="sg-modal-footer">
+            <button class="sg-btn-cancel" onclick="closeCleanupModal()">إلغاء</button>
+            <button class="sg-btn-danger" onclick="deleteOldLogs()">
+                <i class="fas fa-broom me-1"></i>تنظيف
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="actToastContainer" style="position:fixed; top:80px; left:20px; z-index:9999;"></div>
+
+@section Styles {
+    <style>
+        /* ═══════════════════════════════════════════════
+           Stats
+        ═══════════════════════════════════════════════ */
+        .act-stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .act-stat {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-right: 4px solid;
+        }
+
+        .act-stat.blue { border-color: #2196f3; }
+        .act-stat.green { border-color: #4caf50; }
+        .act-stat.red { border-color: #f44336; }
+        .act-stat.orange { border-color: #ff9800; }
+
+        .act-stat i {
+            font-size: 32px;
+        }
+
+        .act-stat.blue i { color: #2196f3; }
+        .act-stat.green i { color: #4caf50; }
+        .act-stat.red i { color: #f44336; }
+        .act-stat.orange i { color: #ff9800; }
+
+        .act-stat-num {
+            display: block;
+            font-size: 26px;
+            font-weight: 900;
+            color: #333;
+            line-height: 1;
+        }
+
+        .act-stat-label {
+            display: block;
+            font-size: 13px;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        /* ═══════════════════════════════════════════════
+           Filters
+        ═══════════════════════════════════════════════ */
+        .act-filters {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .act-filters .form-label {
+            color: #0E4D3A;
+            margin-bottom: 6px;
+        }
+
+        .act-filters .form-control,
+        .act-filters .form-select {
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .act-filters .form-control:focus,
+        .act-filters .form-select:focus {
+            border-color: #0E4D3A;
+            box-shadow: 0 0 0 3px rgba(14, 77, 58, 0.1);
+        }
+
+        /* ═══════════════════════════════════════════════
+           Timeline
+        ═══════════════════════════════════════════════ */
+        .act-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .act-log {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            border-right: 4px solid #e0e0e0;
+        }
+
+        .act-log:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+
+        .act-log.critical {
+            border-color: #f44336;
+            background: #fff5f5;
+        }
+
+        .act-log.failed {
+            border-color: #ff9800;
+            background: #fff8e1;
+        }
+
+        .act-log-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .act-log-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .act-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 12px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .act-log-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .act-log-action {
+            background: #f5f5f5;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .act-log-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .act-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .act-badge.critical {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .act-badge.warning {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .act-badge.failed {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .act-log-time {
+            font-size: 12px;
+            color: #777;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .act-log-desc {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .act-log-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-top: 1px solid #f5f5f5;
+            padding-top: 10px;
+        }
+
+        .act-log-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .act-log-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0E4D3A, #1a6b52);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .act-log-username {
+            display: block;
+            font-weight: 700;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .act-log-role {
+            display: block;
+            font-size: 11px;
+            color: #777;
+        }
+
+        .act-log-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .act-info-item {
+            font-size: 12px;
+            color: #777;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .act-btn-details {
+            background: #0E4D3A;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .act-btn-details:hover {
+            background: #1a6b52;
+        }
+
+        /* ═══════════════════════════════════════════════
+           Empty State
+        ═══════════════════════════════════════════════ */
+        .act-empty {
+            background: white;
+            border-radius: 14px;
+            padding: 60px 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .act-empty i {
+            font-size: 64px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .act-empty h3 {
+            color: #555;
+            font-weight: 700;
+        }
+
+        .act-empty p {
+            color: #888;
+        }
+
+        /* ═══════════════════════════════════════════════
+           Pagination
+        ═══════════════════════════════════════════════ */
+        .act-pagination {
+            margin-top: 30px;
+        }
+
+        .pagination .page-link {
+            color: #0E4D3A;
+            border-color: #e0e0e0;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: #0E4D3A;
+            border-color: #0E4D3A;
+        }
+
+        /* ═══════════════════════════════════════════════
+           Details Modal Content
+        ═══════════════════════════════════════════════ */
+        .detail-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .detail-label {
+            font-weight: 700;
+            color: #555;
+            min-width: 150px;
+        }
+
+        .detail-value {
+            color: #333;
+            flex: 1;
+        }
+
+        .detail-json {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            direction: ltr;
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* ═══════════════════════════════════════════════
+           Toast
+        ═══════════════════════════════════════════════ */
+        .act-toast {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            margin-bottom: 10px;
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .act-toast.success { border-right: 4px solid #4caf50; }
+        .act-toast.error { border-right: 4px solid #f44336; }
+
+        .act-toast.success i { color: #4caf50; }
+        .act-toast.error i { color: #f44336; }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // ═══════════════════════════════════════════════
+        // عرض التفاصيل
+        // ═══════════════════════════════════════════════
+        async function viewDetails(id) {
+            document.getElementById('detailsModal').classList.add('active');
+
+            try {
+                const response = await fetch(`/ActivityLogs/Details/${id}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const log = data.log;
+                    document.getElementById('detailsModalBody').innerHTML = `
+                        <div class="text-center mb-4">
+                            <div style="display:inline-block; width:80px; height:80px; border-radius:50%; background:${log.actionColor}; color:white; line-height:80px; font-size:32px;">
+                                <i class="fas ${log.actionIcon}"></i>
+                            </div>
+                            <h4 class="mt-3 mb-1">${log.actionName}</h4>
+                            <span class="badge" style="background:${log.severityColor}; color:white;">${log.severityArabic}</span>
+                        </div>
+
+                        <div class="detail-row">
+                            <div class="detail-label">المستخدم:</div>
+                            <div class="detail-value">${log.userFullName || log.userName} ${log.userRole ? `<small class="text-muted">(${log.userRole})</small>` : ''}</div>
+                        </div>
+
+                        <div class="detail-row">
+                            <div class="detail-label">القسم:</div>
+                            <div class="detail-value">${log.module || '-'}</div>
+                        </div>
+
+                        ${log.entityName ? `
+                        <div class="detail-row">
+                            <div class="detail-label">النوع:</div>
+                            <div class="detail-value">${log.entityName} ${log.entityId ? '#' + log.entityId : ''}</div>
+                        </div>
+                        ` : ''}
+
+                        <div class="detail-row">
+                            <div class="detail-label">الوصف:</div>
+                            <div class="detail-value">${log.description || '-'}</div>
+                        </div>
+
+                        <div class="detail-row">
+                            <div class="detail-label">الوقت:</div>
+                            <div class="detail-value">${log.createdAt} <small class="text-muted">(${log.timeAgo})</small></div>
+                        </div>
+
+                        <div class="detail-row">
+                            <div class="detail-label">IP Address:</div>
+                            <div class="detail-value" style="direction:ltr; text-align:left;">${log.ipAddress || '-'}</div>
+                        </div>
+
+                        ${log.requestUrl ? `
+                        <div class="detail-row">
+                            <div class="detail-label">الرابط:</div>
+                            <div class="detail-value" style="direction:ltr; text-align:left; font-size:12px;">${log.requestMethod} ${log.requestUrl}</div>
+                        </div>
+                        ` : ''}
+
+                        ${log.errorMessage ? `
+                        <div class="detail-row">
+                            <div class="detail-label">رسالة الخطأ:</div>
+                            <div class="detail-value text-danger">${log.errorMessage}</div>
+                        </div>
+                        ` : ''}
+
+                        ${log.oldValues ? `
+                        <div class="detail-row">
+                            <div class="detail-label">القيم السابقة:</div>
+                            <div class="detail-value">
+                                <div class="detail-json">${JSON.stringify(JSON.parse(log.oldValues), null, 2)}</div>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        ${log.newValues ? `
+                        <div class="detail-row">
+                            <div class="detail-label">القيم الجديدة:</div>
+                            <div class="detail-value">
+                                <div class="detail-json">${JSON.stringify(JSON.parse(log.newValues), null, 2)}</div>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        ${log.userAgent ? `
+                        <div class="detail-row">
+                            <div class="detail-label">المتصفح:</div>
+                            <div class="detail-value" style="font-size:11px; color:#777;">${log.userAgent}</div>
+                        </div>
+                        ` : ''}
+                    `;
+                } else {
+                    document.getElementById('detailsModalBody').innerHTML = `
+                        <div class="alert alert-danger">${data.message}</div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('detailsModalBody').innerHTML = `
+                    <div class="alert alert-danger">فشل تحميل التفاصيل</div>
+                `;
+            }
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.remove('active');
+        }
+
+        // ═══════════════════════════════════════════════
+        // تنظيف السجل
+        // ═══════════════════════════════════════════════
+        function openCleanupModal() {
+            document.getElementById('cleanupModal').classList.add('active');
+        }
+
+        function closeCleanupModal() {
+            document.getElementById('cleanupModal').classList.remove('active');
+        }
+
+        async function deleteOldLogs() {
+            const days = document.getElementById('cleanupDays').value;
+
+            if (!confirm(`هل تريد حذف السجلات الأقدم من ${days} يوم؟`)) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('daysOld', days);
+
+                const response = await fetch('/ActivityLogs/DeleteOldLogs', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeCleanupModal();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch (error) {
+                showToast('فشل الاتصال بالخادم', 'error');
+            }
+        }
+
+        async function deleteAllLogs() {
+            if (!confirm('⚠️ تحذير!\n\nهل تريد فعلاً حذف جميع السجلات؟\nلا يمكن التراجع عن هذا الإجراء!')) return;
+            if (!confirm('تأكيد أخير: سيتم حذف كل شيء!')) return;
+
+            try {
+                const response = await fetch('/ActivityLogs/DeleteAll', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeCleanupModal();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch (error) {
+                showToast('فشل الاتصال بالخادم', 'error');
+            }
+        }
+
+        // ═══════════════════════════════════════════════
+        // Toast
+        // ═══════════════════════════════════════════════
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('actToastContainer');
+            const toast = document.createElement('div');
+            toast.className = `act-toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+}

@@ -21,6 +21,11 @@ namespace SmarterGros.Data
         public DbSet<StockMovement> StockMovements { get; set; }
         public DbSet<CompanySettings> CompanySettings { get; set; }
         public DbSet<CustomerPayment> CustomerPayments { get; set; }
+        // ═══════════════════════════════════════════════════
+        // 📝 جدول سجل النشاطات - ✅ جديد
+        // ═══════════════════════════════════════════════════
+        public DbSet<ActivityLog> ActivityLogs { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -207,6 +212,30 @@ namespace SmarterGros.Data
                       .OnDelete(DeleteBehavior.SetNull)
                       .IsRequired(false);
             });
+
+
+            // ═══════════════════════════════════════════════════
+            // 📝 ActivityLog Configuration - ✅ جديد
+            // ═══════════════════════════════════════════════════
+            builder.Entity<ActivityLog>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // ✅ Indexes للبحث السريع
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.ActionType);
+                entity.HasIndex(e => e.Module);
+                entity.HasIndex(e => e.EntityName);
+                entity.HasIndex(e => e.EntityId);
+                entity.HasIndex(e => e.Severity);
+                entity.HasIndex(e => e.CreatedAt);
+
+                // ✅ Index مركّب للبحث المتقدم
+                entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+                entity.HasIndex(e => new { e.Module, e.ActionType, e.CreatedAt });
+            });
+
+
         }
     }
 }
