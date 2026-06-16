@@ -298,5 +298,88 @@ namespace SmarterGros.Controllers
             var qrCodeBytes = qrCode.GetGraphic(10);
             return $"data:image/png;base64,{Convert.ToBase64String(qrCodeBytes)}";
         }
+
+
+        // ═══════════════════════════════════════════════════
+        // ⚡ API: إضافة منتج سريع
+        // ═══════════════════════════════════════════════════
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [HasPermission(Permissions.Products.Create)]
+        public async Task<IActionResult> CreateQuick([FromBody] QuickProductViewModel model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.Name))
+                    return Json(new { success = false, message = "اسم المنتج مطلوب" });
+
+                if (string.IsNullOrWhiteSpace(model.Reference))
+                    return Json(new { success = false, message = "المرجع مطلوب" });
+
+                // التحقق من تكرار المرجع
+                var exists = await _context.Products
+                    .AnyAsync(p => p.Reference == model.Reference.Trim());
+
+                if (exists)
+                    return Json(new { success = false, message = "يوجد منتج بنفس المرجع" });
+
+                var product = new Product
+                {
+                    Name = model.Name.Trim(),
+                    Reference = model.Reference.Trim(),
+                    CategoryId = model.CategoryId,
+                    Barcode = string.IsNullOrWhiteSpace(model.Barcode) ? null : model.Barcode.Trim(),
+                    Unit = string.IsNullOrWhiteSpace(model.Unit) ? null : model.Unit.Trim(),
+                    PurchasePriceHT = model.PurchasePriceHT,
+                    TaxRate = model.TaxRate,
+                    PurchasePriceTTC = model.PurchasePriceHT * (1 + model.TaxRate / 100),
+                    IsActive = true,
+                    CreatedAt = DateTime.Now,
+                    StockQuantity = 0
+                };
+
+                _context.Products.Add(product);
+                await _context.SaveChangesAsync();
+
+                await _activityLog.LogCreateAsync(
+                    module: "Products",
+                    entityName: "Product",
+                    entityId: product.Id,
+                    description: $"إضافة منتج سريع: {product.Name}",
+                    newValues: new { product.Name, product.Reference, product.PurchasePriceHT });
+
+                return Json(new
+                {
+                    success = true,
+                    message = "تم إضافة المنتج بنجاح",
+                    product = new
+                    {
+                        id = product.Id,
+                        name = product.Name,
+                        reference = product.Reference,
+                        unit = product.Unit,
+                        purchasePrice = product.PurchasePriceHT,
+                        taxRate = product.TaxRate
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"حدث خطأ: {ex.Message}" });
+            }
+        }
+
+        public class QuickProductViewModel
+        {
+            public string Name { get; set; } = string.Empty;
+            public string Reference { get; set; } = string.Empty;
+            public int CategoryId { get; set; }
+            public string? Barcode { get; set; }
+            public string? Unit { get; set; }
+            public decimal PurchasePriceHT { get; set; }
+            public decimal TaxRate { get; set; } = 0;
+        }
+
+
     }
 }

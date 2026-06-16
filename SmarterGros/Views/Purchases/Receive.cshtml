@@ -1,0 +1,655 @@
+﻿@model SmarterGros.ViewModels.PurchaseReceiveViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = "استلام فاتورة";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(40,167,69,0.2);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .page-header p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        .alert-warning-custom {
+            background: linear-gradient(135deg, #fff3cd, #ffe69c);
+            border: 2px solid #ffc107;
+            color: #856404;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alert-warning-custom i {
+            font-size: 2rem;
+            color: #ffc107;
+        }
+
+        .items-table {
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .items-table thead {
+            background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+            color: white;
+        }
+
+        .items-table thead th {
+            border: none;
+            padding: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .items-table tbody td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+
+        .items-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .items-table tbody tr.partial {
+            background: #fff3cd;
+        }
+
+        .items-table tbody tr.full {
+            background: #d4edda;
+        }
+
+        .items-table tbody tr.empty {
+            background: #f8d7da;
+        }
+
+        .qty-input {
+            width: 100px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .qty-quick-buttons {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 5px;
+        }
+
+        .btn-qty-quick {
+            background: #e9ecef;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: #495057;
+        }
+
+        .btn-qty-quick:hover {
+            background: #0E4D3A;
+            color: white;
+        }
+
+        .diff-badge {
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .diff-zero {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .diff-positive {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .diff-negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .notes-input {
+            width: 100%;
+            font-size: 0.85rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .summary-card.success {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda, #ffffff);
+        }
+
+        .summary-card.warning {
+            border-color: #ffc107;
+            background: linear-gradient(135deg, #fff3cd, #ffffff);
+        }
+
+        .summary-card.danger {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #f8d7da, #ffffff);
+        }
+
+        .summary-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .summary-card .label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .action-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+            color: white;
+        }
+
+        .btn-confirm:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📄 الترويسة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>
+                <i class="fas fa-box-open"></i> استلام البضاعة
+            </h1>
+            <p>
+                <i class="fas fa-receipt"></i> الفاتورة: <strong>@Model.InvoiceNumber</strong>
+            </p>
+        </div>
+        <a href="@Url.Action("Details", new { id = Model.PurchaseId })" class="btn btn-light">
+            <i class="fas fa-arrow-right"></i> العودة
+        </a>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ⚠️ التنبيه -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="alert-warning-custom">
+    <i class="fas fa-exclamation-triangle"></i>
+    <div>
+        <strong>تنبيه مهم!</strong>
+        <p class="mb-0 mt-1">
+            عملية الاستلام ستؤثر على:
+            <span class="badge bg-warning text-dark mx-1">📦 المخزون (سيزيد)</span>
+            <span class="badge bg-warning text-dark mx-1">💰 رصيد المورد</span>
+            <span class="badge bg-warning text-dark mx-1">📝 حركات المخزون</span>
+        </p>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📅 معلومات الاستلام -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-calendar-check"></i>
+        <h4>معلومات الاستلام</h4>
+    </div>
+    <div class="section-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-calendar text-primary"></i> تاريخ الاستلام *
+                </label>
+                <input type="date" id="receivedDate" class="form-control form-control-lg"
+                       value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-truck text-primary"></i> حالة الشحن *
+                </label>
+                <select id="shippingStatus" class="form-select form-select-lg">
+                    @foreach (ShippingStatus s in Enum.GetValues<ShippingStatus>())
+                    {
+                        <option value="@((int)s)" selected="@(s == ShippingStatus.Delivered)">
+                            @s.GetArabicName()
+                        </option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📦 جدول البضاعة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-box"></i>
+        <h4>البضاعة المستلمة</h4>
+        <span class="badge bg-light text-dark ms-auto">@Model.Items.Count منتج</span>
+    </div>
+    <div class="section-body p-0">
+        <div class="table-responsive">
+            <table class="table items-table">
+                <thead>
+                    <tr>
+                        <th width="40">#</th>
+                        <th>المنتج</th>
+                        <th width="110">المطلوب</th>
+                        <th width="160">المستلم *</th>
+                        <th width="100">الفرق</th>
+                        <th>ملاحظات</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody">
+                    @{ int rowNum = 1; }
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr data-item-id="@item.PurchaseItemId" data-ordered="@item.OrderedQuantity">
+                            <td class="text-center"><strong>@rowNum</strong></td>
+                            <td>
+                                <strong>@item.ProductName</strong>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary" style="font-size: 1rem;">@item.OrderedQuantity</span>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control qty-input"
+                                       value="@item.OrderedQuantity"
+                                       min="0" max="@(item.OrderedQuantity * 2)" step="1"
+                                       onchange="updateReceivedQty(@item.PurchaseItemId, this.value)" />
+                                <div class="qty-quick-buttons">
+                                    <button type="button" class="btn-qty-quick" onclick="setQty(@item.PurchaseItemId, @item.OrderedQuantity)">
+                                        كامل
+                                    </button>
+                                    <button type="button" class="btn-qty-quick" onclick="setQty(@item.PurchaseItemId, 0)">
+                                        صفر
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="diff-badge diff-zero" id="diff-@item.PurchaseItemId">
+                                    0
+                                </span>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control notes-input"
+                                       placeholder="ملاحظات على هذا المنتج..."
+                                       onchange="updateItemNotes(@item.PurchaseItemId, this.value)" />
+                            </td>
+                        </tr>
+                        rowNum++;
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- الملخص -->
+        <div class="p-3 border-top">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="summary-card success" id="summaryFull">
+                        <div class="value text-success" id="fullCount">0</div>
+                        <div class="label">✅ مستلم كامل</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="summary-card warning" id="summaryPartial">
+                        <div class="value text-warning" id="partialCount">0</div>
+                        <div class="label">⚠️ استلام جزئي</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="summary-card danger" id="summaryEmpty">
+                        <div class="value text-danger" id="emptyCount">0</div>
+                        <div class="label">❌ لم يُستلم</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="summary-card">
+                        <div class="value text-primary" id="totalReceived">0</div>
+                        <div class="label">📦 إجمالي الكميات</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📝 الإعدادات الإضافية -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-cog"></i>
+        <h4>إعدادات إضافية</h4>
+    </div>
+    <div class="section-body">
+        <div class="form-check form-switch mb-3">
+            <input type="checkbox" id="updateProductPrices" class="form-check-input" role="switch" />
+            <label class="form-check-label fw-bold" for="updateProductPrices">
+                <i class="fas fa-sync text-primary"></i>
+                تحديث أسعار التكلفة في المنتجات
+            </label>
+            <div class="text-muted small">
+                إذا فُعّل، سيتم تحديث سعر الشراء في قاعدة بيانات المنتجات بناءً على هذه الفاتورة
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                <i class="fas fa-sticky-note text-primary"></i> ملاحظات عامة على الاستلام
+            </label>
+            <textarea id="receivingNotes" class="form-control" rows="3"
+                      placeholder="مثال: تم استلام البضاعة بحالة جيدة..."></textarea>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🎯 أزرار التأكيد -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="action-bar">
+    <a href="@Url.Action("Details", new { id = Model.PurchaseId })" class="btn btn-outline-secondary btn-lg">
+        <i class="fas fa-times"></i> إلغاء
+    </a>
+
+    <div class="text-center">
+        <div class="text-muted small mb-1">جاهز للاستلام؟</div>
+        <div class="fw-bold">سيتم تحديث المخزون فوراً</div>
+    </div>
+
+    <button type="button" class="btn btn-confirm btn-lg" id="confirmBtn" onclick="confirmReceive()">
+        <i class="fas fa-check-circle"></i> تأكيد الاستلام
+    </button>
+</div>
+
+<!-- Token الحماية -->
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        const purchaseId = @Model.PurchaseId;
+        const items = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Items.Select(i => new {
+            purchaseItemId = i.PurchaseItemId,
+            productId = i.ProductId,
+            productName = i.ProductName,
+            orderedQuantity = i.OrderedQuantity,
+            receivedQuantity = i.OrderedQuantity,
+            notes = ""
+        })));
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSummary();
+        });
+
+        // ═══════════════════════════════════════════════════
+        // 📦 تحديث الكميات
+        // ═══════════════════════════════════════════════════
+        function updateReceivedQty(itemId, value) {
+            value = parseInt(value) || 0;
+            if (value < 0) value = 0;
+
+            const item = items.find(i => i.purchaseItemId === itemId);
+            if (!item) return;
+
+            item.receivedQuantity = value;
+
+            // تحديث الـ Input
+            const input = document.querySelector(`tr[data-item-id="${itemId}"] .qty-input`);
+            input.value = value;
+
+            // حساب الفرق وتلوين الصف
+            updateRowDisplay(itemId);
+            updateSummary();
+        }
+
+        function setQty(itemId, value) {
+            updateReceivedQty(itemId, value);
+        }
+
+        function updateItemNotes(itemId, notes) {
+            const item = items.find(i => i.purchaseItemId === itemId);
+            if (item) item.notes = notes;
+        }
+
+        function updateRowDisplay(itemId) {
+            const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+            const diffBadge = document.getElementById(`diff-${itemId}`);
+
+            const item = items.find(i => i.purchaseItemId === itemId);
+            const diff = item.receivedQuantity - item.orderedQuantity;
+
+            // إزالة كل classes
+            row.classList.remove('partial', 'full', 'empty');
+            diffBadge.classList.remove('diff-zero', 'diff-positive', 'diff-negative');
+
+            if (item.receivedQuantity === 0) {
+                row.classList.add('empty');
+                diffBadge.classList.add('diff-negative');
+                diffBadge.textContent = `-${item.orderedQuantity}`;
+            } else if (item.receivedQuantity < item.orderedQuantity) {
+                row.classList.add('partial');
+                diffBadge.classList.add('diff-negative');
+                diffBadge.textContent = diff;
+            } else if (item.receivedQuantity > item.orderedQuantity) {
+                row.classList.add('full');
+                diffBadge.classList.add('diff-positive');
+                diffBadge.textContent = `+${diff}`;
+            } else {
+                row.classList.add('full');
+                diffBadge.classList.add('diff-zero');
+                diffBadge.textContent = '0';
+            }
+        }
+
+        function updateSummary() {
+            let fullCount = 0, partialCount = 0, emptyCount = 0, totalQty = 0;
+
+            items.forEach(item => {
+                totalQty += item.receivedQuantity;
+                if (item.receivedQuantity === 0) emptyCount++;
+                else if (item.receivedQuantity < item.orderedQuantity) partialCount++;
+                else fullCount++;
+
+                updateRowDisplay(item.purchaseItemId);
+            });
+
+            document.getElementById('fullCount').textContent = fullCount;
+            document.getElementById('partialCount').textContent = partialCount;
+            document.getElementById('emptyCount').textContent = emptyCount;
+            document.getElementById('totalReceived').textContent = totalQty;
+
+            // تعطيل زر التأكيد إذا كل الكميات صفر
+            const confirmBtn = document.getElementById('confirmBtn');
+            if (totalQty === 0) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-ban"></i> لا توجد كميات للاستلام';
+            } else {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> تأكيد الاستلام';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // ✅ تأكيد الاستلام
+        // ═══════════════════════════════════════════════════
+        function confirmReceive() {
+            // التحقق من وجود كميات
+            const totalReceived = items.reduce((sum, i) => sum + i.receivedQuantity, 0);
+            if (totalReceived === 0) {
+                showToast('error', 'يجب استلام منتج واحد على الأقل');
+                return;
+            }
+
+            // التحقق من وجود اختلافات
+            const hasDiff = items.some(i => i.receivedQuantity !== i.orderedQuantity);
+            let confirmMessage = '⚠️ هل أنت متأكد من تأكيد الاستلام؟\n\n';
+            confirmMessage += '✅ سيتم تحديث المخزون فوراً\n';
+            confirmMessage += '✅ سيتم تغيير حالة الفاتورة إلى "مستلمة"\n';
+            confirmMessage += '✅ سيتم تسجيل حركات المخزون\n';
+
+            if (hasDiff) {
+                confirmMessage += '\n⚠️ تنبيه: هناك اختلاف بين الكميات المطلوبة والمستلمة!';
+            }
+
+            if (!confirm(confirmMessage)) return;
+
+            // تجهيز البيانات
+            const model = {
+                PurchaseId: purchaseId,
+                ReceivedDate: document.getElementById('receivedDate').value,
+                ShippingStatus: parseInt(document.getElementById('shippingStatus').value),
+                UpdateProductPrices: document.getElementById('updateProductPrices').checked,
+                ReceivingNotes: document.getElementById('receivingNotes').value,
+                Items: items.map(i => ({
+                    PurchaseItemId: i.purchaseItemId,
+                    ProductId: i.productId,
+                    ProductName: i.productName,
+                    OrderedQuantity: i.orderedQuantity,
+                    ReceivedQuantity: i.receivedQuantity,
+                    Notes: i.notes
+                }))
+            };
+
+            // تعطيل الزر
+            const btn = document.getElementById('confirmBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الاستلام...';
+            btn.disabled = true;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Receive", "Purchases")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(model)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => {
+                        window.location.href = data.redirectUrl;
+                    }, 1500);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('error', 'حدث خطأ في الاتصال');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 🛠️ Toast
+        // ═══════════════════════════════════════════════════
+        function showToast(type, message) {
+            const colors = { success: 'bg-success', error: 'bg-danger', info: 'bg-info', warning: 'bg-warning' };
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${colors[type] || 'bg-secondary'} border-0 show`;
+            toast.style.cssText = 'position: fixed; top: 80px; left: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
+        }
+    </script>
+}

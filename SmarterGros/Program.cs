@@ -57,7 +57,8 @@ builder.Services.AddControllersWithViews();
 // ═══════════════════════════════════════════════════
 builder.Services.AddHttpContextAccessor(); // للحصول على IP والمتصفح
 builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
-
+// ✅ خدمة المشتريات
+builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 // ═══════════════════════════════════════════════════
 // 🏗️ بناء التطبيق
 // ═══════════════════════════════════════════════════

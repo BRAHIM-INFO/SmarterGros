@@ -6,11 +6,43 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SmarterGros.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class CreateInitial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "ActivityLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
+                    UserName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    UserFullName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    UserRole = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ActionType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ActionName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Module = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    EntityName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    EntityId = table.Column<int>(type: "int", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    OldValues = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NewValues = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IpAddress = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    UserAgent = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    RequestUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    RequestMethod = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    IsSuccess = table.Column<bool>(type: "bit", nullable: false),
+                    ErrorMessage = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Severity = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ActivityLogs", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -339,15 +371,34 @@ namespace SmarterGros.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     InvoiceNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    SupplierId = table.Column<int>(type: "int", nullable: false),
+                    SupplierInvoiceNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     PurchaseDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SupplierId = table.Column<int>(type: "int", nullable: false),
                     SubTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TaxAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DiscountPercentage = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     Discount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    PaymentType = table.Column<int>(type: "int", nullable: false),
+                    PaidAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    RemainingAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TransporterName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    TransporterPhone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    DeliveryNoteNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ShippingCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ShippingDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ReceivedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ShippingStatus = table.Column<int>(type: "int", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CancellationReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CancelledAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    CreatedByName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    ReceivedById = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReceivedByName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -457,8 +508,15 @@ namespace SmarterGros.Migrations
                     PurchaseId = table.Column<int>(type: "int", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
+                    ReceivedQuantity = table.Column<int>(type: "int", nullable: false),
+                    ReturnedQuantity = table.Column<int>(type: "int", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    Discount = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    TaxRate = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    BatchExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    BatchNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -468,13 +526,55 @@ namespace SmarterGros.Migrations
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_PurchaseItems_Purchases_PurchaseId",
                         column: x => x.PurchaseId,
                         principalTable: "Purchases",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PurchaseReturns",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ReturnNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ReturnDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PurchaseId = table.Column<int>(type: "int", nullable: false),
+                    SupplierId = table.Column<int>(type: "int", nullable: false),
+                    SubTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TaxAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    RefundMethod = table.Column<int>(type: "int", nullable: false),
+                    DeductedFromDebt = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CashRefunded = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ReturnReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    CreatedById = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedByName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsCancelled = table.Column<bool>(type: "bit", nullable: false),
+                    CancellationReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CancelledAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PurchaseReturns", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PurchaseReturns_Purchases_PurchaseId",
+                        column: x => x.PurchaseId,
+                        principalTable: "Purchases",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PurchaseReturns_Suppliers_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Suppliers",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -506,6 +606,92 @@ namespace SmarterGros.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "PurchaseReturnItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PurchaseReturnId = table.Column<int>(type: "int", nullable: false),
+                    PurchaseItemId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    ReturnedQuantity = table.Column<int>(type: "int", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TaxRate = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ReturnReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    ProductCondition = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    BatchNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PurchaseReturnItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PurchaseReturnItems_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PurchaseReturnItems_PurchaseItems_PurchaseItemId",
+                        column: x => x.PurchaseItemId,
+                        principalTable: "PurchaseItems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PurchaseReturnItems_PurchaseReturns_PurchaseReturnId",
+                        column: x => x.PurchaseReturnId,
+                        principalTable: "PurchaseReturns",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityLogs_ActionType",
+                table: "ActivityLogs",
+                column: "ActionType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityLogs_CreatedAt",
+                table: "ActivityLogs",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityLogs_EntityId",
+                table: "ActivityLogs",
+                column: "EntityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityLogs_EntityName",
+                table: "ActivityLogs",
+                column: "EntityName");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityLogs_Module",
+                table: "ActivityLogs",
+                column: "Module");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityLogs_Module_ActionType_CreatedAt",
+                table: "ActivityLogs",
+                columns: new[] { "Module", "ActionType", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityLogs_Severity",
+                table: "ActivityLogs",
+                column: "Severity");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityLogs_UserId",
+                table: "ActivityLogs",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityLogs_UserId_CreatedAt",
+                table: "ActivityLogs",
+                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -572,6 +758,11 @@ namespace SmarterGros.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PurchaseItems_BatchNumber",
+                table: "PurchaseItems",
+                column: "BatchNumber");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PurchaseItems_ProductId",
                 table: "PurchaseItems",
                 column: "ProductId");
@@ -582,9 +773,96 @@ namespace SmarterGros.Migrations
                 column: "PurchaseId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturnItems_ProductId",
+                table: "PurchaseReturnItems",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturnItems_PurchaseItemId",
+                table: "PurchaseReturnItems",
+                column: "PurchaseItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturnItems_PurchaseReturnId",
+                table: "PurchaseReturnItems",
+                column: "PurchaseReturnId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturns_IsCancelled",
+                table: "PurchaseReturns",
+                column: "IsCancelled");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturns_PurchaseId",
+                table: "PurchaseReturns",
+                column: "PurchaseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturns_RefundMethod",
+                table: "PurchaseReturns",
+                column: "RefundMethod");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturns_ReturnDate",
+                table: "PurchaseReturns",
+                column: "ReturnDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturns_ReturnNumber",
+                table: "PurchaseReturns",
+                column: "ReturnNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturns_SupplierId",
+                table: "PurchaseReturns",
+                column: "SupplierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseReturns_SupplierId_ReturnDate",
+                table: "PurchaseReturns",
+                columns: new[] { "SupplierId", "ReturnDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_CreatedById",
+                table: "Purchases",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_InvoiceNumber",
+                table: "Purchases",
+                column: "InvoiceNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_PaymentType",
+                table: "Purchases",
+                column: "PaymentType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_PurchaseDate",
+                table: "Purchases",
+                column: "PurchaseDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_Status",
+                table: "Purchases",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_Status_PurchaseDate",
+                table: "Purchases",
+                columns: new[] { "Status", "PurchaseDate" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Purchases_SupplierId",
                 table: "Purchases",
                 column: "SupplierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_SupplierId_Status",
+                table: "Purchases",
+                columns: new[] { "SupplierId", "Status" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_SaleItems_ProductId",
@@ -631,6 +909,9 @@ namespace SmarterGros.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "ActivityLogs");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
             migrationBuilder.DropTable(
@@ -652,7 +933,7 @@ namespace SmarterGros.Migrations
                 name: "CustomerPayments");
 
             migrationBuilder.DropTable(
-                name: "PurchaseItems");
+                name: "PurchaseReturnItems");
 
             migrationBuilder.DropTable(
                 name: "SaleItems");
@@ -668,6 +949,12 @@ namespace SmarterGros.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "PurchaseItems");
+
+            migrationBuilder.DropTable(
+                name: "PurchaseReturns");
 
             migrationBuilder.DropTable(
                 name: "Sales");

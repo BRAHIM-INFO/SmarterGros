@@ -1,0 +1,292 @@
+﻿@using SmarterGros.Models.Enums
+@model SmarterGros.Models.Purchase
+
+@{
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+<div class="purchase-card">
+    <!-- الترويسة -->
+    <div class="card-header">
+        <div class="header-left">
+            <div class="invoice-number">
+                <i class="fas fa-receipt"></i>
+                @Model.InvoiceNumber
+            </div>
+            <span class="badge bg-@Model.Status.GetBadgeColor()">
+                <i class="fas @Model.Status.GetIcon()"></i>
+                @Model.Status.GetArabicName()
+            </span>
+        </div>
+        <div class="header-actions dropdown">
+            <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="@Url.Action("Details", new { id = Model.Id })">
+                        <i class="fas fa-eye text-primary"></i> عرض التفاصيل
+                    </a>
+                </li>
+                @if (Model.Status.CanEdit())
+                {
+                    <li>
+                        <a class="dropdown-item" href="@Url.Action("Edit", new { id = Model.Id })">
+                            <i class="fas fa-edit text-warning"></i> تعديل
+                        </a>
+                    </li>
+                }
+                @if (Model.Status.CanReceive())
+                {
+                    <li>
+                        <a class="dropdown-item" href="@Url.Action("Receive", new { id = Model.Id })">
+                            <i class="fas fa-box-open text-success"></i> استلام البضاعة
+                        </a>
+                    </li>
+                }
+                @if (Model.Status.CanCancel())
+                {
+                    <li>
+                        <a class="dropdown-item text-danger" href="#"
+                           onclick="showCancelModal(@Model.Id, '@Model.InvoiceNumber')">
+                            <i class="fas fa-ban"></i> إلغاء الفاتورة
+                        </a>
+                    </li>
+                }
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item" href="@Url.Action("Print", new { id = Model.Id })" target="_blank">
+                        <i class="fas fa-print text-info"></i> طباعة
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#" onclick="duplicateInvoice(@Model.Id)">
+                        <i class="fas fa-copy text-secondary"></i> نسخ
+                    </a>
+                </li>
+                @if (Model.Status.CanDelete())
+                {
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#"
+                           onclick="deletePurchase(@Model.Id, '@Model.InvoiceNumber')">
+                            <i class="fas fa-trash"></i> حذف
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <!-- المحتوى -->
+    <div class="card-body">
+        <!-- المورد -->
+        <div class="supplier-info">
+            <div class="supplier-avatar">@(Model.Supplier?.AvatarLetter ?? "؟")</div>
+            <div class="supplier-details">
+                <div class="supplier-name">@(Model.Supplier?.Name ?? "غير معروف")</div>
+                <div class="supplier-phone">
+                    <i class="fas fa-phone"></i> @(Model.Supplier?.DisplayPhone ?? "---")
+                </div>
+            </div>
+        </div>
+
+        <!-- المعلومات الأساسية -->
+        <div class="info-grid">
+            <div class="info-item">
+                <small>📅 التاريخ</small>
+                <span>@Model.PurchaseDate.ToString("yyyy/MM/dd")</span>
+            </div>
+            <div class="info-item">
+                <small>📦 البنود</small>
+                <span>@Model.ItemsCount منتج</span>
+            </div>
+            <div class="info-item">
+                <small>💳 الدفع</small>
+                <span class="badge bg-@Model.PaymentType.GetBadgeColor()">
+                    <i class="fas @Model.PaymentType.GetIcon()"></i>
+                    @Model.PaymentType.GetArabicName()
+                </span>
+            </div>
+            @if (Model.Status == InvoiceStatus.Received && Model.ReceivedDate.HasValue)
+            {
+                <div class="info-item">
+                    <small>✅ الاستلام</small>
+                    <span>@Model.ReceivedDate.Value.ToString("yyyy/MM/dd")</span>
+                </div>
+            }
+        </div>
+
+        <!-- المالية -->
+        <div class="financial-summary">
+            <div class="financial-row">
+                <span>المجموع:</span>
+                <strong>@Model.TotalAmount.ToString("N2", culture) دج</strong>
+            </div>
+            @if (Model.ShippingCost > 0)
+            {
+                <div class="financial-row text-info">
+                    <span>الشحن:</span>
+                    <strong>@Model.ShippingCost.ToString("N2", culture) دج</strong>
+                </div>
+            }
+            <div class="financial-row grand-total">
+                <span>الإجمالي:</span>
+                <strong>@Model.GrandTotal.ToString("N2", culture) دج</strong>
+            </div>
+            @if (Model.RemainingAmount > 0 && Model.Status != InvoiceStatus.Cancelled)
+            {
+                <div class="financial-row text-danger">
+                    <span>المتبقي:</span>
+                    <strong>@Model.RemainingAmount.ToString("N2", culture) دج</strong>
+                </div>
+            }
+        </div>
+
+        @if (Model.HasReturns)
+        {
+            <div class="returns-badge">
+                <i class="fas fa-rotate-left"></i>
+                لها @Model.Returns.Count مرتجع
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .purchase-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+
+        .purchase-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+            border-color: #0E4D3A;
+        }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .invoice-number {
+        font-weight: 700;
+        color: #0E4D3A;
+        font-size: 0.95rem;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .supplier-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+        border-bottom: 1px dashed #e9ecef;
+    }
+
+    .supplier-avatar {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .supplier-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .supplier-name {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 2px;
+    }
+
+    .supplier-phone {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+        .info-item small {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        .info-item span {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+    .financial-summary {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .financial-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 3px 0;
+        font-size: 0.85rem;
+    }
+
+        .financial-row.grand-total {
+            font-size: 1rem;
+            border-top: 1px solid #dee2e6;
+            padding-top: 6px;
+            margin-top: 4px;
+            color: #0E4D3A;
+        }
+
+    .returns-badge {
+        margin-top: 10px;
+        background: #fff3cd;
+        color: #856404;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        text-align: center;
+        font-weight: 600;
+    }
+</style>

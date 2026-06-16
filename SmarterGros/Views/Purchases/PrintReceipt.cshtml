@@ -1,0 +1,954 @@
+﻿@model SmarterGros.ViewModels.PurchaseDetailsViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    Layout = null;
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+    var p = Model.Purchase;
+    var c = Model.CompanySettings;
+    var receiptNumber = $"REC-{p.PurchaseDate.Year}-{p.Id:D5}";
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سند استلام - @receiptNumber</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', 'Arial', sans-serif;
+            background: #f0f0f0;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* شريط الأدوات */
+        /* ═══════════════════════════════════════════════════ */
+        .toolbar {
+            background: #17a2b8;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+            .toolbar h3 {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+
+            .toolbar .actions {
+                display: flex;
+                gap: 10px;
+            }
+
+            .toolbar button {
+                padding: 8px 20px;
+                border: none;
+                border-radius: 6px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: inherit;
+                font-size: 0.9rem;
+            }
+
+        .btn-print {
+            background: white;
+            color: #17a2b8;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            color: white;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* سند الاستلام - A4 */
+        /* ═══════════════════════════════════════════════════ */
+        .receipt-page {
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 20mm 15mm;
+            position: relative;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* الترويسة */
+        /* ═══════════════════════════════════════════════════ */
+        .receipt-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #17a2b8;
+        }
+
+        .company-info {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #17a2b8, #0288d1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+            .company-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                border-radius: 12px;
+            }
+
+        .company-details h1 {
+            font-size: 1.6rem;
+            color: #17a2b8;
+            margin-bottom: 5px;
+            font-weight: 900;
+        }
+
+        .company-details .company-type {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+
+        .company-details p {
+            font-size: 0.8rem;
+            color: #495057;
+            margin: 2px 0;
+        }
+
+            .company-details p i {
+                color: #17a2b8;
+                width: 14px;
+                margin-left: 4px;
+            }
+
+        .receipt-title-section {
+            text-align: left;
+        }
+
+        .receipt-title {
+            background: linear-gradient(135deg, #17a2b8, #0288d1);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+            .receipt-title h2 {
+                font-size: 1.4rem;
+                font-weight: 700;
+                margin: 0;
+            }
+
+            .receipt-title .sub-title {
+                font-size: 0.8rem;
+                opacity: 0.9;
+                margin-top: 3px;
+            }
+
+        .receipt-meta {
+            background: #e8f4f8;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-right: 4px solid #17a2b8;
+        }
+
+            .receipt-meta .meta-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 4px 0;
+                font-size: 0.85rem;
+            }
+
+                .receipt-meta .meta-row strong {
+                    color: #17a2b8;
+                }
+
+        .receipt-number {
+            font-size: 1.1rem !important;
+            font-weight: 700;
+            color: #17a2b8 !important;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* معلومات المورد + الفاتورة */
+        /* ═══════════════════════════════════════════════════ */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px 15px;
+            border-right: 4px solid;
+        }
+
+            .info-card.supplier {
+                border-color: #28a745;
+            }
+
+            .info-card.invoice {
+                border-color: #ffc107;
+            }
+
+            .info-card h4 {
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+                font-weight: 700;
+            }
+
+            .info-card.supplier h4 {
+                color: #28a745;
+            }
+
+            .info-card.invoice h4 {
+                color: #ffc107;
+            }
+
+            .info-card .info-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 3px 0;
+                font-size: 0.85rem;
+            }
+
+            .info-card .label {
+                color: #6c757d;
+                font-weight: 600;
+            }
+
+            .info-card .value {
+                color: #2c3e50;
+                font-weight: 600;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* معلومات الشحن */
+        /* ═══════════════════════════════════════════════════ */
+        .shipping-section {
+            background: linear-gradient(135deg, #e8f4f8, #ffffff);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 2px solid #17a2b8;
+        }
+
+            .shipping-section h3 {
+                font-size: 1rem;
+                color: #17a2b8;
+                margin-bottom: 10px;
+                font-weight: 700;
+            }
+
+        .shipping-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            font-size: 0.85rem;
+        }
+
+        .shipping-item {
+            text-align: center;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+        }
+
+            .shipping-item .icon {
+                color: #17a2b8;
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+
+            .shipping-item .label {
+                color: #6c757d;
+                font-size: 0.75rem;
+                display: block;
+            }
+
+            .shipping-item .value {
+                color: #2c3e50;
+                font-weight: 700;
+                font-size: 0.9rem;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* جدول البضاعة */
+        /* ═══════════════════════════════════════════════════ */
+        .items-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #17a2b8, #0288d1);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .section-title h3 {
+                font-size: 1rem;
+                margin: 0;
+                font-weight: 700;
+            }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+            .items-table thead {
+                background: #e8f4f8;
+            }
+
+                .items-table thead th {
+                    padding: 10px 8px;
+                    font-weight: 700;
+                    text-align: center;
+                    border: 1px solid #17a2b8;
+                    color: #17a2b8;
+                }
+
+            .items-table tbody td {
+                padding: 8px;
+                border: 1px solid #dee2e6;
+                text-align: center;
+            }
+
+                .items-table tbody td.text-right {
+                    text-align: right;
+                }
+
+            .items-table .product-name {
+                font-weight: 600;
+                color: #2c3e50;
+            }
+
+            .items-table .product-ref {
+                font-size: 0.75rem;
+                color: #6c757d;
+                display: block;
+            }
+
+        .qty-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .qty-ordered {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        .qty-received-full {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .qty-received-partial {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .qty-received-empty {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .qty-diff-zero {
+            color: #28a745;
+            font-weight: 700;
+        }
+
+        .qty-diff-negative {
+            color: #dc3545;
+            font-weight: 700;
+        }
+
+        .qty-diff-positive {
+            color: #007bff;
+            font-weight: 700;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* الملخص */
+        /* ═══════════════════════════════════════════════════ */
+        .summary-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid;
+        }
+
+            .summary-card.total {
+                border-color: #6c757d;
+            }
+
+            .summary-card.full {
+                border-color: #28a745;
+                background: #f0fff4;
+            }
+
+            .summary-card.partial {
+                border-color: #ffc107;
+                background: #fffbeb;
+            }
+
+            .summary-card.empty {
+                border-color: #dc3545;
+                background: #fff5f5;
+            }
+
+            .summary-card .icon {
+                font-size: 1.8rem;
+                margin-bottom: 5px;
+            }
+
+            .summary-card.total .icon {
+                color: #6c757d;
+            }
+
+            .summary-card.full .icon {
+                color: #28a745;
+            }
+
+            .summary-card.partial .icon {
+                color: #ffc107;
+            }
+
+            .summary-card.empty .icon {
+                color: #dc3545;
+            }
+
+            .summary-card .value {
+                font-size: 1.8rem;
+                font-weight: 900;
+                color: #2c3e50;
+                margin: 5px 0;
+            }
+
+            .summary-card .label {
+                font-size: 0.8rem;
+                color: #6c757d;
+                font-weight: 600;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* الملاحظات */
+        /* ═══════════════════════════════════════════════════ */
+        .notes-section {
+            background: #fff9e6;
+            border: 1px dashed #ffc107;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 25px;
+        }
+
+            .notes-section h4 {
+                font-size: 0.9rem;
+                color: #856404;
+                margin-bottom: 5px;
+            }
+
+            .notes-section p {
+                font-size: 0.85rem;
+                color: #495057;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* التوقيعات */
+        /* ═══════════════════════════════════════════════════ */
+        .signatures-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .signature-box {
+            text-align: center;
+        }
+
+            .signature-box .role {
+                background: #17a2b8;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 20px;
+                display: inline-block;
+                font-size: 0.8rem;
+                font-weight: 700;
+                margin-bottom: 50px;
+            }
+
+        .signature-line {
+            border-top: 2px dashed #6c757d;
+            padding-top: 8px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+            .signature-line .name {
+                font-weight: 700;
+                color: #2c3e50;
+                margin-bottom: 3px;
+                font-size: 0.85rem;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* الفوتر */
+        /* ═══════════════════════════════════════════════════ */
+        .receipt-footer {
+            position: absolute;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+            border-top: 2px solid #17a2b8;
+            padding-top: 10px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+            .receipt-footer .tagline {
+                font-weight: 600;
+                color: #17a2b8;
+                margin-bottom: 3px;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* CSS للطباعة */
+        /* ═══════════════════════════════════════════════════ */
+        @@media print {
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .receipt-page {
+                box-shadow: none;
+                margin: 0;
+                padding: 15mm;
+                width: 210mm;
+                min-height: 297mm;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            @@page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 🛠️ شريط الأدوات -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="toolbar no-print">
+        <h3>
+            <i class="fas fa-file-alt"></i>
+            سند استلام - @receiptNumber
+        </h3>
+        <div class="actions">
+            <button class="btn-print" onclick="window.print()">
+                <i class="fas fa-print"></i> طباعة
+            </button>
+            <button class="btn-back" onclick="window.close()">
+                <i class="fas fa-times"></i> إغلاق
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 📄 سند الاستلام -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="receipt-page">
+
+        <!-- الترويسة -->
+        <div class="receipt-header">
+            <!-- معلومات الشركة -->
+            <div class="company-info">
+                <div class="company-logo">
+                    @if (!string.IsNullOrEmpty(c?.LogoPath))
+                    {
+                        <img src="@c.LogoPath" alt="Logo" />
+                    }
+                    else
+                    {
+                        <span>@(c?.CompanyName?.Substring(0, 1).ToUpper() ?? "S")</span>
+                    }
+                </div>
+                <div class="company-details">
+                    <h1>@(c?.CompanyName ?? "SmarterGros")</h1>
+                    @if (!string.IsNullOrEmpty(c?.CompanyType))
+                    {
+                        <div class="company-type">@c.CompanyType</div>
+                    }
+                    @if (!string.IsNullOrEmpty(c?.Address))
+                    {
+                        <p><i class="fas fa-map-marker-alt"></i> @c.Address @(string.IsNullOrEmpty(c?.City) ? "" : ", " + c.City)</p>
+                    }
+                    @if (!string.IsNullOrEmpty(c?.Phone))
+                    {
+                        <p><i class="fas fa-phone"></i> @c.Phone</p>
+                    }
+                </div>
+            </div>
+
+            <!-- عنوان السند -->
+            <div class="receipt-title-section">
+                <div class="receipt-title">
+                    <h2><i class="fas fa-box-open"></i> سند استلام</h2>
+                    <div class="sub-title">BON DE RÉCEPTION</div>
+                </div>
+
+                <div class="receipt-meta">
+                    <div class="meta-row">
+                        <strong>رقم السند:</strong>
+                        <span class="receipt-number">@receiptNumber</span>
+                    </div>
+                    <div class="meta-row">
+                        <strong>تاريخ الاستلام:</strong>
+                        <span>@(p.ReceivedDate?.ToString("dd/MM/yyyy") ?? "-")</span>
+                    </div>
+                    <div class="meta-row">
+                        <strong>رقم الفاتورة:</strong>
+                        <span>@p.InvoiceNumber</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- معلومات المورد + الفاتورة -->
+        <div class="info-grid">
+            <!-- المورد -->
+            <div class="info-card supplier">
+                <h4><i class="fas fa-truck"></i> المورد / FOURNISSEUR</h4>
+                <div class="info-row">
+                    <span class="label">الاسم:</span>
+                    <span class="value">@(p.Supplier?.Name ?? "---")</span>
+                </div>
+                @if (!string.IsNullOrEmpty(p.Supplier?.Phone))
+                {
+                    <div class="info-row">
+                        <span class="label">الهاتف:</span>
+                        <span class="value">@p.Supplier.Phone</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(p.Supplier?.City))
+                {
+                    <div class="info-row">
+                        <span class="label">المدينة:</span>
+                        <span class="value">@p.Supplier.City</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(p.Supplier?.RC))
+                {
+                    <div class="info-row">
+                        <span class="label">RC:</span>
+                        <span class="value">@p.Supplier.RC</span>
+                    </div>
+                }
+            </div>
+
+            <!-- معلومات الفاتورة -->
+            <div class="info-card invoice">
+                <h4><i class="fas fa-file-invoice"></i> الفاتورة / FACTURE</h4>
+                <div class="info-row">
+                    <span class="label">رقم الفاتورة:</span>
+                    <span class="value">@p.InvoiceNumber</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">تاريخ الفاتورة:</span>
+                    <span class="value">@p.PurchaseDate.ToString("dd/MM/yyyy")</span>
+                </div>
+                @if (!string.IsNullOrEmpty(p.SupplierInvoiceNumber))
+                {
+                    <div class="info-row">
+                        <span class="label">رقم فاتورة المورد:</span>
+                        <span class="value">@p.SupplierInvoiceNumber</span>
+                    </div>
+                }
+                <div class="info-row">
+                    <span class="label">المبلغ الإجمالي:</span>
+                    <span class="value">@p.GrandTotal.ToString("N2", culture) دج</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- معلومات الشحن -->
+        @if (!string.IsNullOrEmpty(p.TransporterName) || !string.IsNullOrEmpty(p.DeliveryNoteNumber))
+        {
+            <div class="shipping-section">
+                <h3><i class="fas fa-truck-fast"></i> معلومات الشحن / TRANSPORTEUR</h3>
+                <div class="shipping-grid">
+                    @if (!string.IsNullOrEmpty(p.TransporterName))
+                    {
+                        <div class="shipping-item">
+                            <div class="icon"><i class="fas fa-user"></i></div>
+                            <span class="label">الناقل</span>
+                            <div class="value">@p.TransporterName</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(p.TransporterPhone))
+                    {
+                        <div class="shipping-item">
+                            <div class="icon"><i class="fas fa-phone"></i></div>
+                            <span class="label">الهاتف</span>
+                            <div class="value">@p.TransporterPhone</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(p.DeliveryNoteNumber))
+                    {
+                        <div class="shipping-item">
+                            <div class="icon"><i class="fas fa-file"></i></div>
+                            <span class="label">رقم BL</span>
+                            <div class="value">@p.DeliveryNoteNumber</div>
+                        </div>
+                    }
+                    @if (p.ShippingStatus.HasValue)
+                    {
+                        <div class="shipping-item">
+                            <div class="icon"><i class="fas @p.ShippingStatus.Value.GetIcon()"></i></div>
+                            <span class="label">الحالة</span>
+                            <div class="value">@p.ShippingStatus.Value.GetArabicName()</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- جدول البضاعة المستلمة -->
+        <div class="items-section">
+            <div class="section-title">
+                <h3><i class="fas fa-box"></i> البضاعة المستلمة / MARCHANDISE REÇUE</h3>
+                <span style="background: white; color: #17a2b8; padding: 3px 10px; border-radius: 20px; font-weight: 700;">
+                    @p.PurchaseItems.Count منتج
+                </span>
+            </div>
+
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th width="35">#</th>
+                        <th>المنتج / Désignation</th>
+                        <th width="80">المطلوب</th>
+                        <th width="80">المستلم</th>
+                        <th width="70">الفرق</th>
+                        <th>ملاحظات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int rowNum = 1;
+                    }
+                    @foreach (var item in p.PurchaseItems)
+                    {
+                        var diff = item.ReceivedQuantity - item.Quantity;
+                        var qtyClass = item.ReceivedQuantity == 0 ? "qty-received-empty" :
+                        item.ReceivedQuantity < item.Quantity ? "qty-received-partial" :
+                        "qty-received-full";
+                        var diffClass = diff == 0 ? "qty-diff-zero" :
+                        diff < 0 ? "qty-diff-negative" :
+                        "qty-diff-positive";
+                        var diffText = diff == 0 ? "✓" : (diff > 0 ? "+" + diff : diff.ToString());
+
+                        <tr>
+                            <td>@rowNum</td>
+                            <td class="text-right">
+                                <span class="product-name">@(item.Product?.Name ?? "---")</span>
+                                <span class="product-ref">
+                                    @(item.Product?.Reference ?? "")
+                                    @if (!string.IsNullOrEmpty(item.Product?.Unit))
+                                    {
+                                        <span style="margin-right: 8px;">| @item.Product.Unit</span>
+                                    }
+                                </span>
+                            </td>
+                            <td>
+                                <span class="qty-badge qty-ordered">@item.Quantity</span>
+                            </td>
+                            <td>
+                                <span class="qty-badge @qtyClass">@item.ReceivedQuantity</span>
+                            </td>
+                            <td>
+                                <span class="@diffClass">@diffText</span>
+                            </td>
+                            <td class="text-right" style="font-size: 0.8rem;">
+                                @(string.IsNullOrEmpty(item.Notes) ? "-" : item.Notes)
+                            </td>
+                        </tr>
+                        rowNum++;
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- الملخص -->
+        @{
+            var fullCount = p.PurchaseItems.Count(i => i.ReceivedQuantity >= i.Quantity);
+            var partialCount = p.PurchaseItems.Count(i => i.ReceivedQuantity > 0 && i.ReceivedQuantity < i.Quantity);
+            var emptyCount = p.PurchaseItems.Count(i => i.ReceivedQuantity == 0);
+            var totalReceived = p.PurchaseItems.Sum(i => i.ReceivedQuantity);
+        }
+
+        <div class="summary-section">
+            <div class="summary-card total">
+                <div class="icon"><i class="fas fa-boxes"></i></div>
+                <div class="value">@totalReceived</div>
+                <div class="label">إجمالي القطع المستلمة</div>
+            </div>
+
+            <div class="summary-card full">
+                <div class="icon"><i class="fas fa-check-circle"></i></div>
+                <div class="value">@fullCount</div>
+                <div class="label">مستلم كامل ✓</div>
+            </div>
+
+            <div class="summary-card partial">
+                <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="value">@partialCount</div>
+                <div class="label">استلام جزئي ⚠</div>
+            </div>
+
+            <div class="summary-card empty">
+                <div class="icon"><i class="fas fa-times-circle"></i></div>
+                <div class="value">@emptyCount</div>
+                <div class="label">لم يُستلم ✗</div>
+            </div>
+        </div>
+
+        <!-- الملاحظات -->
+        @if (!string.IsNullOrEmpty(p.Notes))
+        {
+            <div class="notes-section">
+                <h4><i class="fas fa-sticky-note"></i> ملاحظات الاستلام</h4>
+                <p>@p.Notes</p>
+            </div>
+        }
+
+        <!-- التوقيعات -->
+        <div class="signatures-section">
+            <div class="signature-box">
+                <div class="role">المورد / Fournisseur</div>
+                <div class="signature-line">
+                    <div class="name">@(p.Supplier?.Name ?? "")</div>
+                    <div>الختم والتوقيع</div>
+                </div>
+            </div>
+
+            <div class="signature-box">
+                <div class="role">الناقل / Transporteur</div>
+                <div class="signature-line">
+                    <div class="name">@(p.TransporterName ?? "")</div>
+                    <div>التوقيع</div>
+                </div>
+            </div>
+
+            <div class="signature-box">
+                <div class="role">المستلم / Récepteur</div>
+                <div class="signature-line">
+                    <div class="name">@(p.ReceivedByName ?? "")</div>
+                    <div>الختم والتوقيع</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- الفوتر -->
+        <div class="receipt-footer">
+            <div class="tagline">@(c?.CompanyName ?? "SmarterGros") - نظام تسيير المخزون</div>
+            <div>
+                طُبعت بتاريخ: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+                @if (!string.IsNullOrEmpty(p.ReceivedByName))
+                {
+                    <span style="margin-right: 20px;">| استلم: @p.ReceivedByName</span>
+                }
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // طباعة تلقائية (اختياري - عطّلها لو لا تريدها)
+        // window.onload = function() { window.print(); };
+
+        // Shortcut Ctrl+P
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

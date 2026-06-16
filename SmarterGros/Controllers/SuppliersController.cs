@@ -3,17 +3,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmarterGros.Data;
 using SmarterGros.Models;
+using SmarterGros.Security;
+using SmarterGros.Services;
 
 namespace SmarterGros.Controllers
 {
     [Authorize]
     public class SuppliersController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context; 
+        private readonly IActivityLogService _activityLogService;
 
-        public SuppliersController(ApplicationDbContext context)
+
+        public SuppliersController(
+       ApplicationDbContext context,
+       IActivityLogService activityLogService)
         {
             _context = context;
+            _activityLogService = activityLogService;
         }
 
         // GET: /Suppliers/Index
@@ -278,6 +285,86 @@ namespace SmarterGros.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        // ═══════════════════════════════════════════════════
+        // ⚡ API: إضافة مورد سريع (من Modal)
+        // ═══════════════════════════════════════════════════
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [HasPermission(Permissions.Suppliers.Create)]
+        public async Task<IActionResult> CreateQuick([FromBody] QuickSupplierViewModel model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.Name))
+                    return Json(new { success = false, message = "اسم المورد مطلوب" });
+
+                // التحقق من عدم التكرار
+                var exists = await _context.Suppliers
+                    .AnyAsync(s => s.Name == model.Name.Trim() && s.IsActive);
+
+                if (exists)
+                    return Json(new { success = false, message = "يوجد مورد بنفس الاسم بالفعل" });
+
+                var supplier = new Supplier
+                {
+                    Name = model.Name.Trim(),
+                    BusinessActivity = string.IsNullOrWhiteSpace(model.BusinessActivity) ? null : model.BusinessActivity.Trim(),
+                    City = string.IsNullOrWhiteSpace(model.City) ? null : model.City.Trim(),
+                    Phone = string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone.Trim(),
+                    Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim(),
+                    Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address.Trim(),
+                    RC = string.IsNullOrWhiteSpace(model.RC) ? null : model.RC.Trim(),
+                    NIF = string.IsNullOrWhiteSpace(model.NIF) ? null : model.NIF.Trim(),
+                    InitialDebt = model.InitialDebt,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Suppliers.Add(supplier);
+                await _context.SaveChangesAsync();
+
+                // تسجيل في Activity Log
+                await _activityLogService.LogCreateAsync(
+                    module: "Suppliers",
+                    entityName: "Supplier",
+                    entityId: supplier.Id,
+                    description: $"إضافة مورد سريع: {supplier.Name}",
+                    newValues: new { supplier.Name, supplier.City, supplier.Phone });
+
+                return Json(new
+                {
+                    success = true,
+                    message = "تم إضافة المورد بنجاح",
+                    supplier = new
+                    {
+                        id = supplier.Id,
+                        name = supplier.Name
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"حدث خطأ: {ex.Message}" });
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 📋 ViewModel للإضافة السريعة
+        // ═══════════════════════════════════════════════════
+        public class QuickSupplierViewModel
+        {
+            public string Name { get; set; } = string.Empty;
+            public string? BusinessActivity { get; set; }
+            public string? City { get; set; }
+            public string? Phone { get; set; }
+            public string? Email { get; set; }
+            public string? Address { get; set; }
+            public string? RC { get; set; }
+            public string? NIF { get; set; }
+            public decimal InitialDebt { get; set; } = 0;
+        }
+
+
     }
 
     // تحديث SupplierDto

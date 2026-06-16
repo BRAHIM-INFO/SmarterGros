@@ -12,8 +12,8 @@ using SmarterGros.Data;
 namespace SmarterGros.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260615230502_AddPurchasesAndReturnsSystem")]
-    partial class AddPurchasesAndReturnsSystem
+    [Migration("20260616165128_CreateInitial")]
+    partial class CreateInitial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1310,7 +1310,7 @@ namespace SmarterGros.Migrations
                     b.HasOne("SmarterGros.Models.Supplier", "Supplier")
                         .WithMany("Purchases")
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Supplier");
@@ -1346,7 +1346,7 @@ namespace SmarterGros.Migrations
                     b.HasOne("SmarterGros.Models.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Purchase");

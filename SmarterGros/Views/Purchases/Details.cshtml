@@ -1,0 +1,1257 @@
+﻿@model SmarterGros.ViewModels.PurchaseDetailsViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = $"تفاصيل الفاتورة - {Model.Purchase.InvoiceNumber}";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+    var p = Model.Purchase;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        /* ═══════════════════════════════════════════════════ */
+        /* الترويسة */
+        /* ═══════════════════════════════════════════════════ */
+        .invoice-header {
+            background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(14,77,58,0.2);
+        }
+
+            .invoice-header .invoice-number {
+                font-size: 1.8rem;
+                font-weight: 700;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .invoice-header .invoice-meta {
+                margin-top: 8px;
+                opacity: 0.9;
+                font-size: 0.9rem;
+            }
+
+                .invoice-header .invoice-meta i {
+                    margin-left: 5px;
+                }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* أزرار الإجراءات */
+        /* ═══════════════════════════════════════════════════ */
+        .actions-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+            .actions-bar .btn {
+                font-weight: 600;
+                padding: 8px 18px;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+            }
+
+                .actions-bar .btn:hover {
+                    transform: translateY(-2px);
+                }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* البطاقات */
+        /* ═══════════════════════════════════════════════════ */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-right: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+            .summary-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+
+            .summary-card .icon {
+                width: 55px;
+                height: 55px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                color: white;
+            }
+
+            .summary-card .content {
+                flex: 1;
+            }
+
+            .summary-card .value {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: #2c3e50;
+                margin: 0;
+            }
+
+            .summary-card .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+                margin-top: 3px;
+            }
+
+        .card-total {
+            border-color: #0E4D3A;
+        }
+
+            .card-total .icon {
+                background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+            }
+
+        .card-paid {
+            border-color: #28a745;
+        }
+
+            .card-paid .icon {
+                background: linear-gradient(135deg, #28a745, #20c997);
+            }
+
+        .card-debt {
+            border-color: #dc3545;
+        }
+
+            .card-debt .icon {
+                background: linear-gradient(135deg, #dc3545, #c82333);
+            }
+
+        .card-shipping {
+            border-color: #17a2b8;
+        }
+
+            .card-shipping .icon {
+                background: linear-gradient(135deg, #17a2b8, #0288d1);
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* الأقسام */
+        /* ═══════════════════════════════════════════════════ */
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #0E4D3A;
+        }
+
+            .section-title h5 {
+                margin: 0;
+                color: #0E4D3A;
+                font-weight: 700;
+                font-size: 1.1rem;
+            }
+
+            .section-title .badge {
+                margin-right: auto;
+            }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* معلومات المورد */
+        /* ═══════════════════════════════════════════════════ */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+            .info-item .icon {
+                width: 38px;
+                height: 38px;
+                background: white;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #0E4D3A;
+                font-size: 1.1rem;
+            }
+
+            .info-item .text {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .info-item .label {
+                font-size: 0.75rem;
+                color: #6c757d;
+            }
+
+            .info-item .value {
+                font-weight: 600;
+                color: #2c3e50;
+                font-size: 0.9rem;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* جدول البنود */
+        /* ═══════════════════════════════════════════════════ */
+        .items-table {
+            margin: 0;
+        }
+
+            .items-table thead {
+                background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+                color: white;
+            }
+
+                .items-table thead th {
+                    border: none;
+                    padding: 14px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                }
+
+            .items-table tbody td {
+                padding: 12px;
+                vertical-align: middle;
+                border-color: #e9ecef;
+            }
+
+            .items-table tbody tr:hover {
+                background: #f8f9fa;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* المجاميع */
+        /* ═══════════════════════════════════════════════════ */
+        .totals-box {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 2px solid #0E4D3A;
+        }
+
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 1rem;
+        }
+
+            .total-line.grand {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: #0E4D3A;
+                border-top: 2px solid #0E4D3A;
+                padding-top: 12px;
+                margin-top: 8px;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* Timeline */
+        /* ═══════════════════════════════════════════════════ */
+        .timeline {
+            position: relative;
+            padding-right: 30px;
+        }
+
+            .timeline::before {
+                content: '';
+                position: absolute;
+                right: 15px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: #e9ecef;
+            }
+
+        .timeline-item {
+            position: relative;
+            padding: 10px 0;
+        }
+
+            .timeline-item::before {
+                content: '';
+                position: absolute;
+                right: -23px;
+                top: 15px;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: #0E4D3A;
+                border: 3px solid white;
+                box-shadow: 0 0 0 2px #0E4D3A;
+            }
+
+            .timeline-item.critical::before {
+                background: #dc3545;
+                box-shadow: 0 0 0 2px #dc3545;
+            }
+
+            .timeline-item.warning::before {
+                background: #ffc107;
+                box-shadow: 0 0 0 2px #ffc107;
+            }
+
+            .timeline-item.success::before {
+                background: #28a745;
+                box-shadow: 0 0 0 2px #28a745;
+            }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+
+        .timeline-action {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .timeline-meta {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* السجلات */
+        /* ═══════════════════════════════════════════════════ */
+        .record-item {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            border-right: 3px solid;
+        }
+
+            .record-item:hover {
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+            .record-item.payment {
+                border-color: #28a745;
+            }
+
+            .record-item.return {
+                border-color: #ffc107;
+            }
+
+        .record-amount {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0E4D3A;
+        }
+
+        .empty-records {
+            text-align: center;
+            padding: 30px;
+            color: #95a5a6;
+        }
+
+            .empty-records i {
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+            }
+    </style>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📄 ترويسة الفاتورة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="invoice-header">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1 class="invoice-number">
+                <i class="fas fa-receipt"></i>
+                @p.InvoiceNumber
+                <span class="badge bg-@p.Status.GetBadgeColor() ms-2" style="font-size: 0.9rem;">
+                    <i class="fas @p.Status.GetIcon()"></i>
+                    @p.Status.GetArabicName()
+                </span>
+            </h1>
+            <div class="invoice-meta">
+                <i class="fas fa-calendar"></i> @p.PurchaseDate.ToString("yyyy/MM/dd")
+                @if (!string.IsNullOrEmpty(p.CreatedByName))
+                {
+                    <span class="ms-3"><i class="fas fa-user"></i> @p.CreatedByName</span>
+                }
+                @if (!string.IsNullOrEmpty(p.SupplierInvoiceNumber))
+                {
+                    <span class="ms-3"><i class="fas fa-hashtag"></i> @p.SupplierInvoiceNumber</span>
+                }
+            </div>
+        </div>
+        <a href="@Url.Action("Index")" class="btn btn-light">
+            <i class="fas fa-arrow-right"></i> العودة
+        </a>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🎯 أزرار الإجراءات -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="actions-bar">
+    @if (p.Status.CanEdit())
+    {
+        <a href="@Url.Action("Edit", new { id = p.Id })" class="btn btn-warning">
+            <i class="fas fa-edit"></i> تعديل
+        </a>
+    }
+
+    @if (p.Status.CanReceive())
+    {
+        <a href="@Url.Action("Receive", new { id = p.Id })" class="btn btn-success">
+            <i class="fas fa-box-open"></i> استلام البضاعة
+        </a>
+    }
+
+    @if (p.Status == InvoiceStatus.Received && p.RemainingAmount > 0)
+    {
+        <button type="button" class="btn btn-primary" onclick="showPaymentModal()">
+            <i class="fas fa-credit-card"></i> تسجيل دفعة
+        </button>
+    }
+
+    @if (p.Status.CanReturn())
+    {
+        <a href="@Url.Action("Create", "PurchaseReturns", new { purchaseId = p.Id })" class="btn btn-info text-white">
+            <i class="fas fa-rotate-left"></i> إنشاء مرتجع
+        </a>
+    }
+
+    <button type="button" class="btn btn-secondary" onclick="duplicateInvoice()">
+        <i class="fas fa-copy"></i> نسخ الفاتورة
+    </button>
+
+    <a href="@Url.Action("Print", new { id = p.Id })" target="_blank" class="btn btn-dark">
+        <i class="fas fa-print"></i> طباعة
+    </a>
+
+    @if (p.Status == InvoiceStatus.Received)
+    {
+        <a href="#" target="_blank" class="btn btn-outline-dark">
+            <i class="fas fa-file-alt"></i> سند الاستلام
+        </a>
+    }
+
+    @if (p.Status.CanCancel())
+    {
+        <button type="button" class="btn btn-danger ms-auto" onclick="showCancelModal()">
+            <i class="fas fa-ban"></i> إلغاء الفاتورة
+        </button>
+    }
+
+    @if (p.Status.CanDelete())
+    {
+        <button type="button" class="btn btn-outline-danger" onclick="deletePurchase()">
+            <i class="fas fa-trash"></i> حذف
+        </button>
+    }
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 بطاقات الملخص -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="summary-cards">
+    <div class="summary-card card-total">
+        <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+        <div class="content">
+            <div class="value">@p.GrandTotal.ToString("N2", culture) <small style="font-size: 0.7em;">دج</small></div>
+            <div class="label">الإجمالي الكلي</div>
+        </div>
+    </div>
+
+    <div class="summary-card card-paid">
+        <div class="icon"><i class="fas fa-check-circle"></i></div>
+        <div class="content">
+            <div class="value">@p.PaidAmount.ToString("N2", culture) <small style="font-size: 0.7em;">دج</small></div>
+            <div class="label">المدفوع (@p.PaymentPercentage%)</div>
+        </div>
+    </div>
+
+    <div class="summary-card card-debt">
+        <div class="icon"><i class="fas fa-credit-card"></i></div>
+        <div class="content">
+            <div class="value">@p.RemainingAmount.ToString("N2", culture) <small style="font-size: 0.7em;">دج</small></div>
+            <div class="label">المتبقي (دين)</div>
+        </div>
+    </div>
+
+    @if (p.ShippingCost > 0)
+    {
+        <div class="summary-card card-shipping">
+            <div class="icon"><i class="fas fa-truck-fast"></i></div>
+            <div class="content">
+                <div class="value">@p.ShippingCost.ToString("N2", culture) <small style="font-size: 0.7em;">دج</small></div>
+                <div class="label">تكلفة الشحن</div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🚚 معلومات المورد + الفاتورة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="row g-3 mb-3">
+    <!-- المورد -->
+    <div class="col-md-6">
+        <div class="info-section">
+            <div class="section-title">
+                <i class="fas fa-truck text-primary"></i>
+                <h5>معلومات المورد</h5>
+            </div>
+            <div class="section-body">
+                @if (p.Supplier != null)
+                {
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="icon"><i class="fas fa-building"></i></div>
+                            <div class="text">
+                                <div class="label">اسم المورد</div>
+                                <div class="value">@p.Supplier.Name</div>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(p.Supplier.Phone))
+                        {
+                            <div class="info-item">
+                                <div class="icon"><i class="fas fa-phone"></i></div>
+                                <div class="text">
+                                    <div class="label">الهاتف</div>
+                                    <div class="value">@p.Supplier.Phone</div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(p.Supplier.City))
+                        {
+                            <div class="info-item">
+                                <div class="icon"><i class="fas fa-map-marker-alt"></i></div>
+                                <div class="text">
+                                    <div class="label">المدينة</div>
+                                    <div class="value">@p.Supplier.City</div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(p.Supplier.RC))
+                        {
+                            <div class="info-item">
+                                <div class="icon"><i class="fas fa-id-card"></i></div>
+                                <div class="text">
+                                    <div class="label">RC</div>
+                                    <div class="value">@p.Supplier.RC</div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(p.Supplier.NIF))
+                        {
+                            <div class="info-item">
+                                <div class="icon"><i class="fas fa-hashtag"></i></div>
+                                <div class="text">
+                                    <div class="label">NIF</div>
+                                    <div class="value">@p.Supplier.NIF</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- معلومات الفاتورة -->
+    <div class="col-md-6">
+        <div class="info-section">
+            <div class="section-title">
+                <i class="fas fa-file-invoice text-primary"></i>
+                <h5>معلومات الفاتورة</h5>
+            </div>
+            <div class="section-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="icon"><i class="fas fa-credit-card"></i></div>
+                        <div class="text">
+                            <div class="label">نوع الدفع</div>
+                            <div class="value">
+                                <span class="badge bg-@p.PaymentType.GetBadgeColor()">
+                                    @p.PaymentType.GetArabicName()
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="icon"><i class="fas fa-box"></i></div>
+                        <div class="text">
+                            <div class="label">عدد البنود</div>
+                            <div class="value">@p.ItemsCount منتج</div>
+                        </div>
+                    </div>
+
+                    @if (p.ReceivedDate.HasValue)
+                    {
+                        <div class="info-item">
+                            <div class="icon text-success"><i class="fas fa-check"></i></div>
+                            <div class="text">
+                                <div class="label">تاريخ الاستلام</div>
+                                <div class="value">@p.ReceivedDate.Value.ToString("yyyy/MM/dd")</div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(p.ReceivedByName))
+                    {
+                        <div class="info-item">
+                            <div class="icon"><i class="fas fa-user-check"></i></div>
+                            <div class="text">
+                                <div class="label">المستلم</div>
+                                <div class="value">@p.ReceivedByName</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🚚 معلومات الشحن -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (!string.IsNullOrEmpty(p.TransporterName) || !string.IsNullOrEmpty(p.DeliveryNoteNumber) || p.ShippingCost > 0)
+{
+    <div class="info-section">
+        <div class="section-title">
+            <i class="fas fa-truck-fast text-info"></i>
+            <h5>معلومات الشحن (Transporteur)</h5>
+            @if (p.ShippingStatus.HasValue)
+            {
+                <span class="badge bg-@p.ShippingStatus.Value.GetBadgeColor()">
+                    <i class="fas @p.ShippingStatus.Value.GetIcon()"></i>
+                    @p.ShippingStatus.Value.GetArabicName()
+                </span>
+            }
+        </div>
+        <div class="section-body">
+            <div class="info-grid">
+                @if (!string.IsNullOrEmpty(p.TransporterName))
+                {
+                    <div class="info-item">
+                        <div class="icon"><i class="fas fa-user"></i></div>
+                        <div class="text">
+                            <div class="label">اسم الناقل</div>
+                            <div class="value">@p.TransporterName</div>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(p.TransporterPhone))
+                {
+                    <div class="info-item">
+                        <div class="icon"><i class="fas fa-phone"></i></div>
+                        <div class="text">
+                            <div class="label">الهاتف</div>
+                            <div class="value">@p.TransporterPhone</div>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(p.DeliveryNoteNumber))
+                {
+                    <div class="info-item">
+                        <div class="icon"><i class="fas fa-file"></i></div>
+                        <div class="text">
+                            <div class="label">رقم BL</div>
+                            <div class="value">@p.DeliveryNoteNumber</div>
+                        </div>
+                    </div>
+                }
+
+                @if (p.ShippingDate.HasValue)
+                {
+                    <div class="info-item">
+                        <div class="icon"><i class="fas fa-calendar"></i></div>
+                        <div class="text">
+                            <div class="label">تاريخ الشحن</div>
+                            <div class="value">@p.ShippingDate.Value.ToString("yyyy/MM/dd")</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📦 بنود الفاتورة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="info-section">
+    <div class="section-title">
+        <i class="fas fa-box text-primary"></i>
+        <h5>بنود الفاتورة</h5>
+        <span class="badge bg-info">@p.PurchaseItems.Count منتج</span>
+    </div>
+    <div class="section-body p-0">
+        <div class="table-responsive">
+            <table class="table items-table mb-0">
+                <thead>
+                    <tr>
+                        <th width="40">#</th>
+                        <th>المنتج</th>
+                        <th class="text-center" width="100">الكمية</th>
+                        @if (p.Status == InvoiceStatus.Received)
+                        {
+                            <th class="text-center" width="100">المستلم</th>
+                            <th class="text-center" width="100">المرتجع</th>
+                        }
+                        <th class="text-center" width="120">السعر</th>
+                        <th class="text-center" width="80">خصم %</th>
+                        <th class="text-center" width="80">TVA %</th>
+                        <th class="text-end" width="130">المجموع</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int rowNum = 1;
+                    }
+                    @foreach (var item in p.PurchaseItems)
+                    {
+                        <tr>
+                            <td class="text-center"><strong>@rowNum</strong></td>
+                            <td>
+                                <strong>@(item.Product?.Name ?? "---")</strong>
+                                <br>
+                                <small class="text-muted">
+                                    <span class="badge bg-secondary">@(item.Product?.Reference ?? "")</span>
+                                    @if (!string.IsNullOrEmpty(item.Product?.Unit))
+                                    {
+                                        <span class="badge bg-info">@item.Product.Unit</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.BatchNumber))
+                                    {
+                                        <span class="badge bg-warning text-dark">Lot: @item.BatchNumber</span>
+                                    }
+                                </small>
+                            </td>
+                            <td class="text-center"><strong>@item.Quantity</strong></td>
+                            @if (p.Status == InvoiceStatus.Received)
+                            {
+                                <td class="text-center">
+                                    <span class="badge bg-success">@item.ReceivedQuantity</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.ReturnedQuantity > 0)
+                                    {
+                                        <span class="badge bg-warning text-dark">@item.ReturnedQuantity</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                            }
+                            <td class="text-center">@item.UnitPrice.ToString("N2", culture)</td>
+                            <td class="text-center">@(item.Discount > 0 ? item.Discount.ToString("N2") + "%" : "-")</td>
+                            <td class="text-center">@(item.TaxRate > 0 ? item.TaxRate.ToString("N2") + "%" : "-")</td>
+                            <td class="text-end"><strong class="text-success">@item.TotalPrice.ToString("N2", culture) دج</strong></td>
+                        </tr>
+                        rowNum++;
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- المجاميع -->
+        <div class="p-3">
+            <div class="row">
+                <div class="col-md-7">
+                    @if (!string.IsNullOrEmpty(p.Notes))
+                    {
+                        <div class="alert alert-light">
+                            <strong><i class="fas fa-sticky-note"></i> ملاحظات:</strong>
+                            <p class="mb-0 mt-2">@p.Notes</p>
+                        </div>
+                    }
+                </div>
+                <div class="col-md-5">
+                    <div class="totals-box">
+                        <div class="total-line">
+                            <span>المجموع HT:</span>
+                            <strong>@p.SubTotal.ToString("N2", culture) دج</strong>
+                        </div>
+                        <div class="total-line">
+                            <span>الضريبة TVA:</span>
+                            <strong>@p.TaxAmount.ToString("N2", culture) دج</strong>
+                        </div>
+                        @if (p.Discount > 0)
+                        {
+                            <div class="total-line text-danger">
+                                <span>الخصم:</span>
+                                <strong>- @p.Discount.ToString("N2", culture) دج</strong>
+                            </div>
+                        }
+                        @if (p.ShippingCost > 0)
+                        {
+                            <div class="total-line text-info">
+                                <span>الشحن:</span>
+                                <strong>@p.ShippingCost.ToString("N2", culture) دج</strong>
+                            </div>
+                        }
+                        <div class="total-line grand">
+                            <span>الإجمالي:</span>
+                            <strong>@p.GrandTotal.ToString("N2", culture) دج</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 💳 الدفعات + المرتجعات -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="row g-3 mb-3">
+    <!-- الدفعات -->
+    <div class="col-md-6">
+        <div class="info-section">
+            <div class="section-title">
+                <i class="fas fa-money-check text-success"></i>
+                <h5>سجل الدفعات</h5>
+                <span class="badge bg-success">@Model.PaymentsCount</span>
+            </div>
+            <div class="section-body">
+                @if (Model.Payments.Any())
+                {
+                    @foreach (var payment in Model.Payments.OrderByDescending(x => x.PaymentDate))
+                    {
+                        <div class="record-item payment">
+                            <div>
+                                <div class="fw-bold">@payment.PaymentDate.ToString("yyyy/MM/dd")</div>
+                                @if (!string.IsNullOrEmpty(payment.Notes))
+                                {
+                                    <small class="text-muted">@payment.Notes</small>
+                                }
+                            </div>
+                            <div class="record-amount text-success">
+                                + @payment.Amount.ToString("N2", culture) دج
+                            </div>
+                        </div>
+                    }
+                    <div class="alert alert-success mt-2 mb-0">
+                        <strong>إجمالي المدفوعات:</strong>
+                        <span class="float-end">@Model.TotalPaid.ToString("N2", culture) دج</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-records">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <p class="mb-0">لا توجد دفعات مسجلة</p>
+                        @if (p.RemainingAmount > 0)
+                        {
+                            <button type="button" class="btn btn-sm btn-success mt-2" onclick="showPaymentModal()">
+                                <i class="fas fa-plus"></i> تسجيل أول دفعة
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- المرتجعات -->
+    <div class="col-md-6">
+        <div class="info-section">
+            <div class="section-title">
+                <i class="fas fa-rotate-left text-warning"></i>
+                <h5>المرتجعات</h5>
+                <span class="badge bg-warning text-dark">@Model.ReturnsCount</span>
+            </div>
+            <div class="section-body">
+                @if (Model.Returns.Any())
+                {
+                    @foreach (var ret in Model.Returns.OrderByDescending(x => x.ReturnDate))
+                    {
+                        <div class="record-item return">
+                            <div>
+                                <div class="fw-bold">
+                                    <a href="@Url.Action("Details", "PurchaseReturns", new { id = ret.Id })" class="text-decoration-none">
+                                        @ret.ReturnNumber
+                                    </a>
+                                    @if (ret.IsCancelled)
+                                    {
+                                        <span class="badge bg-danger ms-2">ملغى</span>
+                                    }
+                                </div>
+                                <small class="text-muted">
+                                    @ret.ReturnDate.ToString("yyyy/MM/dd") -
+                                    @ret.RefundMethod.GetArabicName()
+                                </small>
+                            </div>
+                            <div class="record-amount text-warning">
+                                - @ret.TotalAmount.ToString("N2", culture) دج
+                            </div>
+                        </div>
+                    }
+                    <div class="alert alert-warning mt-2 mb-0">
+                        <strong>إجمالي المرتجعات:</strong>
+                        <span class="float-end">@Model.TotalReturned.ToString("N2", culture) دج</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-records">
+                        <i class="fas fa-rotate-left"></i>
+                        <p class="mb-0">لا توجد مرتجعات</p>
+                        @if (p.Status.CanReturn())
+                        {
+                            <a href="@Url.Action("Create", "PurchaseReturns", new { purchaseId = p.Id })"
+                               class="btn btn-sm btn-warning mt-2">
+                                <i class="fas fa-plus"></i> إنشاء مرتجع
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📝 سجل النشاطات -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (Model.ActivityLogs.Any())
+{
+    <div class="info-section">
+        <div class="section-title">
+            <i class="fas fa-history text-primary"></i>
+            <h5>سجل النشاطات</h5>
+            <span class="badge bg-secondary">@Model.ActivityLogs.Count</span>
+        </div>
+        <div class="section-body">
+            <div class="timeline">
+                @foreach (var log in Model.ActivityLogs.Take(10))
+                {
+                    var severityClass = log.Severity?.ToLower() switch
+                    {
+                        "critical" => "critical",
+                        "warning" => "warning",
+                        "info" => "success",
+                        _ => ""
+                    };
+                    <div class="timeline-item @severityClass">
+                        <div class="timeline-content">
+                            <div class="timeline-action">
+                                <i class="fas fa-circle-info"></i>
+                                @log.ActionName
+                            </div>
+                            @if (!string.IsNullOrEmpty(log.Description))
+                            {
+                                <div class="text-muted small mt-1">@log.Description</div>
+                            }
+                            <div class="timeline-meta">
+                                <i class="fas fa-user"></i> @(log.UserFullName ?? log.UserName)
+                                <span class="ms-3"><i class="fas fa-clock"></i> @log.CreatedAt.ToString("yyyy/MM/dd HH:mm")</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 💳 Modal تسجيل دفعة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-money-check"></i> تسجيل دفعة
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <strong>الفاتورة:</strong> @p.InvoiceNumber<br>
+                    <strong>المتبقي:</strong> @p.RemainingAmount.ToString("N2", culture) دج
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">المبلغ (دج) *</label>
+                    <input type="number" id="paymentAmount" class="form-control form-control-lg"
+                           min="0.01" max="@p.RemainingAmount" step="0.01" required
+                           placeholder="أدخل المبلغ المدفوع" />
+                    <small class="text-muted">الحد الأقصى: @p.RemainingAmount.ToString("N2", culture) دج</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">تاريخ الدفع *</label>
+                    <input type="date" id="paymentDate" class="form-control"
+                           value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">ملاحظات</label>
+                    <textarea id="paymentNotes" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-success" onclick="savePayment()">
+                    <i class="fas fa-save"></i> تسجيل الدفعة
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ❌ Modal الإلغاء -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-ban"></i> إلغاء فاتورة
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>تحذير!</strong> سيتم عكس تأثيرات الفاتورة على المخزون والديون.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">سبب الإلغاء *</label>
+                    <textarea id="cancellationReason" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="confirmReversal" class="form-check-input" />
+                    <label class="form-check-label">أؤكد عكس التأثيرات</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancel()">
+                    <i class="fas fa-ban"></i> تأكيد الإلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        const purchaseId = @p.Id;
+        const supplierId = @p.SupplierId;
+
+        // ═══════════════════════════════════════════════════
+        // 💳 تسجيل دفعة
+        // ═══════════════════════════════════════════════════
+        function showPaymentModal() {
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentNotes').value = '';
+            new bootstrap.Modal(document.getElementById('paymentModal')).show();
+        }
+
+        function savePayment() {
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const date = document.getElementById('paymentDate').value;
+            const notes = document.getElementById('paymentNotes').value;
+
+            if (!amount || amount <= 0) {
+                showToast('error', 'المبلغ يجب أن يكون أكبر من 0');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("RegisterPayment", "Purchases")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({
+                    SupplierId: supplierId,
+                    PurchaseId: purchaseId,
+                    Amount: amount,
+                    PaymentDate: date,
+                    Notes: notes
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                }
+            });
+        }
+
+        // ═══════════════════════════════════════════════════
+        // ❌ إلغاء
+        // ═══════════════════════════════════════════════════
+        function showCancelModal() {
+            document.getElementById('cancellationReason').value = '';
+            document.getElementById('confirmReversal').checked = false;
+            new bootstrap.Modal(document.getElementById('cancelModal')).show();
+        }
+
+        function confirmCancel() {
+            const reason = document.getElementById('cancellationReason').value.trim();
+            const confirmed = document.getElementById('confirmReversal').checked;
+
+            if (!reason) {
+                showToast('error', 'سبب الإلغاء مطلوب');
+                return;
+            }
+            if (!confirmed) {
+                showToast('error', 'يجب تأكيد عكس التأثيرات');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Cancel", "Purchases")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({
+                    PurchaseId: purchaseId,
+                    CancellationReason: reason,
+                    ConfirmReversal: confirmed
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                }
+            });
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 📋 نسخ
+        // ═══════════════════════════════════════════════════
+        function duplicateInvoice() {
+            if (!confirm('هل تريد نسخ هذه الفاتورة؟')) return;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Duplicate", "Purchases")/' + purchaseId, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    if (data.redirectUrl) {
+                        setTimeout(() => window.location.href = data.redirectUrl, 1000);
+                    }
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                }
+            });
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 🗑️ حذف
+        // ═══════════════════════════════════════════════════
+        function deletePurchase() {
+            if (!confirm('هل تريد حذف هذه الفاتورة نهائياً؟')) return;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Delete", "Purchases")/' + purchaseId, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => window.location.href = '@Url.Action("Index")', 1000);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                }
+            });
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 🛠️ Toast
+        // ═══════════════════════════════════════════════════
+        function showToast(type, message) {
+            const colors = { success: 'bg-success', error: 'bg-danger', info: 'bg-info', warning: 'bg-warning' };
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${colors[type] || 'bg-secondary'} border-0 show`;
+            toast.style.cssText = 'position: fixed; top: 80px; left: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
+        }
+    </script>
+}
