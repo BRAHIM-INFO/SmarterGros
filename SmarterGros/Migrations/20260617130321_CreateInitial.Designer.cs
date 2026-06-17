@@ -12,7 +12,7 @@ using SmarterGros.Data;
 namespace SmarterGros.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260616165128_CreateInitial")]
+    [Migration("20260617130321_CreateInitial")]
     partial class CreateInitial
     {
         /// <inheritdoc />

@@ -1,0 +1,911 @@
+﻿@model SmarterGros.ViewModels.PurchaseReturnCreateViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = "إنشاء مرتجع شراء";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(233,30,99,0.2);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .page-header p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        /* معلومات الفاتورة */
+        .invoice-info {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-right: 4px solid #0E4D3A;
+            margin-bottom: 15px;
+        }
+
+        .invoice-info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .info-item-small {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-item-small .label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .info-item-small .value {
+            font-size: 0.95rem;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        /* جدول البنود */
+        .items-table {
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .items-table thead {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        }
+
+        .items-table thead th {
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #495057;
+            text-align: center;
+        }
+
+        .items-table tbody td {
+            padding: 10px;
+            vertical-align: middle;
+            border-color: #e9ecef;
+        }
+
+        .items-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .items-table tbody tr.selected {
+            background: #fce4ec;
+        }
+
+        .items-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .qty-info {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .qty-received {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .qty-returned-before {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .qty-available {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .return-qty-input {
+            width: 90px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .return-qty-input:focus {
+            border-color: #e91e63;
+            box-shadow: 0 0 0 0.2rem rgba(233,30,99,0.25);
+        }
+
+        .reason-input, .condition-select {
+            font-size: 0.85rem;
+        }
+
+        .item-total-cell {
+            font-weight: 700;
+            color: #e91e63;
+            font-size: 1rem;
+        }
+
+        /* طريقة الاسترداد */
+        .refund-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .refund-option {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .refund-option:hover {
+            border-color: #e91e63;
+            background: #fce4ec;
+        }
+
+        .refund-option.active {
+            border-color: #e91e63;
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+            color: white;
+        }
+
+        .refund-option i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .refund-option strong {
+            display: block;
+            font-size: 1.05rem;
+        }
+
+        .refund-option small {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            opacity: 0.85;
+        }
+
+        /* المزيج */
+        .mixed-amounts {
+            background: #fff9e6;
+            border: 1px dashed #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        /* الملخص */
+        .summary-box {
+            background: linear-gradient(135deg, #fce4ec, #ffffff);
+            border: 2px solid #e91e63;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.95rem;
+        }
+
+        .summary-row.grand {
+            border-top: 2px solid #e91e63;
+            margin-top: 10px;
+            padding-top: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #e91e63;
+        }
+
+        /* أزرار */
+        .btn-pink {
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-pink:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233,30,99,0.3);
+            color: white;
+        }
+
+        .btn-pink:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-buttons {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .check-all-row {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📋 الترويسة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-rotate-left"></i> إنشاء مرتجع شراء</h1>
+        <p><i class="fas fa-receipt"></i> الفاتورة: <strong>@Model.InvoiceNumber</strong></p>
+    </div>
+    <a href="@Url.Action("Details", "Purchases", new { id = Model.PurchaseId })" class="btn btn-light">
+        <i class="fas fa-arrow-right"></i> العودة
+    </a>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📄 معلومات الفاتورة الأصلية -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-file-invoice"></i>
+        <h4>الفاتورة الأصلية</h4>
+    </div>
+    <div class="section-body">
+        <div class="invoice-info">
+            <div class="invoice-info-grid">
+                <div class="info-item-small">
+                    <span class="label">رقم الفاتورة</span>
+                    <span class="value">@Model.InvoiceNumber</span>
+                </div>
+                <div class="info-item-small">
+                    <span class="label">المورد</span>
+                    <span class="value">@Model.SupplierName</span>
+                </div>
+                <div class="info-item-small">
+                    <span class="label">عدد المنتجات</span>
+                    <span class="value">@Model.Items.Count منتج</span>
+                </div>
+                <div class="info-item-small">
+                    <span class="label">تاريخ المرتجع</span>
+                    <input type="date" id="returnDate" class="form-control form-control-sm"
+                           value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📦 البنود المتاحة للإرجاع -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-box"></i>
+        <h4>المنتجات المتاحة للإرجاع</h4>
+        <span class="badge bg-light text-dark ms-auto">@Model.Items.Count منتج متاح</span>
+    </div>
+    <div class="section-body">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            حدّد الكميات التي تريد إرجاعها لكل منتج. الكمية يجب ألا تتجاوز "المتاح للإرجاع".
+        </div>
+
+        <div class="check-all-row">
+            <button type="button" class="btn btn-sm btn-outline-pink" onclick="returnAll()">
+                <i class="fas fa-check-double"></i> إرجاع كل الكميات المتاحة
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearAll()">
+                <i class="fas fa-times"></i> مسح الكل
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table items-table">
+                <thead>
+                    <tr>
+                        <th width="40">#</th>
+                        <th>المنتج</th>
+                        <th width="100">مستلم</th>
+                        <th width="100">مرتجع سابقاً</th>
+                        <th width="100">متاح</th>
+                        <th width="100">إرجاع *</th>
+                        <th>سبب الإرجاع</th>
+                        <th width="120">حالة المنتج</th>
+                        <th width="120">المجموع</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody">
+                    @{ int rowNum = 1; }
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr data-item-id="@item.PurchaseItemId"
+                            data-product-id="@item.ProductId"
+                            data-unit-price="@item.UnitPrice"
+                            data-tax-rate="@item.TaxRate"
+                            data-available="@item.AvailableForReturn">
+                            <td class="text-center"><strong>@rowNum</strong></td>
+                            <td>
+                                <strong>@item.ProductName</strong>
+                                @if (!string.IsNullOrEmpty(item.BatchNumber))
+                                {
+                                    <br>
+                                    <small class="text-muted">
+                                        <span class="badge bg-warning text-dark">Lot: @item.BatchNumber</span>
+                                    </small>
+                                }
+                                <br>
+                                <small class="text-muted">
+                                    السعر: @item.UnitPrice.ToString("N2", culture) دج
+                                    @if (item.TaxRate > 0)
+                                    {
+                                        <span>| TVA: @item.TaxRate%</span>
+                                    }
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <span class="qty-info qty-received">@item.ReceivedQuantity</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="qty-info qty-returned-before">@item.PreviouslyReturned</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="qty-info qty-available">@item.AvailableForReturn</span>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" class="form-control form-control-sm return-qty-input"
+                                       value="0"
+                                       min="0"
+                                       max="@item.AvailableForReturn"
+                                       step="1"
+                                       onchange="updateReturnedQty(@item.PurchaseItemId, this.value)" />
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm reason-input"
+                                       placeholder="سبب الإرجاع..."
+                                       onchange="updateReturnReason(@item.PurchaseItemId, this.value)" />
+                            </td>
+                            <td>
+                                <select class="form-select form-select-sm condition-select"
+                                        onchange="updateProductCondition(@item.PurchaseItemId, this.value)">
+                                    <option value="">-- اختر --</option>
+                                    <option value="سليم">سليم</option>
+                                    <option value="تالف">تالف</option>
+                                    <option value="منتهي الصلاحية">منتهي الصلاحية</option>
+                                    <option value="غير مطابق">غير مطابق</option>
+                                    <option value="نقص">نقص</option>
+                                </select>
+                            </td>
+                            <td class="text-center item-total-cell" id="total-@item.PurchaseItemId">
+                                0.00 دج
+                            </td>
+                        </tr>
+                        rowNum++;
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Items.Any())
+        {
+            <div class="alert alert-warning text-center py-4">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <h5>لا توجد منتجات متاحة للإرجاع</h5>
+                <p>جميع المنتجات في هذه الفاتورة تم إرجاعها مسبقاً</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📝 السبب العام -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-comment"></i>
+        <h4>السبب العام والملاحظات</h4>
+    </div>
+    <div class="section-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-exclamation-circle text-danger"></i> سبب الإرجاع العام *
+                </label>
+                <textarea id="returnReason" class="form-control" rows="2"
+                          placeholder="السبب الرئيسي للإرجاع..." required></textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-sticky-note text-primary"></i> ملاحظات إضافية
+                </label>
+                <textarea id="notes" class="form-control" rows="2"
+                          placeholder="أي ملاحظات أخرى..."></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 💳 طريقة الاسترداد -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-credit-card"></i>
+        <h4>طريقة الاسترداد</h4>
+    </div>
+    <div class="section-body">
+        <div class="refund-options">
+            <div class="refund-option active" data-value="1" onclick="selectRefundMethod(this, 1)">
+                <i class="fas fa-scale-balanced text-info"></i>
+                <strong>خصم من الدين</strong>
+                <small>يُخصم المبلغ من الدين المستحق للمورد</small>
+            </div>
+            <div class="refund-option" data-value="2" onclick="selectRefundMethod(this, 2)">
+                <i class="fas fa-money-bill-transfer text-success"></i>
+                <strong>استرداد نقدي</strong>
+                <small>المورد يُرجع المبلغ نقداً</small>
+            </div>
+            <div class="refund-option" data-value="3" onclick="selectRefundMethod(this, 3)">
+                <i class="fas fa-shuffle text-warning"></i>
+                <strong>مزيج (نقدي + خصم)</strong>
+                <small>جزء يُخصم من الدين وجزء نقدي</small>
+            </div>
+        </div>
+
+        <input type="hidden" id="refundMethodValue" value="1" />
+
+        <!-- المزيج (يظهر فقط عند اختيار Mixed) -->
+        <div id="mixedAmountsContainer" class="mixed-amounts" style="display:none;">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-scale-balanced text-info"></i> المبلغ المخصوم من الدين
+                    </label>
+                    <div class="input-group">
+                        <input type="number" id="deductedFromDebt" class="form-control"
+                               value="0" min="0" step="0.01" onchange="validateMixedAmounts()" />
+                        <span class="input-group-text">دج</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-money-bill-transfer text-success"></i> المبلغ المسترد نقداً
+                    </label>
+                    <div class="input-group">
+                        <input type="number" id="cashRefunded" class="form-control"
+                               value="0" min="0" step="0.01" onchange="validateMixedAmounts()" />
+                        <span class="input-group-text">دج</span>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div id="mixedValidation" class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        مجموع المبلغين يجب أن يساوي إجمالي المرتجع
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 💰 ملخص المرتجع -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-calculator"></i>
+        <h4>ملخص المرتجع</h4>
+    </div>
+    <div class="section-body">
+        <div class="summary-box">
+            <div class="summary-row">
+                <span>عدد المنتجات المرتجعة:</span>
+                <strong id="itemsCount">0</strong>
+            </div>
+            <div class="summary-row">
+                <span>إجمالي الكميات:</span>
+                <strong id="totalQty">0</strong>
+            </div>
+            <div class="summary-row">
+                <span>المجموع HT:</span>
+                <strong id="subTotalDisplay">0.00 دج</strong>
+            </div>
+            <div class="summary-row">
+                <span>الضريبة TVA:</span>
+                <strong id="taxDisplay">0.00 دج</strong>
+            </div>
+            <div class="summary-row grand">
+                <span>الإجمالي:</span>
+                <strong id="totalDisplay">0.00 دج</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🎯 أزرار الحفظ -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="action-buttons">
+    <a href="@Url.Action("Details", "Purchases", new { id = Model.PurchaseId })" class="btn btn-outline-secondary btn-lg">
+        <i class="fas fa-times"></i> إلغاء
+    </a>
+    <button type="button" class="btn btn-pink btn-lg" onclick="saveReturn()" id="saveBtn">
+        <i class="fas fa-save"></i> إنشاء المرتجع
+    </button>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        const purchaseId = @Model.PurchaseId;
+
+        // تجهيز البنود
+        let items = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Items.Select(i => new {
+            purchaseItemId = i.PurchaseItemId,
+            productId = i.ProductId,
+            productName = i.ProductName,
+            receivedQuantity = i.ReceivedQuantity,
+            previouslyReturned = i.PreviouslyReturned,
+            availableForReturn = i.AvailableForReturn,
+            unitPrice = i.UnitPrice,
+            taxRate = i.TaxRate,
+            returnedQuantity = 0,
+            returnReason = "",
+            productCondition = ""
+        })));
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSummary();
+        });
+
+        // ═══════════════════════════════════════════════════
+        // 📦 إدارة البنود
+        // ═══════════════════════════════════════════════════
+        function updateReturnedQty(itemId, value) {
+            value = parseInt(value) || 0;
+            if (value < 0) value = 0;
+
+            const item = items.find(i => i.purchaseItemId === itemId);
+            if (!item) return;
+
+            if (value > item.availableForReturn) {
+                value = item.availableForReturn;
+                showToast('warning', `الكمية القصوى المتاحة: ${item.availableForReturn}`);
+            }
+
+            item.returnedQuantity = value;
+
+            // تحديث الـ Input
+            const input = document.querySelector(`tr[data-item-id="${itemId}"] .return-qty-input`);
+            input.value = value;
+
+            // تحديث المجموع للبند
+            updateItemTotal(itemId);
+
+            // تلوين الصف
+            const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+            if (value > 0) {
+                row.classList.add('selected');
+            } else {
+                row.classList.remove('selected');
+            }
+
+            updateSummary();
+        }
+
+        function updateReturnReason(itemId, value) {
+            const item = items.find(i => i.purchaseItemId === itemId);
+            if (item) item.returnReason = value;
+        }
+
+        function updateProductCondition(itemId, value) {
+            const item = items.find(i => i.purchaseItemId === itemId);
+            if (item) item.productCondition = value;
+        }
+
+        function updateItemTotal(itemId) {
+            const item = items.find(i => i.purchaseItemId === itemId);
+            if (!item) return;
+
+            const subTotal = item.returnedQuantity * item.unitPrice;
+            const tax = subTotal * (item.taxRate / 100);
+            const total = subTotal + tax;
+
+            const totalCell = document.getElementById(`total-${itemId}`);
+            if (totalCell) {
+                totalCell.textContent = total.toFixed(2) + ' دج';
+            }
+        }
+
+        function returnAll() {
+            items.forEach(item => {
+                if (item.availableForReturn > 0) {
+                    updateReturnedQty(item.purchaseItemId, item.availableForReturn);
+                }
+            });
+            showToast('info', '✅ تم تحديد كل الكميات المتاحة');
+        }
+
+        function clearAll() {
+            if (!confirm('هل تريد مسح كل الكميات؟')) return;
+
+            items.forEach(item => {
+                updateReturnedQty(item.purchaseItemId, 0);
+            });
+            showToast('info', 'تم مسح كل الكميات');
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 💰 حساب المجاميع
+        // ═══════════════════════════════════════════════════
+        function updateSummary() {
+            let subTotal = 0;
+            let totalTax = 0;
+            let totalQty = 0;
+            let itemsCount = 0;
+
+            items.forEach(item => {
+                if (item.returnedQuantity > 0) {
+                    itemsCount++;
+                    totalQty += item.returnedQuantity;
+                    const sub = item.returnedQuantity * item.unitPrice;
+                    subTotal += sub;
+                    totalTax += sub * (item.taxRate / 100);
+                }
+            });
+
+            const total = subTotal + totalTax;
+
+            document.getElementById('itemsCount').textContent = itemsCount;
+            document.getElementById('totalQty').textContent = totalQty;
+            document.getElementById('subTotalDisplay').textContent = subTotal.toFixed(2) + ' دج';
+            document.getElementById('taxDisplay').textContent = totalTax.toFixed(2) + ' دج';
+            document.getElementById('totalDisplay').textContent = total.toFixed(2) + ' دج';
+
+            // تحديث المزيج
+            const refundMethod = parseInt(document.getElementById('refundMethodValue').value);
+            if (refundMethod === 3) {
+                validateMixedAmounts();
+            }
+
+            // تعطيل/تفعيل زر الحفظ
+            const saveBtn = document.getElementById('saveBtn');
+            if (totalQty === 0) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-ban"></i> لا توجد كميات للإرجاع';
+            } else {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> إنشاء المرتجع';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 💳 طريقة الاسترداد
+        // ═══════════════════════════════════════════════════
+        function selectRefundMethod(element, value) {
+            document.querySelectorAll('.refund-option').forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('refundMethodValue').value = value;
+
+            const showMixed = value === 3;
+            document.getElementById('mixedAmountsContainer').style.display = showMixed ? 'block' : 'none';
+
+            if (showMixed) {
+                validateMixedAmounts();
+            }
+        }
+
+        function validateMixedAmounts() {
+            const deducted = parseFloat(document.getElementById('deductedFromDebt').value) || 0;
+            const cash = parseFloat(document.getElementById('cashRefunded').value) || 0;
+            const total = parseFloat(document.getElementById('totalDisplay').textContent.replace(' دج', '').replace(',', '')) || 0;
+
+            const sum = deducted + cash;
+            const validationDiv = document.getElementById('mixedValidation');
+
+            if (Math.abs(sum - total) < 0.01) {
+                validationDiv.className = 'alert alert-success mb-0';
+                validationDiv.innerHTML = '<i class="fas fa-check-circle"></i> ✅ المجموع صحيح';
+            } else {
+                validationDiv.className = 'alert alert-danger mb-0';
+                validationDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> 
+                    المجموع: ${sum.toFixed(2)} | المطلوب: ${total.toFixed(2)} | 
+                    الفرق: ${Math.abs(sum - total).toFixed(2)}`;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 💾 حفظ المرتجع
+        // ═══════════════════════════════════════════════════
+        function saveReturn() {
+            // التحقق
+            const itemsToReturn = items.filter(i => i.returnedQuantity > 0);
+
+            if (itemsToReturn.length === 0) {
+                showToast('error', 'يجب إرجاع منتج واحد على الأقل');
+                return;
+            }
+
+            const returnReason = document.getElementById('returnReason').value.trim();
+            if (!returnReason) {
+                showToast('error', 'سبب الإرجاع العام مطلوب');
+                document.getElementById('returnReason').focus();
+                return;
+            }
+
+            const refundMethod = parseInt(document.getElementById('refundMethodValue').value);
+            let deductedFromDebt = 0;
+            let cashRefunded = 0;
+
+            if (refundMethod === 3) {
+                deductedFromDebt = parseFloat(document.getElementById('deductedFromDebt').value) || 0;
+                cashRefunded = parseFloat(document.getElementById('cashRefunded').value) || 0;
+                const total = parseFloat(document.getElementById('totalDisplay').textContent.replace(' دج', '').replace(',', '')) || 0;
+
+                if (Math.abs((deductedFromDebt + cashRefunded) - total) > 0.01) {
+                    showToast('error', 'مجموع المبلغين يجب أن يساوي إجمالي المرتجع');
+                    return;
+                }
+
+                if (deductedFromDebt <= 0 && cashRefunded <= 0) {
+                    showToast('error', 'في حالة المزيج، يجب تحديد مبلغ في كل من الخصم والنقدي');
+                    return;
+                }
+            }
+
+            // تأكيد
+            if (!confirm(`⚠️ تأكيد إنشاء المرتجع؟\n\n` +
+                `✅ سيتم تحديث المخزون فوراً (نقص)\n` +
+                `✅ سيتم تحديث رصيد المورد\n` +
+                `✅ سيتم تسجيل حركات المخزون\n\n` +
+                `هل تريد المتابعة؟`)) {
+                return;
+            }
+
+            // تجهيز البيانات
+            const model = {
+                PurchaseId: purchaseId,
+                ReturnDate: document.getElementById('returnDate').value,
+                ReturnReason: returnReason,
+                Notes: document.getElementById('notes').value,
+                RefundMethod: refundMethod,
+                DeductedFromDebt: deductedFromDebt,
+                CashRefunded: cashRefunded,
+                Items: itemsToReturn.map(i => ({
+                    PurchaseItemId: i.purchaseItemId,
+                    ProductId: i.productId,
+                    ProductName: i.productName,
+                    ReceivedQuantity: i.receivedQuantity,
+                    PreviouslyReturned: i.previouslyReturned,
+                    ReturnedQuantity: i.returnedQuantity,
+                    UnitPrice: i.unitPrice,
+                    TaxRate: i.taxRate,
+                    ReturnReason: i.returnReason,
+                    ProductCondition: i.productCondition,
+                    BatchNumber: null
+                }))
+            };
+
+            // تعطيل الزر
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            btn.disabled = true;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Create", "PurchaseReturns")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(model)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => {
+                        window.location.href = data.redirectUrl;
+                    }, 1500);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('error', 'حدث خطأ في الاتصال');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 🛠️ Toast
+        // ═══════════════════════════════════════════════════
+        function showToast(type, message) {
+            const colors = { success: 'bg-success', error: 'bg-danger', info: 'bg-info', warning: 'bg-warning' };
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${colors[type] || 'bg-secondary'} border-0 show`;
+            toast.style.cssText = 'position: fixed; top: 80px; left: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
+        }
+    </script>
+}

@@ -1,0 +1,723 @@
+﻿@model SmarterGros.ViewModels.PurchaseReturnDetailsViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = $"تفاصيل المرتجع - {Model.PurchaseReturn.ReturnNumber}";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+    var r = Model.PurchaseReturn;
+    var op = Model.OriginalPurchase;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .return-header {
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(233,30,99,0.2);
+        }
+
+            .return-header .return-number {
+                font-size: 1.8rem;
+                font-weight: 700;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .return-header .return-meta {
+                margin-top: 8px;
+                opacity: 0.9;
+                font-size: 0.9rem;
+            }
+
+        .actions-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-right: 4px solid;
+        }
+
+            .summary-card .icon {
+                width: 50px;
+                height: 50px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.4rem;
+                color: white;
+            }
+
+            .summary-card .value {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #2c3e50;
+            }
+
+            .summary-card .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+            }
+
+        .card-total {
+            border-color: #e91e63;
+        }
+
+            .card-total .icon {
+                background: linear-gradient(135deg, #e91e63, #c2185b);
+            }
+
+        .card-method {
+            border-color: #17a2b8;
+        }
+
+            .card-method .icon {
+                background: linear-gradient(135deg, #17a2b8, #0288d1);
+            }
+
+        .card-items {
+            border-color: #28a745;
+        }
+
+            .card-items .icon {
+                background: linear-gradient(135deg, #28a745, #20c997);
+            }
+
+        .card-debt {
+            border-color: #ffc107;
+        }
+
+            .card-debt .icon {
+                background: linear-gradient(135deg, #ffc107, #ff9800);
+            }
+
+        .card-cash {
+            border-color: #28a745;
+        }
+
+            .card-cash .icon {
+                background: linear-gradient(135deg, #28a745, #20c997);
+            }
+
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #e91e63;
+        }
+
+            .section-title h5 {
+                margin: 0;
+                color: #e91e63;
+                font-weight: 700;
+                font-size: 1.1rem;
+            }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+            .info-item .icon {
+                width: 38px;
+                height: 38px;
+                background: white;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #e91e63;
+                font-size: 1.1rem;
+            }
+
+            .info-item .label {
+                font-size: 0.75rem;
+                color: #6c757d;
+            }
+
+            .info-item .value {
+                font-weight: 600;
+                color: #2c3e50;
+                font-size: 0.9rem;
+            }
+
+        .items-table {
+            margin: 0;
+        }
+
+            .items-table thead {
+                background: linear-gradient(135deg, #e91e63, #c2185b);
+                color: white;
+            }
+
+                .items-table thead th {
+                    border: none;
+                    padding: 14px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                }
+
+            .items-table tbody td {
+                padding: 12px;
+                vertical-align: middle;
+            }
+
+        .condition-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .condition-سليم {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .condition-تالف {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .condition-منتهي {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .condition-غير {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .condition-نقص {
+            background: #ffe5b4;
+            color: #856404;
+        }
+
+        .timeline {
+            position: relative;
+            padding-right: 30px;
+        }
+
+            .timeline::before {
+                content: '';
+                position: absolute;
+                right: 15px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: #e9ecef;
+            }
+
+        .timeline-item {
+            position: relative;
+            padding: 10px 0;
+        }
+
+            .timeline-item::before {
+                content: '';
+                position: absolute;
+                right: -23px;
+                top: 15px;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: #e91e63;
+                border: 3px solid white;
+                box-shadow: 0 0 0 2px #e91e63;
+            }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+
+        .cancelled-banner {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+            .cancelled-banner h3 {
+                margin: 0 0 10px;
+                font-size: 1.5rem;
+            }
+    </style>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📄 الترويسة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="return-header">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1 class="return-number">
+                <i class="fas fa-rotate-left"></i>
+                @r.ReturnNumber
+                @if (r.IsCancelled)
+                {
+                    <span class="badge bg-danger ms-2" style="font-size: 0.9rem;">
+                        <i class="fas fa-ban"></i> ملغى
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-success ms-2" style="font-size: 0.9rem;">
+                        <i class="fas fa-check"></i> نشط
+                    </span>
+                }
+            </h1>
+            <div class="return-meta">
+                <i class="fas fa-calendar"></i> @r.ReturnDate.ToString("yyyy/MM/dd")
+                <span class="ms-3"><i class="fas fa-truck"></i> @(r.Supplier?.Name ?? "---")</span>
+                @if (!string.IsNullOrEmpty(r.CreatedByName))
+                {
+                    <span class="ms-3"><i class="fas fa-user"></i> @r.CreatedByName</span>
+                }
+            </div>
+        </div>
+        <a href="@Url.Action("Index")" class="btn btn-light">
+            <i class="fas fa-arrow-right"></i> العودة
+        </a>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ❌ Banner الإلغاء -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (r.IsCancelled)
+{
+    <div class="cancelled-banner">
+        <h3><i class="fas fa-ban"></i> هذا المرتجع ملغى</h3>
+        <p class="mb-2"><strong>سبب الإلغاء:</strong> @r.CancellationReason</p>
+        <p class="mb-0">
+            <i class="fas fa-clock"></i> تاريخ الإلغاء: @r.CancelledAt?.ToString("yyyy/MM/dd HH:mm")
+        </p>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🎯 أزرار الإجراءات -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="actions-bar">
+    <a href="@Url.Action("Print", new { id = r.Id })" target="_blank" class="btn btn-dark">
+        <i class="fas fa-print"></i> طباعة المرتجع
+    </a>
+
+    @if (op != null)
+    {
+        <a href="@Url.Action("Details", "Purchases", new { id = op.Id })" class="btn btn-outline-success">
+            <i class="fas fa-receipt"></i> عرض الفاتورة الأصلية
+        </a>
+    }
+
+    @if (!r.IsCancelled)
+    {
+        <button type="button" class="btn btn-danger ms-auto" onclick="showCancelModal()">
+            <i class="fas fa-ban"></i> إلغاء المرتجع
+        </button>
+    }
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 بطاقات الملخص -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="summary-cards">
+    <div class="summary-card card-total">
+        <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+        <div>
+            <div class="value">@r.TotalAmount.ToString("N2", culture) دج</div>
+            <div class="label">إجمالي المرتجع</div>
+        </div>
+    </div>
+
+    <div class="summary-card card-method">
+        <div class="icon"><i class="fas @r.RefundMethod.GetIcon()"></i></div>
+        <div>
+            <div class="value" style="font-size: 1rem;">@r.RefundMethod.GetArabicName()</div>
+            <div class="label">طريقة الاسترداد</div>
+        </div>
+    </div>
+
+    @if (r.DeductedFromDebt > 0)
+    {
+        <div class="summary-card card-debt">
+            <div class="icon"><i class="fas fa-scale-balanced"></i></div>
+            <div>
+                <div class="value">@r.DeductedFromDebt.ToString("N2", culture) دج</div>
+                <div class="label">خصم من الدين</div>
+            </div>
+        </div>
+    }
+
+    @if (r.CashRefunded > 0)
+    {
+        <div class="summary-card card-cash">
+            <div class="icon"><i class="fas fa-money-bill-transfer"></i></div>
+            <div>
+                <div class="value">@r.CashRefunded.ToString("N2", culture) دج</div>
+                <div class="label">استرداد نقدي</div>
+            </div>
+        </div>
+    }
+
+    <div class="summary-card card-items">
+        <div class="icon"><i class="fas fa-box"></i></div>
+        <div>
+            <div class="value">@r.ItemsCount منتج</div>
+            <div class="label">@r.TotalQuantity قطعة</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📄 معلومات الفاتورة الأصلية -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (op != null)
+{
+    <div class="info-section">
+        <div class="section-title">
+            <i class="fas fa-file-invoice text-primary"></i>
+            <h5>الفاتورة الأصلية</h5>
+        </div>
+        <div class="section-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="icon"><i class="fas fa-receipt"></i></div>
+                    <div>
+                        <div class="label">رقم الفاتورة</div>
+                        <div class="value">
+                            <a href="@Url.Action("Details", "Purchases", new { id = op.Id })"
+                               class="text-decoration-none">
+                                @op.InvoiceNumber
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="icon"><i class="fas fa-calendar"></i></div>
+                    <div>
+                        <div class="label">تاريخ الفاتورة</div>
+                        <div class="value">@op.PurchaseDate.ToString("yyyy/MM/dd")</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="icon"><i class="fas fa-money-bill"></i></div>
+                    <div>
+                        <div class="label">إجمالي الفاتورة</div>
+                        <div class="value">@op.GrandTotal.ToString("N2", culture) دج</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="icon"><i class="fas fa-truck"></i></div>
+                    <div>
+                        <div class="label">المورد</div>
+                        <div class="value">@(op.Supplier?.Name ?? "---")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📝 سبب الإرجاع العام -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (!string.IsNullOrEmpty(r.ReturnReason))
+{
+    <div class="info-section">
+        <div class="section-title">
+            <i class="fas fa-comment text-warning"></i>
+            <h5>سبب الإرجاع العام</h5>
+        </div>
+        <div class="section-body">
+            <div class="alert alert-warning mb-0">
+                <i class="fas fa-exclamation-circle"></i> @r.ReturnReason
+            </div>
+            @if (!string.IsNullOrEmpty(r.Notes))
+            {
+                <div class="alert alert-light mt-2 mb-0">
+                    <strong><i class="fas fa-sticky-note"></i> ملاحظات إضافية:</strong>
+                    <p class="mb-0 mt-2">@r.Notes</p>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📦 البنود المرتجعة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="info-section">
+    <div class="section-title">
+        <i class="fas fa-box text-primary"></i>
+        <h5>البنود المرتجعة</h5>
+        <span class="badge bg-info">@r.ReturnItems.Count منتج</span>
+    </div>
+    <div class="section-body p-0">
+        <div class="table-responsive">
+            <table class="table items-table">
+                <thead>
+                    <tr>
+                        <th width="40">#</th>
+                        <th>المنتج</th>
+                        <th class="text-center" width="100">الكمية</th>
+                        <th class="text-center" width="120">سعر الوحدة</th>
+                        <th class="text-center" width="80">TVA</th>
+                        <th>سبب الإرجاع</th>
+                        <th class="text-center" width="100">الحالة</th>
+                        <th class="text-end" width="130">المجموع</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int rowNum = 1;
+                    }
+                    @foreach (var item in r.ReturnItems)
+                    {
+                        var conditionClass = item.ProductCondition?.Split(' ')[0] ?? "";
+                        <tr>
+                            <td class="text-center"><strong>@rowNum</strong></td>
+                            <td>
+                                <strong>@(item.Product?.Name ?? "---")</strong>
+                                <br>
+                                <small class="text-muted">
+                                    @if (item.Product != null)
+                                    {
+                                        <span class="badge bg-secondary">@item.Product.Reference</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.BatchNumber))
+                                    {
+                                        <span class="badge bg-warning text-dark">Lot: @item.BatchNumber</span>
+                                    }
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <strong class="text-danger">@item.ReturnedQuantity</strong>
+                            </td>
+                            <td class="text-center">@item.UnitPrice.ToString("N2", culture)</td>
+                            <td class="text-center">
+                                @(item.TaxRate > 0 ? item.TaxRate.ToString("N2") + "%" : "-")
+                            </td>
+                            <td>
+                                @(string.IsNullOrEmpty(item.ReturnReason) ? "-" : item.ReturnReason)
+                            </td>
+                            <td class="text-center">
+                                @if (!string.IsNullOrEmpty(item.ProductCondition))
+                                {
+                                    <span class="condition-badge condition-@conditionClass">
+                                        @item.ProductCondition
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <strong class="text-danger">@item.TotalPrice.ToString("N2", culture) دج</strong>
+                            </td>
+                        </tr>
+                        rowNum++;
+                    }
+                </tbody>
+                <tfoot style="background: #f8f9fa;">
+                    <tr>
+                        <td colspan="7" class="text-end fw-bold">المجموع HT:</td>
+                        <td class="text-end"><strong>@r.SubTotal.ToString("N2", culture) دج</strong></td>
+                    </tr>
+                    <tr>
+                        <td colspan="7" class="text-end fw-bold">الضريبة TVA:</td>
+                        <td class="text-end"><strong>@r.TaxAmount.ToString("N2", culture) دج</strong></td>
+                    </tr>
+                    <tr style="background: #e91e63; color: white;">
+                        <td colspan="7" class="text-end fw-bold">الإجمالي:</td>
+                        <td class="text-end"><strong style="font-size: 1.2rem;">@r.TotalAmount.ToString("N2", culture) دج</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📝 سجل النشاطات -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (Model.ActivityLogs.Any())
+{
+    <div class="info-section">
+        <div class="section-title">
+            <i class="fas fa-history text-primary"></i>
+            <h5>سجل النشاطات</h5>
+            <span class="badge bg-secondary">@Model.ActivityLogs.Count</span>
+        </div>
+        <div class="section-body">
+            <div class="timeline">
+                @foreach (var log in Model.ActivityLogs.Take(10))
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>@log.ActionName</strong>
+                            @if (!string.IsNullOrEmpty(log.Description))
+                            {
+                                <div class="text-muted small mt-1">@log.Description</div>
+                            }
+                            <div class="text-muted small mt-1">
+                                <i class="fas fa-user"></i> @(log.UserFullName ?? log.UserName)
+                                <span class="ms-3"><i class="fas fa-clock"></i> @log.CreatedAt.ToString("yyyy/MM/dd HH:mm")</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ❌ Modal الإلغاء -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-ban"></i> إلغاء المرتجع
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>تحذير!</strong> سيتم عكس تأثيرات المرتجع:
+                    <ul class="mb-0 mt-2">
+                        <li>إرجاع الكميات للمخزون</li>
+                        <li>إرجاع المبلغ المخصوم للدين</li>
+                        <li>تسجيل حركات مخزون عكسية</li>
+                    </ul>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">سبب الإلغاء *</label>
+                    <textarea id="cancellationReason" class="form-control" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancel()">
+                    <i class="fas fa-ban"></i> تأكيد الإلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        const returnId = @r.Id;
+
+        function showCancelModal() {
+            document.getElementById('cancellationReason').value = '';
+            new bootstrap.Modal(document.getElementById('cancelModal')).show();
+        }
+
+        function confirmCancel() {
+            const reason = document.getElementById('cancellationReason').value.trim();
+
+            if (!reason) {
+                showToast('error', 'سبب الإلغاء مطلوب');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new FormData();
+            formData.append('cancellationReason', reason);
+
+            fetch('@Url.Action("Cancel", "PurchaseReturns")/' + returnId, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                }
+            });
+        }
+
+        function showToast(type, message) {
+            const colors = { success: 'bg-success', error: 'bg-danger', info: 'bg-info', warning: 'bg-warning' };
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${colors[type] || 'bg-secondary'} border-0 show`;
+            toast.style.cssText = 'position: fixed; top: 80px; left: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
+        }
+    </script>
+}

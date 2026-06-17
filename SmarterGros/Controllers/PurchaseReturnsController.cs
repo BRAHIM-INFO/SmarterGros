@@ -181,6 +181,9 @@ namespace SmarterGros.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // ✅ جلب إعدادات الشركة
+            ViewBag.CompanySettings = await _context.CompanySettings.FirstOrDefaultAsync();
+
             await _activityLogService.LogAsync(
                 actionType: "Print",
                 actionName: "طباعة مرتجع شراء",

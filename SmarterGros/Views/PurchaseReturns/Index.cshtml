@@ -1,0 +1,622 @@
+﻿@model SmarterGros.ViewModels.PurchaseReturnListViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = "مرتجعات المشتريات";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .page-header {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .page-title h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #e91e63;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            margin: 4px 0 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* بطاقات الإحصائيات */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border-right: 4px solid;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+        }
+
+        .stat-card .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: white;
+        }
+
+        .stat-card .content {
+            flex: 1;
+        }
+
+        .stat-card .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .stat-card.total { border-color: #e91e63; }
+        .stat-card.total .icon { background: linear-gradient(135deg, #e91e63, #c2185b); }
+
+        .stat-card.debt { border-color: #17a2b8; }
+        .stat-card.debt .icon { background: linear-gradient(135deg, #17a2b8, #0288d1); }
+
+        .stat-card.cash { border-color: #28a745; }
+        .stat-card.cash .icon { background: linear-gradient(135deg, #28a745, #20c997); }
+
+        .stat-card.active { border-color: #ffc107; }
+        .stat-card.active .icon { background: linear-gradient(135deg, #ffc107, #ff9800); }
+
+        .stat-card.cancelled { border-color: #6c757d; }
+        .stat-card.cancelled .icon { background: linear-gradient(135deg, #6c757d, #495057); }
+
+        /* الفلاتر */
+        .filters-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* الجدول */
+        .returns-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .returns-table table {
+            margin: 0;
+        }
+
+        .returns-table thead {
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+            color: white;
+        }
+
+        .returns-table thead th {
+            border: none;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .returns-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .returns-table tbody tr:hover {
+            background: #fce4ec;
+        }
+
+        .returns-table tbody tr.cancelled {
+            opacity: 0.6;
+            background: #f8f9fa;
+        }
+
+        .returns-table tbody td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+
+        .return-number {
+            font-weight: 700;
+            color: #e91e63;
+            text-decoration: none;
+        }
+
+        .return-number:hover {
+            text-decoration: underline;
+        }
+
+        /* Empty State */
+        .empty-state {
+            background: white;
+            padding: 60px 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 15px;
+        }
+
+        .empty-state h3 {
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #95a5a6;
+            margin-bottom: 0;
+        }
+
+        /* Pagination */
+        .pagination {
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination .page-link {
+            color: #e91e63;
+            border-radius: 6px;
+            margin: 0 3px;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: #e91e63;
+            border-color: #e91e63;
+        }
+
+        /* أزرار */
+        .btn-pink {
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .btn-pink:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233,30,99,0.3);
+            color: white;
+        }
+    </style>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📋 رأس الصفحة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-header">
+    <div class="page-title">
+        <h1><i class="fas fa-rotate-left"></i> مرتجعات المشتريات</h1>
+        <p>@Model.TotalCount مرتجع — إدارة مرتجعات الموردين</p>
+    </div>
+    <div>
+        <a href="@Url.Action("Index", "Purchases")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right"></i> العودة للمشتريات
+        </a>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 الإحصائيات -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="stats-grid">
+    <div class="stat-card total">
+        <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+        <div class="content">
+            <div class="value">@Model.TotalAmount.ToString("N2", culture) <small style="font-size: 0.7em;">دج</small></div>
+            <div class="label">إجمالي المرتجعات</div>
+        </div>
+    </div>
+
+    <div class="stat-card debt">
+        <div class="icon"><i class="fas fa-scale-balanced"></i></div>
+        <div class="content">
+            <div class="value">@Model.TotalDeductedFromDebt.ToString("N2", culture) <small style="font-size: 0.7em;">دج</small></div>
+            <div class="label">خصم من الديون</div>
+        </div>
+    </div>
+
+    <div class="stat-card cash">
+        <div class="icon"><i class="fas fa-money-bill-transfer"></i></div>
+        <div class="content">
+            <div class="value">@Model.TotalCashRefunded.ToString("N2", culture) <small style="font-size: 0.7em;">دج</small></div>
+            <div class="label">استرداد نقدي</div>
+        </div>
+    </div>
+
+    <div class="stat-card active">
+        <div class="icon"><i class="fas fa-check-circle"></i></div>
+        <div class="content">
+            <div class="value">@(Model.TotalCount - Model.CancelledCount)</div>
+            <div class="label">مرتجعات نشطة</div>
+        </div>
+    </div>
+
+    <div class="stat-card cancelled">
+        <div class="icon"><i class="fas fa-ban"></i></div>
+        <div class="content">
+            <div class="value">@Model.CancelledCount</div>
+            <div class="label">مرتجعات ملغاة</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🔍 شريط الفلاتر -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="filters-bar">
+    <form method="get" id="filtersForm">
+        <div class="row g-2 align-items-end">
+            <!-- البحث -->
+            <div class="col-md-3">
+                <label class="form-label small">🔍 بحث</label>
+                <input type="text" name="search" value="@Model.SearchTerm"
+                       class="form-control" placeholder="رقم المرتجع، المورد..." />
+            </div>
+
+            <!-- المورد -->
+            <div class="col-md-2">
+                <label class="form-label small">المورد</label>
+                <select name="supplierId" class="form-select">
+                    <option value="">جميع الموردين</option>
+                    @foreach (var supplier in Model.Suppliers)
+                    {
+                        <option value="@supplier.Id" selected="@(Model.SupplierId == supplier.Id)">
+                            @supplier.Name
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- طريقة الاسترداد -->
+            <div class="col-md-2">
+                <label class="form-label small">طريقة الاسترداد</label>
+                <select name="refundMethod" class="form-select">
+                    <option value="">كل الطرق</option>
+                    @foreach (ReturnRefundMethod m in Enum.GetValues<ReturnRefundMethod>())
+                    {
+                        <option value="@((int)m)" selected="@(Model.RefundMethod == m)">
+                            @m.GetArabicName()
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- الحالة -->
+            <div class="col-md-2">
+                <label class="form-label small">الحالة</label>
+                <select name="isCancelled" class="form-select">
+                    <option value="">كل الحالات</option>
+                    <option value="false" selected="@(Model.IsCancelled == false)">نشط</option>
+                    <option value="true" selected="@(Model.IsCancelled == true)">ملغى</option>
+                </select>
+            </div>
+
+            <!-- التاريخ -->
+            <div class="col-md-1">
+                <label class="form-label small">من</label>
+                <input type="date" name="dateFrom" value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))"
+                       class="form-control form-control-sm" />
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label small">إلى</label>
+                <input type="date" name="dateTo" value="@(Model.DateTo?.ToString("yyyy-MM-dd"))"
+                       class="form-control form-control-sm" />
+            </div>
+
+            <!-- الأزرار -->
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-pink flex-fill">
+                    <i class="fas fa-search"></i>
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary" title="مسح الفلاتر">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-3 text-muted small">
+            <i class="fas fa-info-circle"></i>
+            عرض @Model.Returns.Count من @Model.TotalCount مرتجع
+        </div>
+    </form>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📋 جدول المرتجعات -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (!Model.Returns.Any())
+{
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>لا توجد مرتجعات</h3>
+        <p>
+            @if (string.IsNullOrEmpty(Model.SearchTerm) && !Model.SupplierId.HasValue)
+            {
+                <span>لم يتم تسجيل أي مرتجعات بعد. يمكنك إنشاء مرتجع من صفحة فاتورة مستلمة.</span>
+            }
+            else
+            {
+                <span>لم يتم العثور على مرتجعات مطابقة للبحث</span>
+            }
+        </p>
+    </div>
+}
+else
+{
+    <div class="returns-table table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th width="40">#</th>
+                    <th>رقم المرتجع</th>
+                    <th>التاريخ</th>
+                    <th>المورد</th>
+                    <th>الفاتورة الأصلية</th>
+                    <th class="text-end">المبلغ</th>
+                    <th>طريقة الاسترداد</th>
+                    <th>الحالة</th>
+                    <th width="120">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int rowNum = (Model.CurrentPage - 1) * Model.PageSize + 1;
+                }
+                @foreach (var ret in Model.Returns)
+                {
+                    <tr class="@(ret.IsCancelled ? "cancelled" : "")">
+                        <td class="text-center"><strong>@rowNum</strong></td>
+                        <td>
+                            <a href="@Url.Action("Details", new { id = ret.Id })" class="return-number">
+                                <i class="fas fa-receipt"></i>
+                                @ret.ReturnNumber
+                            </a>
+                        </td>
+                        <td>@ret.ReturnDate.ToString("yyyy/MM/dd")</td>
+                        <td>
+                            <i class="fas fa-truck text-muted"></i>
+                            @(ret.Supplier?.Name ?? "---")
+                        </td>
+                        <td>
+                            @if (ret.Purchase != null)
+                            {
+                                <a href="@Url.Action("Details", "Purchases", new { id = ret.PurchaseId })"
+                                   class="text-decoration-none">
+                                    <span class="badge bg-secondary">@ret.Purchase.InvoiceNumber</span>
+                                </a>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <strong class="text-danger">@ret.TotalAmount.ToString("N2", culture) دج</strong>
+                            <br>
+                            <small class="text-muted">@ret.ReturnItems.Count منتج</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-@ret.RefundMethod.GetBadgeColor()">
+                                <i class="fas @ret.RefundMethod.GetIcon()"></i>
+                                @ret.RefundMethod.GetArabicName()
+                            </span>
+                            @if (ret.RefundMethod == ReturnRefundMethod.Mixed)
+                            {
+                                <br>
+                                <small class="text-muted">
+                                    💳 @ret.DeductedFromDebt.ToString("N0") +
+                                    💵 @ret.CashRefunded.ToString("N0")
+                                </small>
+                            }
+                        </td>
+                        <td>
+                            @if (ret.IsCancelled)
+                            {
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-ban"></i> ملغى
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> نشط
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="@Url.Action("Details", new { id = ret.Id })"
+                                   class="btn btn-outline-primary" title="تفاصيل">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="@Url.Action("Print", new { id = ret.Id })" target="_blank"
+                                   class="btn btn-outline-info" title="طباعة">
+                                    <i class="fas fa-print"></i>
+                                </a>
+                                @if (!ret.IsCancelled)
+                                {
+                                    <button type="button" class="btn btn-outline-danger"
+                                            onclick="showCancelModal(@ret.Id, '@ret.ReturnNumber')"
+                                            title="إلغاء">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                    rowNum++;
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📄 الترقيم -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination">
+            @if (Model.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, search = Model.SearchTerm, supplierId = Model.SupplierId, refundMethod = Model.RefundMethod, isCancelled = Model.IsCancelled, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            }
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 2 && i <= Model.CurrentPage + 2))
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = i, search = Model.SearchTerm, supplierId = Model.SupplierId, refundMethod = Model.RefundMethod, isCancelled = Model.IsCancelled, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
+                            @i
+                        </a>
+                    </li>
+                }
+                else if (i == Model.CurrentPage - 3 || i == Model.CurrentPage + 3)
+                {
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                }
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, search = Model.SearchTerm, supplierId = Model.SupplierId, refundMethod = Model.RefundMethod, isCancelled = Model.IsCancelled, dateFrom = Model.DateFrom, dateTo = Model.DateTo })">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ❌ Modal الإلغاء -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-ban"></i> إلغاء مرتجع
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>تحذير!</strong> سيتم عكس تأثيرات المرتجع على المخزون والديون.
+                </div>
+                <p>هل تريد إلغاء المرتجع <strong id="cancelReturnNumber"></strong>؟</p>
+                <div class="mb-3">
+                    <label class="form-label">سبب الإلغاء *</label>
+                    <textarea id="cancellationReason" class="form-control" rows="3"
+                              placeholder="اكتب سبب إلغاء المرتجع..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancel()">
+                    <i class="fas fa-ban"></i> تأكيد الإلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        let cancelReturnId = 0;
+
+        function showCancelModal(id, returnNumber) {
+            cancelReturnId = id;
+            document.getElementById('cancelReturnNumber').textContent = returnNumber;
+            document.getElementById('cancellationReason').value = '';
+            new bootstrap.Modal(document.getElementById('cancelModal')).show();
+        }
+
+        function confirmCancel() {
+            const reason = document.getElementById('cancellationReason').value.trim();
+
+            if (!reason) {
+                showToast('error', 'سبب الإلغاء مطلوب');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            const formData = new FormData();
+            formData.append('cancellationReason', reason);
+
+            fetch('@Url.Action("Cancel", "PurchaseReturns")/' + cancelReturnId, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                }
+            });
+        }
+
+        function showToast(type, message) {
+            const colors = { success: 'bg-success', error: 'bg-danger', info: 'bg-info', warning: 'bg-warning' };
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${colors[type] || 'bg-secondary'} border-0 show`;
+            toast.style.cssText = 'position: fixed; top: 80px; left: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
+        }
+    </script>
+}
