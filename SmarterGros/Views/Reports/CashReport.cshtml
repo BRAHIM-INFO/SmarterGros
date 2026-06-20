@@ -1,0 +1,572 @@
+﻿@using SmarterGros.Models.Enums
+@model SmarterGros.ViewModels.Reports.CashReportFullViewModel
+
+@{
+    ViewData["Title"] = "تقرير الصندوق";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: 'Cairo', Arial, sans-serif;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 25px rgba(17,153,142,0.3);
+        }
+
+            .report-header h1 {
+                margin: 0;
+                font-size: 1.6rem;
+                font-weight: 800;
+            }
+
+            .report-header p {
+                margin: 5px 0 0;
+                opacity: 0.95;
+            }
+
+        .btn-back-custom {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .filters-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .balance-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .balance-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-top: 4px solid;
+        }
+
+            .balance-card .icon {
+                font-size: 2rem;
+                margin-bottom: 8px;
+            }
+
+            .balance-card .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+                margin-bottom: 5px;
+            }
+
+            .balance-card .value {
+                font-size: 1.5rem;
+                font-weight: 900;
+                color: #2c3e50;
+            }
+
+                .balance-card .value small {
+                    font-size: 0.6em;
+                    color: #6c757d;
+                }
+
+        .balance-opening {
+            border-color: #6c757d;
+        }
+
+            .balance-opening .icon {
+                color: #6c757d;
+            }
+
+        .balance-income {
+            border-color: #11998e;
+        }
+
+            .balance-income .icon {
+                color: #11998e;
+            }
+
+            .balance-income .value {
+                color: #11998e;
+            }
+
+        .balance-expense {
+            border-color: #f5576c;
+        }
+
+            .balance-expense .icon {
+                color: #f5576c;
+            }
+
+            .balance-expense .value {
+                color: #f5576c;
+            }
+
+        .balance-net {
+            border-color: #4facfe;
+        }
+
+            .balance-net .icon {
+                color: #4facfe;
+            }
+
+            .balance-net .value {
+                color: #4facfe;
+            }
+
+        .balance-closing {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+        }
+
+            .balance-closing .icon,
+            .balance-closing .label,
+            .balance-closing .value {
+                color: white;
+            }
+
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+            .section-header h3 {
+                margin: 0;
+                font-size: 1.2rem;
+                font-weight: 800;
+                color: #2c3e50;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+                .section-header h3 i {
+                    background: linear-gradient(135deg, #11998e, #38ef7d);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .data-table thead {
+                background: linear-gradient(135deg, #11998e, #38ef7d);
+                color: white;
+            }
+
+                .data-table thead th {
+                    padding: 12px;
+                    text-align: center;
+                    font-weight: 700;
+                    border: none;
+                }
+
+            .data-table tbody td {
+                padding: 10px 12px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .category-info {
+            flex: 1;
+        }
+
+        .category-name {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .category-meta {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .category-amount {
+            font-weight: 900;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        @@media print {
+            body {
+                background: white;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+}
+
+<!-- الترويسة -->
+<div class="report-header">
+    <div>
+        <h1><i class="fas fa-money-bill-wave"></i> تقرير الصندوق</h1>
+        <p><i class="fas fa-calendar"></i> @Model.PeriodLabel</p>
+    </div>
+    <a href="@Url.Action("Index")" class="btn-back-custom">
+        <i class="fas fa-arrow-right"></i> العودة
+    </a>
+</div>
+
+<!-- الفلاتر -->
+<div class="filters-card no-print">
+    <form method="get" action="@Url.Action("CashReport")">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">من تاريخ</label>
+                <input type="date" name="dateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" class="form-control" required />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">إلى تاريخ</label>
+                <input type="date" name="dateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" class="form-control" required />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">الصندوق</label>
+                <select name="cashRegisterId" class="form-select">
+                    <option value="">جميع الصناديق</option>
+                    @foreach (var register in Model.CashRegisters)
+                    {
+                        <option value="@register.Id" selected="@(Model.CashRegisterId == register.Id)">@register.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-search"></i> عرض التقرير
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- بطاقات الأرصدة -->
+<div class="balance-cards">
+    <div class="balance-card balance-opening">
+        <div class="icon"><i class="fas fa-door-open"></i></div>
+        <div class="label">الرصيد الافتتاحي</div>
+        <div class="value">@Model.OpeningBalance.ToString("N0", culture) <small>دج</small></div>
+    </div>
+
+    <div class="balance-card balance-income">
+        <div class="icon"><i class="fas fa-arrow-down"></i></div>
+        <div class="label">إجمالي الواردات</div>
+        <div class="value">+@Model.TotalIncome.ToString("N0", culture) <small>دج</small></div>
+    </div>
+
+    <div class="balance-card balance-expense">
+        <div class="icon"><i class="fas fa-arrow-up"></i></div>
+        <div class="label">إجمالي الصادرات</div>
+        <div class="value">-@Model.TotalExpense.ToString("N0", culture) <small>دج</small></div>
+    </div>
+
+    <div class="balance-card balance-net">
+        <div class="icon"><i class="fas fa-scale-balanced"></i></div>
+        <div class="label">صافي التدفق</div>
+        <div class="value">@(Model.NetCashFlow >= 0 ? "+" : "")@Model.NetCashFlow.ToString("N0", culture) <small>دج</small></div>
+    </div>
+
+    <div class="balance-card balance-closing">
+        <div class="icon"><i class="fas fa-vault"></i></div>
+        <div class="label">الرصيد الختامي</div>
+        <div class="value">@Model.ClosingBalance.ToString("N0", culture) <small>دج</small></div>
+    </div>
+</div>
+
+<!-- التدفق النقدي اليومي -->
+<div class="section-card">
+    <div class="section-header">
+        <h3><i class="fas fa-chart-line"></i> التدفق النقدي اليومي</h3>
+    </div>
+    <div class="chart-container">
+        <canvas id="cashFlowChart"></canvas>
+    </div>
+</div>
+
+<!-- الإيرادات والمصاريف حسب الفئة -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-arrow-down text-success"></i> الإيرادات حسب الفئة</h3>
+            </div>
+            @if (Model.IncomeByCategory.Any())
+            {
+                @foreach (var item in Model.IncomeByCategory)
+                {
+                    <div class="category-item">
+                        <div class="category-icon" style="background: @item.Color;">
+                            <i class="fas @item.Icon"></i>
+                        </div>
+                        <div class="category-info">
+                            <div class="category-name">@item.CategoryName</div>
+                            <div class="category-meta">@item.Count حركة | @item.Percentage%</div>
+                        </div>
+                        <div class="category-amount text-success">+@item.Amount.ToString("N0", culture) دج</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-inbox fa-2x mb-2 opacity-50"></i>
+                    <p>لا توجد إيرادات</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-arrow-up text-danger"></i> المصاريف حسب الفئة</h3>
+            </div>
+            @if (Model.ExpenseByCategory.Any())
+            {
+                @foreach (var item in Model.ExpenseByCategory)
+                {
+                    <div class="category-item">
+                        <div class="category-icon" style="background: @item.Color;">
+                            <i class="fas @item.Icon"></i>
+                        </div>
+                        <div class="category-info">
+                            <div class="category-name">@item.CategoryName</div>
+                            <div class="category-meta">@item.Count حركة | @item.Percentage%</div>
+                        </div>
+                        <div class="category-amount text-danger">-@item.Amount.ToString("N0", culture) دج</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-inbox fa-2x mb-2 opacity-50"></i>
+                    <p>لا توجد مصاريف</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- الجردات -->
+@if (Model.Closures.Any())
+{
+    <div class="section-card">
+        <div class="section-header">
+            <h3><i class="fas fa-lock"></i> الجردات اليومية (@Model.ClosuresCount)</h3>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>التاريخ</th>
+                    <th>الصندوق</th>
+                    <th class="text-end">المتوقع</th>
+                    <th class="text-end">الفعلي</th>
+                    <th class="text-end">الفرق</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var closure in Model.Closures)
+                {
+                    <tr>
+                        <td>@closure.ClosureDate.ToString("yyyy/MM/dd")</td>
+                        <td>@(closure.CashRegister?.Name ?? "---")</td>
+                        <td class="text-end">@closure.ExpectedBalance.ToString("N0", culture)</td>
+                        <td class="text-end">@closure.ActualBalance.ToString("N0", culture)</td>
+                        <td class="text-end @(closure.Difference != 0 ? "text-danger fw-bold" : "")">
+                            @(closure.Difference >= 0 ? "+" : "")@closure.Difference.ToString("N0", culture)
+                        </td>
+                        <td class="text-center">
+                            @if (closure.IsClosed)
+                            {
+                                <span class="badge bg-success"><i class="fas fa-check"></i> مغلق</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning"><i class="fas fa-clock"></i> مفتوح</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- الحركات التفصيلية -->
+<div class="section-card">
+    <div class="section-header">
+        <h3><i class="fas fa-list"></i> الحركات التفصيلية (@Model.TotalTransactions)</h3>
+    </div>
+
+    @if (Model.Transactions.Any())
+    {
+        <div class="table-responsive" style="max-height: 500px;">
+            <table class="data-table">
+                <thead style="position: sticky; top: 0;">
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>الرقم</th>
+                        <th>النوع</th>
+                        <th>الفئة</th>
+                        <th>الوصف</th>
+                        <th class="text-end">المبلغ</th>
+                        <th class="text-end">الرصيد</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var trx in Model.Transactions.Take(100))
+                    {
+                        <tr>
+                            <td>@trx.TransactionDate.ToString("yyyy/MM/dd")</td>
+                            <td><strong>@trx.TransactionNumber</strong></td>
+                            <td>
+                                @if (trx.Type == SmarterGros.Models.Enums.TransactionType.Income)
+                                {
+                                    <span class="badge bg-success">وارد</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">صادر</span>
+                                }
+                            </td>
+                            <td>@trx.Category.GetArabicName()</td>
+                            <td><small>@trx.Description</small></td>
+                            <td class="text-end fw-bold @(trx.Type == SmarterGros.Models.Enums.TransactionType.Income ? "text-success" : "text-danger")">
+                                @(trx.Type == SmarterGros.Models.Enums.TransactionType.Income ? "+" : "-")@trx.Amount.ToString("N0", culture)
+                            </td>
+                            <td class="text-end">@trx.BalanceAfter.ToString("N0", culture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.Transactions.Count > 100)
+        {
+            <div class="text-center mt-3 text-muted small">
+                <i class="fas fa-info-circle"></i>
+                عرض أول 100 حركة من إجمالي @Model.TotalTransactions
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const ctx = document.getElementById('cashFlowChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.DailyCashFlow.Select(d => d.DateLabel))),
+                datasets: [
+                    {
+                        label: '💚 الواردات',
+                        data: @Html.Raw(Json.Serialize(Model.DailyCashFlow.Select(d => d.Income))),
+                        borderColor: '#11998e',
+                        backgroundColor: 'rgba(17,153,142,0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: '🔴 الصادرات',
+                        data: @Html.Raw(Json.Serialize(Model.DailyCashFlow.Select(d => d.Expense))),
+                        borderColor: '#f5576c',
+                        backgroundColor: 'rgba(245,87,108,0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: '💰 الرصيد',
+                        data: @Html.Raw(Json.Serialize(Model.DailyCashFlow.Select(d => d.Balance))),
+                        borderColor: '#4facfe',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { family: 'Cairo', size: 13 } } }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { font: { family: 'Cairo' } } },
+                    x: { ticks: { font: { family: 'Cairo' } } }
+                }
+            }
+        });
+    </script>
+}

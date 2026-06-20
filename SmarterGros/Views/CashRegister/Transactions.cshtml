@@ -1,0 +1,649 @@
+﻿@model SmarterGros.ViewModels.CashTransactionListViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = "حركات الصندوق";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .page-header {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .page-title h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #0E4D3A;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            margin: 4px 0 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+            .btn-primary-custom:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+                color: white;
+            }
+
+        /* بطاقات الإحصائيات */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-right: 4px solid;
+        }
+
+            .stat-card .icon {
+                width: 50px;
+                height: 50px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.4rem;
+                color: white;
+            }
+
+            .stat-card .value {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #2c3e50;
+            }
+
+            .stat-card .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+            }
+
+        .stat-income {
+            border-color: #28a745;
+        }
+
+            .stat-income .icon {
+                background: linear-gradient(135deg, #28a745, #20c997);
+            }
+
+            .stat-income .value {
+                color: #28a745;
+            }
+
+        .stat-expense {
+            border-color: #dc3545;
+        }
+
+            .stat-expense .icon {
+                background: linear-gradient(135deg, #dc3545, #c82333);
+            }
+
+            .stat-expense .value {
+                color: #dc3545;
+            }
+
+        .stat-net {
+            border-color: #17a2b8;
+        }
+
+            .stat-net .icon {
+                background: linear-gradient(135deg, #17a2b8, #0288d1);
+            }
+
+        .stat-count {
+            border-color: #6c757d;
+        }
+
+            .stat-count .icon {
+                background: linear-gradient(135deg, #6c757d, #495057);
+            }
+
+        /* الفلاتر */
+        .filters-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* الجدول */
+        .transactions-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+            .transactions-table table {
+                margin: 0;
+            }
+
+            .transactions-table thead {
+                background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+                color: white;
+            }
+
+                .transactions-table thead th {
+                    border: none;
+                    padding: 14px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                }
+
+            .transactions-table tbody tr {
+                transition: all 0.2s;
+            }
+
+                .transactions-table tbody tr:hover {
+                    background: #f8f9fa;
+                }
+
+                .transactions-table tbody tr.cancelled {
+                    opacity: 0.5;
+                    background: #fff5f5;
+                }
+
+            .transactions-table tbody td {
+                padding: 12px;
+                vertical-align: middle;
+            }
+
+        .transaction-number {
+            font-weight: 700;
+            color: #0E4D3A;
+            text-decoration: none;
+        }
+
+        .transaction-icon-mini {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+
+        .amount-cell {
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+
+            .amount-cell.income {
+                color: #28a745;
+            }
+
+            .amount-cell.expense {
+                color: #dc3545;
+            }
+
+        .balance-cell {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.95rem;
+        }
+
+        .empty-state {
+            background: white;
+            padding: 60px 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+            .empty-state i {
+                font-size: 4rem;
+                color: #dee2e6;
+                margin-bottom: 15px;
+            }
+
+        .pagination {
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+            .pagination .page-link {
+                color: #0E4D3A;
+                border-radius: 6px;
+                margin: 0 3px;
+            }
+
+            .pagination .page-item.active .page-link {
+                background: #0E4D3A;
+                border-color: #0E4D3A;
+            }
+    </style>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📋 الترويسة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-header">
+    <div class="page-title">
+        <h1><i class="fas fa-list"></i> حركات الصندوق</h1>
+        <p>@Model.TotalCount حركة - عرض جميع المعاملات المالية</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right"></i> العودة للصندوق
+        </a>
+        <a href="@Url.Action("AddTransaction")" class="btn btn-primary-custom">
+            <i class="fas fa-plus"></i> حركة جديدة
+        </a>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 الإحصائيات -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="stats-grid">
+    <div class="stat-card stat-income">
+        <div class="icon"><i class="fas fa-arrow-down"></i></div>
+        <div>
+            <div class="value">+@Model.TotalIncome.ToString("N2", culture) دج</div>
+            <div class="label">إجمالي الواردات (@Model.IncomeCount حركة)</div>
+        </div>
+    </div>
+
+    <div class="stat-card stat-expense">
+        <div class="icon"><i class="fas fa-arrow-up"></i></div>
+        <div>
+            <div class="value">-@Model.TotalExpense.ToString("N2", culture) دج</div>
+            <div class="label">إجمالي الصادرات (@Model.ExpenseCount حركة)</div>
+        </div>
+    </div>
+
+    <div class="stat-card stat-net">
+        <div class="icon"><i class="fas fa-scale-balanced"></i></div>
+        <div>
+            <div class="value @(Model.NetAmount >= 0 ? "text-success" : "text-danger")">
+                @(Model.NetAmount >= 0 ? "+" : "")@Model.NetAmount.ToString("N2", culture) دج
+            </div>
+            <div class="label">الصافي</div>
+        </div>
+    </div>
+
+    <div class="stat-card stat-count">
+        <div class="icon"><i class="fas fa-list-ol"></i></div>
+        <div>
+            <div class="value">@Model.TotalCount</div>
+            <div class="label">إجمالي الحركات</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🔍 الفلاتر -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="filters-bar">
+    <form method="get" id="filtersForm">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">🔍 بحث</label>
+                <input type="text" name="search" value="@Model.SearchTerm"
+                       class="form-control" placeholder="رقم الحركة، الوصف..." />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label small">النوع</label>
+                <select name="type" class="form-select">
+                    <option value="">كل الأنواع</option>
+                    <option value="1" selected="@(Model.Type == TransactionType.Income)">🟢 وارد</option>
+                    <option value="2" selected="@(Model.Type == TransactionType.Expense)">🔴 صادر</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label small">الفئة</label>
+                <select name="category" class="form-select">
+                    <option value="">كل الفئات</option>
+                    <optgroup label="🟢 الواردات">
+                        @foreach (var cat in TransactionCategoryExtensions.GetIncomeCategories())
+                        {
+                            <option value="@((int)cat)" selected="@(Model.Category == cat)">@cat.GetArabicName()</option>
+                        }
+                    </optgroup>
+                    <optgroup label="🔴 الصادرات">
+                        @foreach (var cat in TransactionCategoryExtensions.GetExpenseCategories())
+                        {
+                            <option value="@((int)cat)" selected="@(Model.Category == cat)">@cat.GetArabicName()</option>
+                        }
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label small">الدفع</label>
+                <select name="paymentMethod" class="form-select">
+                    <option value="">الكل</option>
+                    @foreach (PaymentMethod pm in Enum.GetValues<PaymentMethod>())
+                    {
+                        <option value="@((int)pm)" selected="@(Model.PaymentMethod == pm)">@pm.GetArabicName()</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label small">من</label>
+                <input type="date" name="dateFrom" value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))"
+                       class="form-control form-control-sm" />
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label small">إلى</label>
+                <input type="date" name="dateTo" value="@(Model.DateTo?.ToString("yyyy-MM-dd"))"
+                       class="form-control form-control-sm" />
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label small">الحالة</label>
+                <select name="isCancelled" class="form-select">
+                    <option value="">الكل</option>
+                    <option value="false" selected="@(Model.IsCancelled == false)">نشطة</option>
+                    <option value="true" selected="@(Model.IsCancelled == true)">ملغاة</option>
+                </select>
+            </div>
+
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-primary-custom flex-fill">
+                    <i class="fas fa-search"></i>
+                </button>
+                <a href="@Url.Action("Transactions")" class="btn btn-outline-secondary" title="مسح الفلاتر">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📜 جدول الحركات -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (!Model.Transactions.Any())
+{
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>لا توجد حركات</h3>
+        <p>لم يتم العثور على حركات مطابقة للبحث</p>
+        <a href="@Url.Action("AddTransaction")" class="btn btn-primary-custom mt-3">
+            <i class="fas fa-plus"></i> إضافة حركة جديدة
+        </a>
+    </div>
+}
+else
+{
+    <div class="transactions-table table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th width="40">#</th>
+                    <th>رقم الحركة</th>
+                    <th>التاريخ والوقت</th>
+                    <th>الفئة</th>
+                    <th>الوصف</th>
+                    <th>الطرف</th>
+                    <th>طريقة الدفع</th>
+                    <th class="text-end">المبلغ</th>
+                    <th class="text-end">الرصيد بعد</th>
+                    <th width="100">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int rowNum = (Model.CurrentPage - 1) * Model.PageSize + 1;
+                }
+                @foreach (var t in Model.Transactions)
+                {
+                    <tr class="@(t.IsCancelled ? "cancelled" : "")">
+                        <td class="text-center"><strong>@rowNum</strong></td>
+                        <td>
+                            <a href="@Url.Action("TransactionDetails", new { id = t.Id })" class="transaction-number">
+                                @t.TransactionNumber
+                            </a>
+                            @if (t.IsCancelled)
+                            {
+                                <br>
+                    
+                                <span class="badge bg-danger mt-1">ملغاة</span>
+                            }
+                        </td>
+                        <td>
+                            <div>@t.TransactionDate.ToString("yyyy/MM/dd")</div>
+                            <small class="text-muted">@t.TransactionDate.ToString("HH:mm")</small>
+                        </td>
+                        <td>
+                            <span class="transaction-icon-mini" style="background: @t.Category.GetColor();">
+                                <i class="fas @t.Category.GetIcon()"></i>
+                            </span>
+                            @t.Category.GetArabicName()
+                        </td>
+                        <td>
+                            <strong>@t.Description</strong>
+                            @if (!string.IsNullOrEmpty(t.ReferenceNumber))
+                            {
+                                <br>
+                    
+                                <small class="text-muted">
+                                    <i class="fas fa-link"></i> @t.ReferenceNumber
+                                </small>
+                            }
+                        </td>
+                        <td>
+                            @if (t.Supplier != null)
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-truck"></i> @t.Supplier.Name
+                                </span>
+                            }
+                            else if (t.Customer != null)
+                            {
+                                <span class="badge bg-info text-white">
+                                    <i class="fas fa-user"></i> @t.Customer.Name
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge bg-@t.PaymentMethod.GetBadgeColor()">
+                                <i class="fas @t.PaymentMethod.GetIcon()"></i>
+                                @t.PaymentMethod.GetArabicName()
+                            </span>
+                        </td>
+                        <td class="text-end amount-cell @(t.Type == TransactionType.Income ? "income" : "expense")">
+                            @t.Type.GetSign()@t.Amount.ToString("N2", culture)
+                        </td>
+                        <td class="text-end balance-cell">
+                            @t.BalanceAfter.ToString("N2", culture)
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="@Url.Action("TransactionDetails", new { id = t.Id })"
+                                   class="btn btn-outline-primary" title="تفاصيل">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                @if (!t.IsCancelled)
+                                {
+                                    <button type="button" class="btn btn-outline-danger"
+                                            onclick="showCancelModal(@t.Id, '@t.TransactionNumber', @t.Amount)"
+                                            title="إلغاء">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                    rowNum++;
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📄 الترقيم -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination">
+            @if (Model.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Transactions", new { page = Model.CurrentPage - 1, search = Model.SearchTerm, type = Model.Type, category = Model.Category, paymentMethod = Model.PaymentMethod, dateFrom = Model.DateFrom, dateTo = Model.DateTo, isCancelled = Model.IsCancelled })">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            }
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 2 && i <= Model.CurrentPage + 2))
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Transactions", new { page = i, search = Model.SearchTerm, type = Model.Type, category = Model.Category, paymentMethod = Model.PaymentMethod, dateFrom = Model.DateFrom, dateTo = Model.DateTo, isCancelled = Model.IsCancelled })">
+                            @i
+                        </a>
+                    </li>
+                }
+                else if (i == Model.CurrentPage - 3 || i == Model.CurrentPage + 3)
+                {
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                }
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Transactions", new { page = Model.CurrentPage + 1, search = Model.SearchTerm, type = Model.Type, category = Model.Category, paymentMethod = Model.PaymentMethod, dateFrom = Model.DateFrom, dateTo = Model.DateTo, isCancelled = Model.IsCancelled })">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ❌ Modal الإلغاء -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-ban"></i> إلغاء حركة
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>تحذير!</strong> سيتم عكس تأثير الحركة على رصيد الصندوق.
+                </div>
+                <p>هل تريد إلغاء الحركة <strong id="cancelTrxNumber"></strong> بمبلغ <strong id="cancelAmount"></strong>؟</p>
+                <div class="mb-3">
+                    <label class="form-label">سبب الإلغاء *</label>
+                    <textarea id="cancellationReason" class="form-control" rows="3"
+                              placeholder="اكتب سبب الإلغاء..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancel()">
+                    <i class="fas fa-ban"></i> تأكيد الإلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        let cancelTrxId = 0;
+
+        function showCancelModal(id, trxNumber, amount) {
+            cancelTrxId = id;
+            document.getElementById('cancelTrxNumber').textContent = trxNumber;
+            document.getElementById('cancelAmount').textContent = amount.toLocaleString('ar-DZ') + ' دج';
+            document.getElementById('cancellationReason').value = '';
+            new bootstrap.Modal(document.getElementById('cancelModal')).show();
+        }
+
+        function confirmCancel() {
+            const reason = document.getElementById('cancellationReason').value.trim();
+
+            if (!reason) {
+                showToast('error', 'سبب الإلغاء مطلوب');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new FormData();
+            formData.append('cancellationReason', reason);
+
+            fetch('@Url.Action("CancelTransaction", "CashRegister")/' + cancelTrxId, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                }
+            });
+        }
+
+        function showToast(type, message) {
+            const colors = { success: 'bg-success', error: 'bg-danger', info: 'bg-info', warning: 'bg-warning' };
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${colors[type] || 'bg-secondary'} border-0 show`;
+            toast.style.cssText = 'position: fixed; top: 80px; left: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
+        }
+    </script>
+}

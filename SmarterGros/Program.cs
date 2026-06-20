@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SmarterGros.Data;
+using SmarterGros.Middleware;
 using SmarterGros.Models;
 using SmarterGros.Security;
 using SmarterGros.Services; // ✅ جديد
@@ -41,12 +42,31 @@ builder.Services.ConfigureApplicationCookie(options =>
 // 🛡️ نظام الصلاحيات (Permissions System) - ✅ جديد
 // ═══════════════════════════════════════════════════
 
+// ✅ خدمة لوحة التحكم
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
+// ✅ خدمة التقارير
+builder.Services.AddScoped<IReportsService, ReportsService>();
+
+// ✅ خدمات الترخيص
+builder.Services.AddScoped<IHardwareIdService, HardwareIdService>();
+builder.Services.AddScoped<ILicenseService, LicenseService>();
+
 // تسجيل مزود السياسات الديناميكي
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
 // تسجيل المعالج (Handler) للتحقق من الصلاحيات
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
+// ✅ خدمة مرتجعات المشتريات - جديد!
+
+builder.Services.AddScoped<IPurchaseReturnService, PurchaseReturnService>();
+
+// ✅ خدمة الصندوق
+builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
+
+// ✅ خدمة المبيعات
+builder.Services.AddScoped<ISaleService, SaleService>();
 // ═══════════════════════════════════════════════════
 // 🎮 MVC
 // ═══════════════════════════════════════════════════
@@ -79,7 +99,8 @@ app.UseRouting();
 
 app.UseAuthentication(); // 1️⃣ التحقق من تسجيل الدخول
 app.UseAuthorization();  // 2️⃣ التحقق من الصلاحيات
-
+// 🔐 التحقق من الترخيص
+app.UseLicenseCheck();
 
 
 

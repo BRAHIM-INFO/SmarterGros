@@ -1,112 +1,576 @@
-﻿@{
+﻿@model SmarterGros.ViewModels.Reports.ReportsListViewModel
+
+@{
     ViewData["Title"] = "التقارير";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
 }
 
-<div class="sg-page-header">
-    <h1 class="sg-page-title-main"><i class="fas fa-file-alt me-2"></i>التقارير</h1>
-    <p class="sg-page-subtitle">تقارير شاملة لمتابعة أداء مؤسستك</p>
-</div>
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
 
-<div class="sg-reports-grid">
-    <a href="@Url.Action("Stock")" class="sg-report-card">
-        <div class="sg-report-icon" style="background:#dbeafe; color:#2563eb;">
-            <i class="fas fa-warehouse"></i>
-        </div>
-        <h3>تقرير المخزون الحالي</h3>
-        <p>عرض كامل لجميع المنتجات وكمياتها وقيمتها</p>
-        <span class="sg-report-btn">عرض التقرير ←</span>
-    </a>
-
-    <a href="@Url.Action("LowStock")" class="sg-report-card">
-        <div class="sg-report-icon" style="background:#fef3c7; color:#d97706;">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <h3>المنتجات منخفضة المخزون</h3>
-        <p>قائمة المنتجات التي تحتاج إعادة تموين</p>
-        <span class="sg-report-btn">عرض التقرير ←</span>
-    </a>
-
-    <a href="@Url.Action("Sales")" class="sg-report-card">
-        <div class="sg-report-icon" style="background:#dcfce7; color:#16a34a;">
-            <i class="fas fa-cash-register"></i>
-        </div>
-        <h3>تقرير المبيعات</h3>
-        <p>تفاصيل جميع عمليات البيع حسب الفترة</p>
-        <span class="sg-report-btn">عرض التقرير ←</span>
-    </a>
-
-    <a href="@Url.Action("Purchases")" class="sg-report-card">
-        <div class="sg-report-icon" style="background:#ede9fe; color:#7c3aed;">
-            <i class="fas fa-shopping-cart"></i>
-        </div>
-        <h3>تقرير المشتريات</h3>
-        <p>تفاصيل جميع عمليات الشراء من الموردين</p>
-        <span class="sg-report-btn">عرض التقرير ←</span>
-    </a>
-
-    <a href="@Url.Action("Statistics")" class="sg-report-card">
-        <div class="sg-report-icon" style="background:#fce7f3; color:#db2777;">
-            <i class="fas fa-chart-bar"></i>
-        </div>
-        <h3>الإحصائيات العامة</h3>
-        <p>مؤشرات الأداء الرئيسية والتحليلات</p>
-        <span class="sg-report-btn">عرض التقرير ←</span>
-    </a>
-</div>
-
-<style>
-    .sg-reports-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
-    }
-
-    .sg-report-card {
-        background: white;
-        border-radius: 16px;
-        padding: 25px;
-        box-shadow: var(--sg-shadow);
-        text-decoration: none;
-        color: var(--sg-text);
-        transition: all 0.2s;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-        .sg-report-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--sg-shadow-hover);
-            text-decoration: none;
-            color: var(--sg-text);
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Cairo', Arial, sans-serif;
         }
 
-    .sg-report-icon {
-        width: 55px;
-        height: 55px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-    }
+        /* ═══════════════════════════════════════════════════ */
+        /* الترويسة */
+        /* ═══════════════════════════════════════════════════ */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 35px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+            position: relative;
+            overflow: hidden;
+        }
 
-    .sg-report-card h3 {
-        font-size: 16px;
-        font-weight: 700;
-        margin: 0;
-    }
+            .page-header::before {
+                content: '';
+                position: absolute;
+                top: -50px;
+                left: -50px;
+                width: 200px;
+                height: 200px;
+                background: rgba(255,255,255,0.1);
+                border-radius: 50%;
+            }
 
-    .sg-report-card p {
-        font-size: 13px;
-        color: var(--sg-text-light);
-        margin: 0;
-    }
+            .page-header::after {
+                content: '';
+                position: absolute;
+                bottom: -80px;
+                right: -80px;
+                width: 300px;
+                height: 300px;
+                background: rgba(255,255,255,0.05);
+                border-radius: 50%;
+            }
 
-    .sg-report-btn {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--sg-primary);
-        margin-top: auto;
-    }
-</style>
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .header-content h1 {
+                font-size: 2rem;
+                font-weight: 900;
+                margin: 0 0 5px;
+            }
+
+            .header-content p {
+                margin: 0;
+                opacity: 0.95;
+                font-size: 1rem;
+            }
+
+        .header-icon {
+            font-size: 3.5rem;
+            opacity: 0.3;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* بطاقات الإحصائيات السريعة */
+        /* ═══════════════════════════════════════════════════ */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .quick-stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            border-right: 4px solid;
+        }
+
+            .quick-stat-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            }
+
+        .stat-icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+            .stat-info .label {
+                font-size: 0.8rem;
+                color: #6c757d;
+                margin-bottom: 3px;
+                font-weight: 600;
+            }
+
+            .stat-info .value {
+                font-size: 1.3rem;
+                font-weight: 900;
+                color: #2c3e50;
+            }
+
+                .stat-info .value small {
+                    font-size: 0.65em;
+                    color: #6c757d;
+                    font-weight: 500;
+                }
+
+        .stat-sales {
+            border-color: #f5576c;
+        }
+
+            .stat-sales .stat-icon-circle {
+                background: linear-gradient(135deg, #f5576c, #f093fb);
+            }
+
+        .stat-purchases {
+            border-color: #11998e;
+        }
+
+            .stat-purchases .stat-icon-circle {
+                background: linear-gradient(135deg, #11998e, #38ef7d);
+            }
+
+        .stat-profit {
+            border-color: #4facfe;
+        }
+
+            .stat-profit .stat-icon-circle {
+                background: linear-gradient(135deg, #4facfe, #00f2fe);
+            }
+
+        .stat-invoices {
+            border-color: #fa709a;
+        }
+
+            .stat-invoices .stat-icon-circle {
+                background: linear-gradient(135deg, #fa709a, #fee140);
+            }
+
+        .stat-cash {
+            border-color: #43e97b;
+        }
+
+            .stat-cash .stat-icon-circle {
+                background: linear-gradient(135deg, #43e97b, #38f9d7);
+            }
+
+        .stat-low {
+            border-color: #ffc107;
+        }
+
+            .stat-low .stat-icon-circle {
+                background: linear-gradient(135deg, #ffc107, #ff9800);
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* بطاقات التقارير */
+        /* ═══════════════════════════════════════════════════ */
+        .reports-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+
+            .section-title h2 {
+                margin: 0;
+                font-size: 1.5rem;
+                font-weight: 800;
+                color: #2c3e50;
+            }
+
+            .section-title i {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                font-size: 1.8rem;
+            }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .report-card {
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 18px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .report-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 6px;
+                background: var(--card-color);
+                border-radius: 18px 18px 0 0;
+            }
+
+            .report-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+                border-color: var(--card-color);
+                color: inherit;
+            }
+
+                .report-card:hover .report-icon-wrapper {
+                    transform: scale(1.1) rotate(5deg);
+                }
+
+        .report-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+            .report-icon-wrapper i {
+                font-size: 2.5rem;
+                color: white;
+            }
+
+        .report-card h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin: 0 0 8px;
+        }
+
+        .report-card p {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin: 0 0 15px;
+            line-height: 1.5;
+            min-height: 40px;
+        }
+
+        .report-card .btn-view {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 20px;
+            background: var(--card-color);
+            color: white;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .report-card:hover .btn-view {
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 2px dashed #dee2e6;
+        }
+
+            .quick-actions h3 {
+                font-size: 1.1rem;
+                color: #2c3e50;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .quick-action-btn {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+            .quick-action-btn:hover {
+                transform: translateY(-2px);
+                border-color: #667eea;
+                box-shadow: 0 5px 15px rgba(102,126,234,0.15);
+                color: inherit;
+            }
+
+            .quick-action-btn i {
+                color: #667eea;
+                font-size: 1.2rem;
+            }
+
+            .quick-action-btn span {
+                font-weight: 700;
+                color: #2c3e50;
+                font-size: 0.9rem;
+            }
+
+        /* Animations */
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .report-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .report-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .report-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .report-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .report-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .report-card:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+    </style>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 الترويسة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-header animate-fadeInUp">
+    <div class="header-content">
+        <div>
+            <h1><i class="fas fa-chart-pie"></i> التقارير والإحصائيات</h1>
+            <p>تقارير شاملة لمتابعة أداء مؤسستك واتخاذ قرارات ذكية</p>
+        </div>
+        <div class="header-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 إحصائيات سريعة (الشهر الحالي) -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="quick-stats animate-fadeInUp">
+    <div class="quick-stat-card stat-sales">
+        <div class="stat-icon-circle">
+            <i class="fas fa-cash-register"></i>
+        </div>
+        <div class="stat-info">
+            <div class="label">مبيعات الشهر</div>
+            <div class="value">@Model.TotalSalesMonth.ToString("N0", culture) <small>دج</small></div>
+        </div>
+    </div>
+
+    <div class="quick-stat-card stat-purchases">
+        <div class="stat-icon-circle">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="stat-info">
+            <div class="label">مشتريات الشهر</div>
+            <div class="value">@Model.TotalPurchasesMonth.ToString("N0", culture) <small>دج</small></div>
+        </div>
+    </div>
+
+    <div class="quick-stat-card stat-profit">
+        <div class="stat-icon-circle">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-info">
+            <div class="label">صافي الربح</div>
+            <div class="value">@Model.TotalProfitMonth.ToString("N0", culture) <small>دج</small></div>
+        </div>
+    </div>
+
+    <div class="quick-stat-card stat-invoices">
+        <div class="stat-icon-circle">
+            <i class="fas fa-receipt"></i>
+        </div>
+        <div class="stat-info">
+            <div class="label">إجمالي الفواتير</div>
+            <div class="value">@Model.TotalInvoicesMonth</div>
+        </div>
+    </div>
+
+    <div class="quick-stat-card stat-cash">
+        <div class="stat-icon-circle">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <div class="stat-info">
+            <div class="label">رصيد الصندوق</div>
+            <div class="value">@Model.CashBalance.ToString("N0", culture) <small>دج</small></div>
+        </div>
+    </div>
+
+    <div class="quick-stat-card stat-low">
+        <div class="stat-icon-circle">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-info">
+            <div class="label">منتجات منخفضة</div>
+            <div class="value">@Model.LowStockCount</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 قائمة التقارير -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="reports-section animate-fadeInUp">
+    <div class="section-title">
+        <i class="fas fa-folder-open"></i>
+        <h2>التقارير المتاحة</h2>
+    </div>
+
+    <div class="reports-grid">
+        @foreach (var report in Model.AvailableReports.OrderBy(r => r.Order))
+        {
+            var colorStyle = report.Color switch
+            {
+                "danger" => "background: linear-gradient(135deg, #f5576c, #f093fb);",
+                "success" => "background: linear-gradient(135deg, #11998e, #38ef7d);",
+                "primary" => "background: linear-gradient(135deg, #4facfe, #00f2fe);",
+                "warning" => "background: linear-gradient(135deg, #fa709a, #fee140);",
+                "info" => "background: linear-gradient(135deg, #43e97b, #38f9d7);",
+                _ => "background: linear-gradient(135deg, #667eea, #764ba2);"
+            };
+
+            var cardColor = report.Color switch
+            {
+                "danger" => "#f5576c",
+                "success" => "#11998e",
+                "primary" => "#4facfe",
+                "warning" => "#fa709a",
+                "info" => "#43e97b",
+                _ => "#667eea"
+            };
+
+            <a href="@Url.Action(report.ActionName, "Reports")"
+               class="report-card animate-fadeInUp"
+               style="--card-color: @cardColor;">
+                <div class="report-icon-wrapper" style="@colorStyle">
+                    <i class="fas @report.Icon"></i>
+                </div>
+                <h3>@report.Title</h3>
+                <p>@report.Description</p>
+                <button class="btn-view">
+                    عرض التقرير
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </a>
+        }
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- ⚡ إجراءات سريعة -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="quick-actions">
+        <h3>
+            <i class="fas fa-bolt text-warning"></i>
+            إجراءات سريعة
+        </h3>
+        <div class="quick-actions-grid">
+            <a href="@Url.Action("Statistics", "Reports")" class="quick-action-btn">
+                <i class="fas fa-chart-bar"></i>
+                <span>إحصائيات هذا الشهر</span>
+            </a>
+            <a href="@Url.Action("ProfitLossReport", "Reports")" class="quick-action-btn">
+                <i class="fas fa-calendar-day"></i>
+                <span>أرباح اليوم</span>
+            </a>
+            <a href="@Url.Action("SalesReport", "Reports")" class="quick-action-btn">
+                <i class="fas fa-calendar-week"></i>
+                <span>مبيعات الأسبوع</span>
+            </a>
+            <a href="@Url.Action("CashReport", "Reports")" class="quick-action-btn">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>حركة الصندوق</span>
+            </a>
+            <a href="@Url.Action("InventoryReport", "Reports", new { stockFilter = "low" })" class="quick-action-btn">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>المخزون المنخفض</span>
+            </a>
+            <a href="@Url.Action("PartnersReport", "Reports", new { reportType = "customers" })" class="quick-action-btn">
+                <i class="fas fa-users"></i>
+                <span>ديون العملاء</span>
+            </a>
+        </div>
+    </div>
+</div>

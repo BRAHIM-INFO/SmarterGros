@@ -1,0 +1,785 @@
+﻿@model SmarterGros.ViewModels.SaleCreateViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = "تعديل فاتورة بيع";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #f57c00, #ff9800);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 { margin: 0; font-size: 1.6rem; font-weight: 700; }
+        .page-header p { margin: 5px 0 0; opacity: 0.9; }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #d32f2f, #ef5350);
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h4 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+        .section-body { padding: 20px; }
+
+        .price-types {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .price-type-card {
+            background: white;
+            border: 3px solid #dee2e6;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .price-type-card:hover {
+            border-color: #d32f2f;
+            transform: translateY(-3px);
+        }
+
+        .price-type-card.active {
+            border-color: #d32f2f;
+            background: linear-gradient(135deg, #d32f2f, #ef5350);
+            color: white;
+        }
+
+        .price-type-card i { font-size: 2rem; margin-bottom: 8px; }
+        .price-type-card strong { display: block; font-size: 1.05rem; }
+        .price-type-card small { display: block; margin-top: 4px; font-size: 0.8rem; opacity: 0.85; }
+
+        .items-table { border-radius: 10px; overflow: hidden; margin-top: 15px; }
+        .items-table thead { background: linear-gradient(135deg, #f8f9fa, #e9ecef); }
+        .items-table thead th { border: none; padding: 12px; font-weight: 600; font-size: 0.85rem; }
+        .items-table tbody td { padding: 8px; vertical-align: middle; }
+
+        .qty-input, .price-input { width: 90px; text-align: center; }
+        .discount-input, .tax-input { width: 70px; text-align: center; }
+
+        .stock-cell { font-weight: 700; text-align: center; }
+        .stock-ok { color: #28a745; }
+        .stock-low { color: #ffc107; }
+        .stock-out { color: #dc3545; }
+
+        .profit-cell { font-weight: 700; color: #28a745; text-align: center; }
+        .profit-cell.negative { color: #dc3545; }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+        }
+
+        .empty-items {
+            text-align: center;
+            padding: 40px 20px;
+            color: #95a5a6;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .empty-items i { font-size: 3rem; margin-bottom: 10px; }
+
+        .totals-summary {
+            background: linear-gradient(135deg, #ffebee, #ffffff);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #d32f2f;
+            margin-top: 15px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.95rem;
+        }
+
+        .total-row.profit { color: #28a745; }
+
+        .total-row.grand-total {
+            border-top: 2px solid #d32f2f;
+            margin-top: 10px;
+            padding-top: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #d32f2f;
+        }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .payment-option {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .payment-option.active {
+            border-color: #d32f2f;
+            background: linear-gradient(135deg, #d32f2f, #ef5350);
+            color: white;
+        }
+
+        .payment-option i { font-size: 2rem; margin-bottom: 8px; }
+        .payment-option strong { display: block; font-size: 1rem; }
+        .payment-option small { display: block; margin-top: 4px; font-size: 0.8rem; opacity: 0.85; }
+
+        .save-buttons {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn-update {
+            background: linear-gradient(135deg, #f57c00, #ff9800);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .alert-edit {
+            background: linear-gradient(135deg, #fff3cd, #ffe69c);
+            border: 2px solid #ffc107;
+            color: #856404;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+}
+
+<!-- 📋 الترويسة -->
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-edit"></i> تعديل فاتورة بيع</h1>
+        <p>رقم الفاتورة: <strong>@Model.InvoiceNumber</strong></p>
+    </div>
+    <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-light">
+        <i class="fas fa-arrow-right"></i> العودة
+    </a>
+</div>
+
+<!-- تنبيه -->
+<div class="alert-edit">
+    <i class="fas fa-info-circle"></i>
+    <strong>وضع التعديل:</strong> يمكنك تعديل البيانات لأن الفاتورة <strong>مسودة</strong>.
+</div>
+
+<!-- معلومات الفاتورة -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-file-invoice"></i>
+        <h4>معلومات الفاتورة</h4>
+    </div>
+    <div class="section-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">العميل</label>
+                <select id="customerId" class="form-select">
+                    <option value="">-- عميل نقدي --</option>
+                    @foreach (var customer in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Customers)
+                    {
+                        <option value="@customer.Value" selected="@(Model.CustomerId?.ToString() == customer.Value)">
+                            @customer.Text
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">اسم العميل النقدي</label>
+                <input type="text" id="customerName" class="form-control" value="@Model.CustomerName" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">تاريخ البيع *</label>
+                <input type="date" id="saleDate" class="form-control"
+                       value="@Model.SaleDate.ToString("yyyy-MM-dd")" required />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نوع السعر -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-tags"></i>
+        <h4>نوع السعر</h4>
+    </div>
+    <div class="section-body">
+        <div class="price-types">
+            <div class="price-type-card @(Model.PriceType == SalePriceType.Retail ? "active" : "")"
+                 data-type="1" onclick="selectPriceType(1)">
+                <i class="fas fa-user"></i>
+                <strong>🟢 تجزئة</strong>
+                <small>للأفراد</small>
+            </div>
+            <div class="price-type-card @(Model.PriceType == SalePriceType.SemiWholesale ? "active" : "")"
+                 data-type="2" onclick="selectPriceType(2)">
+                <i class="fas fa-users"></i>
+                <strong>🟡 نصف جملة</strong>
+                <small>للتجار الصغار</small>
+            </div>
+            <div class="price-type-card @(Model.PriceType == SalePriceType.Wholesale ? "active" : "")"
+                 data-type="3" onclick="selectPriceType(3)">
+                <i class="fas fa-warehouse"></i>
+                <strong>🔵 جملة</strong>
+                <small>للتجار الكبار</small>
+            </div>
+        </div>
+        <input type="hidden" id="priceTypeValue" value="@((int)Model.PriceType)" />
+    </div>
+</div>
+
+<!-- المنتجات -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-box"></i>
+        <h4>منتجات الفاتورة</h4>
+    </div>
+    <div class="section-body">
+        <div class="row g-2">
+            <div class="col-md-8">
+                <label class="form-label fw-bold">اختر منتج</label>
+                <div class="input-group">
+                    <select id="productSelect" class="form-select">
+                        <option value="">-- اختر منتج --</option>
+                        @if (ViewBag.Products != null)
+                        {
+                            foreach (var product in (List<SmarterGros.Models.Product>)ViewBag.Products)
+                            {
+                                <option value="@product.Id"
+                                        data-name="@product.Name"
+                                        data-reference="@product.Reference"
+                                        data-unit="@product.Unit"
+                                        data-purchase="@product.PurchasePriceTTC"
+                                        data-retail="@product.RetailPriceTTC"
+                                        data-semi="@product.SemiWholesalePriceTTC"
+                                        data-wholesale="@product.WholesalePriceTTC"
+                                        data-tax="@product.TaxRate"
+                                        data-stock="@product.StockQuantity"
+                                        data-min="@product.MinStockAlert">
+                                    @product.Name - @product.Reference (المخزون: @product.StockQuantity)
+                                </option>
+                            }
+                        }
+                    </select>
+                    <button type="button" class="btn btn-update" onclick="addSelectedProduct()">
+                        <i class="fas fa-plus"></i> إضافة
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-bold">الباركود</label>
+                <input type="text" id="barcodeInput" class="form-control" placeholder="📷 امسح الباركود" />
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table items-table" id="itemsTable">
+                <thead>
+                    <tr>
+                        <th width="40">#</th>
+                        <th>المنتج</th>
+                        <th width="80">المخزون</th>
+                        <th width="90">الكمية</th>
+                        <th width="120">السعر</th>
+                        <th width="70">خصم %</th>
+                        <th width="70">TVA %</th>
+                        <th width="110">المجموع</th>
+                        <th width="100">الربح</th>
+                        <th width="50"></th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody"></tbody>
+            </table>
+        </div>
+
+        <div id="emptyItems" class="empty-items">
+            <i class="fas fa-shopping-cart"></i>
+            <h5>لم تتم إضافة منتجات بعد</h5>
+        </div>
+
+        <div id="totalsSection">
+            <div class="totals-summary">
+                <div class="total-row">
+                    <span>المجموع HT:</span>
+                    <strong id="subTotalDisplay">0.00 دج</strong>
+                </div>
+                <div class="total-row">
+                    <span>الضريبة TVA:</span>
+                    <strong id="taxDisplay">0.00 دج</strong>
+                </div>
+                <div class="total-row">
+                    <label>خصم إضافي (دج):</label>
+                    <input type="number" id="discountInput" class="form-control form-control-sm"
+                           style="width:120px;" value="@Model.Discount" min="0" step="0.01" />
+                </div>
+                <div class="total-row">
+                    <span>التكلفة الإجمالية:</span>
+                    <strong id="costDisplay">0.00 دج</strong>
+                </div>
+                <div class="total-row profit">
+                    <span>💰 الربح المتوقع:</span>
+                    <strong id="profitDisplay">0.00 دج</strong>
+                </div>
+                <div class="total-row grand-total">
+                    <span>الإجمالي:</span>
+                    <strong id="totalDisplay">0.00 دج</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- الدفع -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-credit-card"></i>
+        <h4>الدفع</h4>
+    </div>
+    <div class="section-body">
+        <label class="form-label fw-bold">نوع الدفع *</label>
+        <div class="payment-options">
+            <div class="payment-option @(Model.PaymentType == PaymentType.Cash ? "active" : "")"
+                 data-value="1" onclick="selectPayment(this, 1)">
+                <i class="fas fa-money-bill-wave text-success"></i>
+                <strong>نقداً</strong>
+                <small>دفع كامل</small>
+            </div>
+            <div class="payment-option @(Model.PaymentType == PaymentType.Credit ? "active" : "")"
+                 data-value="2" onclick="selectPayment(this, 2)">
+                <i class="fas fa-credit-card text-danger"></i>
+                <strong>كريدي</strong>
+                <small>كل المبلغ دين</small>
+            </div>
+            <div class="payment-option @(Model.PaymentType == PaymentType.Partial ? "active" : "")"
+                 data-value="3" onclick="selectPayment(this, 3)">
+                <i class="fas fa-coins text-warning"></i>
+                <strong>جزئي</strong>
+                <small>نقدي + دين</small>
+            </div>
+        </div>
+
+        <input type="hidden" id="paymentTypeValue" value="@((int)Model.PaymentType)" />
+
+        <div id="paidAmountContainer" style="display:@(Model.PaymentType == PaymentType.Partial ? "block" : "none")">
+            <label class="form-label fw-bold">المبلغ المدفوع (دج)</label>
+            <input type="number" id="paidAmount" class="form-control form-control-lg"
+                   value="@Model.PaidAmount" min="0" step="0.01" />
+        </div>
+
+        <div class="mt-3">
+            <label class="form-label fw-bold">ملاحظات</label>
+            <textarea id="notes" class="form-control" rows="2">@Model.Notes</textarea>
+        </div>
+    </div>
+</div>
+
+<!-- أزرار الحفظ -->
+<div class="save-buttons">
+    <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-secondary btn-lg">
+        <i class="fas fa-times"></i> إلغاء
+    </a>
+    <button type="button" class="btn btn-update btn-lg" onclick="updateSale()" id="updateBtn">
+        <i class="fas fa-save"></i> حفظ التعديلات
+    </button>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        const saleId = @Model.Id;
+        let selectedPriceType = @((int)Model.PriceType);
+
+        let items = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Items.Select(i => new {
+            productId = i.ProductId,
+            productName = (ViewBag.Products as List<SmarterGros.Models.Product>)?.FirstOrDefault(p => p.Id == i.ProductId)?.Name ?? "",
+            reference = (ViewBag.Products as List<SmarterGros.Models.Product>)?.FirstOrDefault(p => p.Id == i.ProductId)?.Reference ?? "",
+            unit = (ViewBag.Products as List<SmarterGros.Models.Product>)?.FirstOrDefault(p => p.Id == i.ProductId)?.Unit ?? "",
+            stock = (ViewBag.Products as List<SmarterGros.Models.Product>)?.FirstOrDefault(p => p.Id == i.ProductId)?.StockQuantity ?? 0,
+            minStock = (ViewBag.Products as List<SmarterGros.Models.Product>)?.FirstOrDefault(p => p.Id == i.ProductId)?.MinStockAlert ?? 0,
+            quantity = i.Quantity,
+            unitPrice = i.UnitPrice,
+            unitCost = i.UnitCost,
+            discount = i.Discount,
+            taxRate = i.TaxRate,
+            total = 0,
+            profit = 0,
+            notes = i.Notes ?? "",
+            isNew = false
+        })));
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addByBarcode(this.value);
+                    this.value = '';
+                }
+            });
+
+            document.getElementById('discountInput').addEventListener('input', calculateTotals);
+            renderItems();
+        });
+
+        function selectPriceType(type) {
+            selectedPriceType = type;
+            document.getElementById('priceTypeValue').value = type;
+
+            document.querySelectorAll('.price-type-card').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.price-type-card[data-type="${type}"]`).classList.add('active');
+
+            // تحديث الأسعار
+            items.forEach((item, index) => {
+                const option = document.querySelector(`#productSelect option[value="${item.productId}"]`);
+                if (option) {
+                    let newPrice;
+                    if (type === 1) newPrice = parseFloat(option.getAttribute('data-retail'));
+                    else if (type === 2) newPrice = parseFloat(option.getAttribute('data-semi'));
+                    else newPrice = parseFloat(option.getAttribute('data-wholesale'));
+
+                    item.unitPrice = newPrice;
+                }
+            });
+            renderItems();
+        }
+
+        function addSelectedProduct() {
+            const select = document.getElementById('productSelect');
+            const productId = parseInt(select.value);
+            if (!productId) return;
+
+            const option = select.options[select.selectedIndex];
+            const stock = parseInt(option.getAttribute('data-stock'));
+            if (stock <= 0) {
+                alert('غير متوفر في المخزون');
+                return;
+            }
+
+            let unitPrice;
+            if (selectedPriceType === 1) unitPrice = parseFloat(option.getAttribute('data-retail'));
+            else if (selectedPriceType === 2) unitPrice = parseFloat(option.getAttribute('data-semi'));
+            else unitPrice = parseFloat(option.getAttribute('data-wholesale'));
+
+            const existing = items.find(i => i.productId === productId);
+            if (existing) {
+                if (existing.quantity + 1 > stock) {
+                    alert(`المخزون غير كافٍ! المتوفر: ${stock}`);
+                    return;
+                }
+                existing.quantity += 1;
+            } else {
+                items.push({
+                    productId: productId,
+                    productName: option.getAttribute('data-name'),
+                    reference: option.getAttribute('data-reference'),
+                    unit: option.getAttribute('data-unit') || '',
+                    stock: stock,
+                    minStock: parseInt(option.getAttribute('data-min')) || 0,
+                    quantity: 1,
+                    unitPrice: unitPrice,
+                    unitCost: parseFloat(option.getAttribute('data-purchase')) || 0,
+                    discount: 0,
+                    taxRate: parseFloat(option.getAttribute('data-tax')) || 0,
+                    total: 0, profit: 0, notes: '', isNew: true
+                });
+            }
+
+            renderItems();
+            select.value = '';
+        }
+
+        function addByBarcode(barcode) {
+            if (!barcode) return;
+            fetch(`@Url.Action("SearchByBarcode", "Sales")?barcode=${encodeURIComponent(barcode)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.product) {
+                        const p = data.product;
+                        let unitPrice;
+                        if (selectedPriceType === 1) unitPrice = p.retailPrice;
+                        else if (selectedPriceType === 2) unitPrice = p.semiWholesalePrice;
+                        else unitPrice = p.wholesalePrice;
+
+                        const existing = items.find(i => i.productId === p.id);
+                        if (existing) {
+                            if (existing.quantity + 1 > p.stockQuantity) {
+                                alert('المخزون غير كافٍ');
+                                return;
+                            }
+                            existing.quantity += 1;
+                        } else {
+                            items.push({
+                                productId: p.id,
+                                productName: p.name,
+                                reference: p.reference,
+                                unit: p.unit || '',
+                                stock: p.stockQuantity,
+                                minStock: 0,
+                                quantity: 1,
+                                unitPrice: unitPrice,
+                                unitCost: p.purchasePrice,
+                                discount: 0,
+                                taxRate: p.taxRate,
+                                total: 0, profit: 0, notes: '', isNew: true
+                            });
+                        }
+                        renderItems();
+                    }
+                });
+        }
+
+        function removeItem(index) {
+            if (confirm('حذف هذا المنتج؟')) {
+                items.splice(index, 1);
+                renderItems();
+            }
+        }
+
+        function updateItem(index, field, value) {
+            if (['quantity', 'unitPrice', 'discount', 'taxRate'].includes(field)) {
+                value = parseFloat(value) || 0;
+                if (value < 0) value = 0;
+            }
+
+            if (field === 'quantity') {
+                const item = items[index];
+                if (value > item.stock) {
+                    alert(`المخزون غير كافٍ! المتوفر: ${item.stock}`);
+                    value = item.stock;
+                }
+            }
+
+            items[index][field] = value;
+            calculateItemTotal(index);
+            calculateTotals();
+        }
+
+        function calculateItemTotal(index) {
+            const item = items[index];
+            const subTotal = item.quantity * item.unitPrice;
+            const discount = subTotal * (item.discount / 100);
+            const afterDiscount = subTotal - discount;
+            const tax = afterDiscount * (item.taxRate / 100);
+            item.total = afterDiscount + tax;
+            item.profit = afterDiscount - (item.quantity * item.unitCost);
+
+            const row = document.querySelector(`[data-item-index="${index}"]`);
+            if (row) {
+                row.querySelector('.item-total').textContent = item.total.toFixed(2) + ' دج';
+                const profitCell = row.querySelector('.profit-cell');
+                profitCell.textContent = (item.profit >= 0 ? '+' : '') + item.profit.toFixed(2) + ' دج';
+                profitCell.classList.toggle('negative', item.profit < 0);
+            }
+        }
+
+        function renderItems() {
+            const tbody = document.getElementById('itemsTableBody');
+            const emptyDiv = document.getElementById('emptyItems');
+            const totalsSection = document.getElementById('totalsSection');
+
+            if (items.length === 0) {
+                tbody.innerHTML = '';
+                emptyDiv.style.display = 'block';
+                totalsSection.style.display = 'none';
+                return;
+            }
+
+            emptyDiv.style.display = 'none';
+            totalsSection.style.display = 'block';
+
+            let html = '';
+            items.forEach((item, index) => {
+                calculateItemTotal(index);
+
+                let stockClass = 'stock-ok';
+                if (item.stock === 0) stockClass = 'stock-out';
+                else if (item.stock <= item.minStock) stockClass = 'stock-low';
+
+                html += `
+                    <tr data-item-index="${index}">
+                        <td class="text-center"><strong>${index + 1}</strong></td>
+                        <td>
+                            <strong>${escapeHtml(item.productName)}</strong>
+                            <br><small class="text-muted">
+                                <span class="badge bg-secondary">${escapeHtml(item.reference)}</span>
+                            </small>
+                        </td>
+                        <td class="stock-cell ${stockClass}">${item.stock}</td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm qty-input"
+                                   value="${item.quantity}" min="1" max="${item.stock}"
+                                   onchange="updateItem(${index}, 'quantity', this.value)" />
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm price-input"
+                                   value="${item.unitPrice}" min="0.01" step="0.01"
+                                   onchange="updateItem(${index}, 'unitPrice', this.value)" />
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm discount-input"
+                                   value="${item.discount}" min="0" max="100" step="0.01"
+                                   onchange="updateItem(${index}, 'discount', this.value)" />
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm tax-input"
+                                   value="${item.taxRate}" min="0" max="100" step="0.01"
+                                   onchange="updateItem(${index}, 'taxRate', this.value)" />
+                        </td>
+                        <td><strong class="item-total">${item.total.toFixed(2)} دج</strong></td>
+                        <td class="profit-cell ${item.profit < 0 ? 'negative' : ''}">
+                            ${item.profit >= 0 ? '+' : ''}${item.profit.toFixed(2)} دج
+                        </td>
+                        <td>
+                            <button type="button" class="btn-remove" onclick="removeItem(${index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+
+            tbody.innerHTML = html;
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let subTotal = 0, totalTax = 0, totalCost = 0;
+            items.forEach(item => {
+                const itemSub = item.quantity * item.unitPrice;
+                const itemDisc = itemSub * (item.discount / 100);
+                const afterDisc = itemSub - itemDisc;
+                subTotal += afterDisc;
+                totalTax += afterDisc * (item.taxRate / 100);
+                totalCost += item.quantity * item.unitCost;
+            });
+
+            const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+            const total = subTotal + totalTax - discount;
+            const profit = total - totalCost;
+
+            document.getElementById('subTotalDisplay').textContent = subTotal.toFixed(2) + ' دج';
+            document.getElementById('taxDisplay').textContent = totalTax.toFixed(2) + ' دج';
+            document.getElementById('totalDisplay').textContent = total.toFixed(2) + ' دج';
+            document.getElementById('costDisplay').textContent = totalCost.toFixed(2) + ' دج';
+
+            const profitDisplay = document.getElementById('profitDisplay');
+            profitDisplay.textContent = (profit >= 0 ? '+' : '') + profit.toFixed(2) + ' دج';
+            profitDisplay.style.color = profit >= 0 ? '#28a745' : '#dc3545';
+        }
+
+        function selectPayment(element, value) {
+            document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('paymentTypeValue').value = value;
+            document.getElementById('paidAmountContainer').style.display = value === 3 ? 'block' : 'none';
+        }
+
+        function updateSale() {
+            if (items.length === 0) {
+                alert('يجب إضافة منتج واحد على الأقل');
+                return;
+            }
+
+            const model = {
+                Id: saleId,
+                CustomerId: parseInt(document.getElementById('customerId').value) || null,
+                CustomerName: document.getElementById('customerName').value || null,
+                SaleDate: document.getElementById('saleDate').value,
+                PriceType: selectedPriceType,
+                PaymentType: parseInt(document.getElementById('paymentTypeValue').value),
+                PaidAmount: parseFloat(document.getElementById('paidAmount').value) || 0,
+                Discount: parseFloat(document.getElementById('discountInput').value) || 0,
+                DiscountPercentage: 0,
+                Notes: document.getElementById('notes').value,
+                SaveAsDraft: true,
+                Items: items.map(i => ({
+                    ProductId: i.productId,
+                    Quantity: i.quantity,
+                    UnitPrice: i.unitPrice,
+                    UnitCost: i.unitCost,
+                    Discount: i.discount,
+                    TaxRate: i.taxRate,
+                    Notes: i.notes
+                }))
+            };
+
+            const btn = document.getElementById('updateBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            btn.disabled = true;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Edit", "Sales", new { id = Model.Id })', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(model)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert('❌ ' + data.message);
+                    btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+}

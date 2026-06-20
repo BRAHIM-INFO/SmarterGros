@@ -1,0 +1,639 @@
+﻿@model SmarterGros.ViewModels.Reports.InventoryReportViewModel
+
+@{
+    ViewData["Title"] = "تقرير المخزون";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: 'Cairo', Arial, sans-serif;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #fa709a, #fee140);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 25px rgba(250,112,154,0.3);
+        }
+
+            .report-header h1 {
+                margin: 0;
+                font-size: 1.6rem;
+                font-weight: 800;
+            }
+
+            .report-header p {
+                margin: 5px 0 0;
+                opacity: 0.95;
+            }
+
+        .btn-print-custom {
+            background: white;
+            color: #fa709a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .btn-back-custom {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .filter-tabs {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .filter-tab {
+            padding: 8px 18px;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            color: #495057;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+            .filter-tab:hover {
+                background: #e9ecef;
+                color: #fa709a;
+            }
+
+            .filter-tab.active {
+                background: linear-gradient(135deg, #fa709a, #fee140);
+                color: white;
+                border-color: #fa709a;
+            }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-right: 4px solid;
+            transition: all 0.3s;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            }
+
+            .stat-card .icon-wrapper {
+                width: 55px;
+                height: 55px;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.5rem;
+                margin-bottom: 12px;
+            }
+
+            .stat-card .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+                font-weight: 600;
+            }
+
+            .stat-card .value {
+                font-size: 1.6rem;
+                font-weight: 900;
+                color: #2c3e50;
+                margin: 5px 0;
+            }
+
+                .stat-card .value small {
+                    font-size: 0.65em;
+                    color: #6c757d;
+                }
+
+            .stat-card .meta {
+                font-size: 0.75rem;
+                color: #95a5a6;
+            }
+
+        .stat-total {
+            border-color: #4facfe;
+        }
+
+            .stat-total .icon-wrapper {
+                background: linear-gradient(135deg, #4facfe, #00f2fe);
+            }
+
+        .stat-low {
+            border-color: #ffc107;
+        }
+
+            .stat-low .icon-wrapper {
+                background: linear-gradient(135deg, #ffc107, #ff9800);
+            }
+
+        .stat-out {
+            border-color: #f5576c;
+        }
+
+            .stat-out .icon-wrapper {
+                background: linear-gradient(135deg, #f5576c, #f093fb);
+            }
+
+        .stat-expiring {
+            border-color: #fa709a;
+        }
+
+            .stat-expiring .icon-wrapper {
+                background: linear-gradient(135deg, #fa709a, #fee140);
+            }
+
+        .stat-value {
+            border-color: #11998e;
+        }
+
+            .stat-value .icon-wrapper {
+                background: linear-gradient(135deg, #11998e, #38ef7d);
+            }
+
+        .stat-profit {
+            border-color: #43e97b;
+        }
+
+            .stat-profit .icon-wrapper {
+                background: linear-gradient(135deg, #43e97b, #38f9d7);
+            }
+
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+            .section-header h3 {
+                margin: 0;
+                font-size: 1.2rem;
+                font-weight: 800;
+                color: #2c3e50;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+                .section-header h3 i {
+                    background: linear-gradient(135deg, #fa709a, #fee140);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .data-table thead {
+                background: linear-gradient(135deg, #fa709a, #fee140);
+                color: white;
+            }
+
+                .data-table thead th {
+                    padding: 12px;
+                    text-align: center;
+                    font-weight: 700;
+                    border: none;
+                }
+
+            .data-table tbody td {
+                padding: 10px 12px;
+                border-bottom: 1px solid #f0f0f0;
+                vertical-align: middle;
+            }
+
+            .data-table tbody tr:hover {
+                background: #fff5f8;
+            }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-expiring {
+            background: #ffe5b4;
+            color: #856404;
+        }
+
+        .status-expired {
+            background: #f5c6cb;
+            color: #721c24;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .top-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+            .top-item:hover {
+                background: white;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+                transform: translateX(-3px);
+            }
+
+        .top-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-name {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .top-meta {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .top-value {
+            font-weight: 900;
+            color: #fa709a;
+        }
+
+        @@media print {
+            body {
+                background: white;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+}
+
+<!-- الترويسة -->
+<div class="report-header">
+    <div>
+        <h1><i class="fas fa-boxes"></i> تقرير المخزون</h1>
+        <p><i class="fas fa-warehouse"></i> @Model.TotalProducts منتج | @Model.ActiveProducts نشط</p>
+    </div>
+    <div class="d-flex gap-2 no-print">
+        <a href="@Url.Action("PrintInventoryReport", new { categoryId = Model.CategoryId, stockFilter = Model.StockFilter })" target="_blank" class="btn-print-custom">
+            <i class="fas fa-print"></i> طباعة
+        </a>
+        <a href="@Url.Action("Index")" class="btn-back-custom">
+            <i class="fas fa-arrow-right"></i> العودة
+        </a>
+    </div>
+</div>
+
+<!-- فلاتر التبويبات -->
+<div class="filter-tabs no-print">
+    <a href="@Url.Action("InventoryReport", new { stockFilter = "all" })"
+       class="filter-tab @(Model.StockFilter == "all" ? "active" : "")">
+        <i class="fas fa-list"></i> الكل (@Model.ActiveProducts)
+    </a>
+    <a href="@Url.Action("InventoryReport", new { stockFilter = "low" })"
+       class="filter-tab @(Model.StockFilter == "low" ? "active" : "")">
+        <i class="fas fa-exclamation-triangle"></i> مخزون منخفض (@Model.LowStockProducts)
+    </a>
+    <a href="@Url.Action("InventoryReport", new { stockFilter = "out" })"
+       class="filter-tab @(Model.StockFilter == "out" ? "active" : "")">
+        <i class="fas fa-times-circle"></i> نافذ (@Model.OutOfStockProducts)
+    </a>
+    <a href="@Url.Action("InventoryReport", new { stockFilter = "expiring" })"
+       class="filter-tab @(Model.StockFilter == "expiring" ? "active" : "")">
+        <i class="fas fa-clock"></i> قرب الانتهاء (@Model.ExpiringProducts)
+    </a>
+    <a href="@Url.Action("InventoryReport", new { stockFilter = "expired" })"
+       class="filter-tab @(Model.StockFilter == "expired" ? "active" : "")">
+        <i class="fas fa-skull-crossbones"></i> منتهي (@Model.ExpiredProducts)
+    </a>
+</div>
+
+<!-- البطاقات الإحصائية -->
+<div class="stats-grid">
+    <div class="stat-card stat-total">
+        <div class="icon-wrapper"><i class="fas fa-boxes"></i></div>
+        <div class="label">إجمالي المنتجات</div>
+        <div class="value">@Model.ActiveProducts</div>
+        <div class="meta">من @Model.TotalProducts</div>
+    </div>
+
+    <div class="stat-card stat-value">
+        <div class="icon-wrapper"><i class="fas fa-coins"></i></div>
+        <div class="label">قيمة المخزون (التكلفة)</div>
+        <div class="value">@Model.TotalInventoryValueAtPurchase.ToString("N0", culture) <small>دج</small></div>
+    </div>
+
+    <div class="stat-card stat-profit">
+        <div class="icon-wrapper"><i class="fas fa-chart-line"></i></div>
+        <div class="label">الربح المتوقع</div>
+        <div class="value">@Model.PotentialProfit.ToString("N0", culture) <small>دج</small></div>
+        <div class="meta">عند بيع كل المخزون</div>
+    </div>
+
+    <div class="stat-card stat-low">
+        <div class="icon-wrapper"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="label">مخزون منخفض</div>
+        <div class="value">@Model.LowStockProducts</div>
+        <div class="meta">يحتاج تجديد</div>
+    </div>
+
+    <div class="stat-card stat-out">
+        <div class="icon-wrapper"><i class="fas fa-times-circle"></i></div>
+        <div class="label">منتجات نافذة</div>
+        <div class="value">@Model.OutOfStockProducts</div>
+        <div class="meta">من المخزون</div>
+    </div>
+
+    <div class="stat-card stat-expiring">
+        <div class="icon-wrapper"><i class="fas fa-clock"></i></div>
+        <div class="label">قرب الانتهاء</div>
+        <div class="value">@Model.ExpiringProducts</div>
+        <div class="meta">خلال 30 يوم</div>
+    </div>
+</div>
+
+<!-- توزيع الفئات + أعلى المنتجات -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-chart-pie"></i> توزيع المخزون حسب الفئة</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-trophy"></i> أعلى 10 منتجات قيمة</h3>
+            </div>
+            @if (Model.HighestValueProducts.Any())
+            {
+                <ul class="top-list">
+                    @foreach (var product in Model.HighestValueProducts)
+                    {
+                        <li class="top-item">
+                            <div class="top-info">
+                                <div class="top-name">@product.Name</div>
+                                <div class="top-meta">@product.StockQuantity قطعة | @product.CategoryName</div>
+                            </div>
+                            <div class="top-value">@product.TotalValueAtCost.ToString("N0", culture)</div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- الأكثر/الأقل حركة -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-fire"></i> الأكثر مبيعاً (آخر 30 يوم)</h3>
+            </div>
+            @if (Model.MostMovingProducts.Any())
+            {
+                <ul class="top-list">
+                    @foreach (var product in Model.MostMovingProducts)
+                    {
+                        <li class="top-item">
+                            <div class="top-info">
+                                <div class="top-name">@product.Name</div>
+                                <div class="top-meta">المخزون: @product.StockQuantity</div>
+                            </div>
+                            <div class="top-value">@product.QuantitySoldLast30Days قطعة</div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-info-circle fa-2x mb-2 opacity-50"></i>
+                    <p class="mb-0">لا توجد مبيعات</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-snowflake"></i> الأقل حركة (راكدة)</h3>
+            </div>
+            @if (Model.SlowestMovingProducts.Any())
+            {
+                <ul class="top-list">
+                    @foreach (var product in Model.SlowestMovingProducts)
+                    {
+                        <li class="top-item">
+                            <div class="top-info">
+                                <div class="top-name">@product.Name</div>
+                                <div class="top-meta">المخزون: @product.StockQuantity</div>
+                            </div>
+                            <div class="top-value">@product.QuantitySoldLast30Days قطعة</div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- جدول المنتجات -->
+<div class="section-card">
+    <div class="section-header">
+        <h3><i class="fas fa-list"></i> قائمة المنتجات (@Model.Products.Count)</h3>
+    </div>
+
+    @if (Model.Products.Any())
+    {
+        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+            <table class="data-table">
+                <thead style="position: sticky; top: 0;">
+                    <tr>
+                        <th>المنتج</th>
+                        <th>الفئة</th>
+                        <th>المخزون</th>
+                        <th>سعر التكلفة</th>
+                        <th>سعر البيع</th>
+                        <th>قيمة المخزون</th>
+                        <th>الربح المتوقع</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in Model.Products)
+                    {
+                        var statusClass = product.StockStatus switch
+                        {
+                            "out" => "status-out",
+                            "low" => "status-low",
+                            "expiring" => "status-expiring",
+                            "expired" => "status-expired",
+                            _ => "status-ok"
+                        };
+
+                        var statusText = product.StockStatus switch
+                        {
+                            "out" => "نافذ",
+                            "low" => "منخفض",
+                            "expiring" => "قرب الانتهاء",
+                            "expired" => "منتهي",
+                            _ => "متوفر"
+                        };
+
+                        var statusIcon = product.StockStatus switch
+                        {
+                            "out" => "fa-times-circle",
+                            "low" => "fa-exclamation-triangle",
+                            "expiring" => "fa-clock",
+                            "expired" => "fa-skull-crossbones",
+                            _ => "fa-check-circle"
+                        };
+
+                        <tr>
+                            <td>
+                                <strong>@product.Name</strong>
+                                <br><small class="text-muted">@product.Reference</small>
+                            </td>
+                            <td>@product.CategoryName</td>
+                            <td class="text-center fw-bold">@product.StockQuantity</td>
+                            <td class="text-end">@product.PurchasePrice.ToString("N0", culture)</td>
+                            <td class="text-end">@product.RetailPrice.ToString("N0", culture)</td>
+                            <td class="text-end text-primary fw-bold">@product.TotalValueAtCost.ToString("N0", culture)</td>
+                            <td class="text-end text-success fw-bold">+@product.PotentialProfit.ToString("N0", culture)</td>
+                            <td class="text-center">
+                                <span class="status-badge @statusClass">
+                                    <i class="fas @statusIcon"></i> @statusText
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+            <p>لا توجد منتجات</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.CategoryDistribution.Select(c => c.CategoryName))),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.CategoryDistribution.Select(c => c.TotalValue))),
+                    backgroundColor: @Html.Raw(Json.Serialize(Model.CategoryDistribution.Select(c => c.Color))),
+                    borderWidth: 3,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 } } }
+                }
+            }
+        });
+    </script>
+}

@@ -1,301 +1,1184 @@
 ﻿@model SmarterGros.ViewModels.DashboardViewModel
+
 @{
     ViewData["Title"] = "لوحة التحكم";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
 }
 
-<div class="sg-dashboard">
-    <!-- Welcome Banner -->
-    <div class="sg-welcome-banner">
-        <div class="sg-welcome-content">
-            <h2 class="sg-welcome-title">
-                <i class="fas fa-sun text-warning me-2"></i>
-                مرحباً، مدير النظام
-            </h2>
-            <p class="sg-welcome-sub">إليك ملخص أداء مخزونك اليوم — كل شيء تحت السيطرة</p>
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Cairo', Arial, sans-serif;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* الترويسة الترحيبية */
+        /* ═══════════════════════════════════════════════════ */
+        .welcome-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 35px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .welcome-section::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            right: -80px;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .welcome-text h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            margin: 0 0 5px;
+        }
+
+        .welcome-text p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1.05rem;
+        }
+
+        .welcome-time {
+            text-align: center;
+            background: rgba(255,255,255,0.15);
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .welcome-time .time {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .welcome-time .date {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* بطاقة الأداء المالي اليوم */
+        /* ═══════════════════════════════════════════════════ */
+        .financial-card {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(17,153,142,0.3);
+        }
+
+        .financial-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .financial-header h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .financial-item {
+            background: rgba(255,255,255,0.15);
+            padding: 18px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .financial-item .label {
+            font-size: 0.85rem;
+            opacity: 0.95;
+            margin-bottom: 5px;
+        }
+
+        .financial-item .value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        .financial-item .meta {
+            font-size: 0.8rem;
+            opacity: 0.85;
+        }
+
+        .change-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .change-badge.up { background: rgba(255,255,255,0.3); }
+        .change-badge.down { background: rgba(220,53,69,0.4); }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* بطاقات KPIs */
+        /* ═══════════════════════════════════════════════════ */
+        .kpis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            cursor: pointer;
+            border-right: 4px solid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.03) 100%);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .kpi-card .kpi-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .kpi-card .kpi-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .kpi-card .kpi-value {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .kpi-card .kpi-subtitle {
+            font-size: 0.8rem;
+            color: #95a5a6;
+        }
+
+        /* الألوان */
+        .kpi-primary { border-color: #667eea; }
+        .kpi-primary .kpi-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+
+        .kpi-success { border-color: #11998e; }
+        .kpi-success .kpi-icon { background: linear-gradient(135deg, #11998e, #38ef7d); }
+
+        .kpi-info { border-color: #4facfe; }
+        .kpi-info .kpi-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+        .kpi-warning { border-color: #fa709a; }
+        .kpi-warning .kpi-icon { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+        .kpi-danger { border-color: #f093fb; }
+        .kpi-danger .kpi-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* الأقسام */
+        /* ═══════════════════════════════════════════════════ */
+        .section-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-title h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title h3 i {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* التنبيهات */
+        /* ═══════════════════════════════════════════════════ */
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .alert-item:hover {
+            transform: translateX(5px);
+        }
+
+        .alert-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .alert-content { flex: 1; }
+        .alert-title { font-weight: 700; color: #2c3e50; margin-bottom: 3px; }
+        .alert-message { font-size: 0.85rem; color: #6c757d; }
+
+        .alert-success { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); }
+        .alert-success .alert-icon { background: #28a745; color: white; }
+
+        .alert-warning { background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); }
+        .alert-warning .alert-icon { background: #ffc107; color: white; }
+
+        .alert-danger { background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); }
+        .alert-danger .alert-icon { background: #dc3545; color: white; }
+
+        .alert-info { background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%); }
+        .alert-info .alert-icon { background: #17a2b8; color: white; }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* قائمة الأعلى (Top) */
+        /* ═══════════════════════════════════════════════════ */
+        .top-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            transition: all 0.2s;
+        }
+
+        .top-item:hover {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transform: translateX(5px);
+        }
+
+        .top-rank {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .top-rank.rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); }
+        .top-rank.rank-2 { background: linear-gradient(135deg, #C0C0C0, #808080); }
+        .top-rank.rank-3 { background: linear-gradient(135deg, #CD7F32, #8B4513); }
+        .top-rank.rank-other { background: linear-gradient(135deg, #667eea, #764ba2); }
+
+        .top-info { flex: 1; min-width: 0; }
+        .top-name { font-weight: 700; color: #2c3e50; margin-bottom: 2px; }
+        .top-meta { font-size: 0.8rem; color: #6c757d; }
+        .top-value { font-weight: 900; color: #11998e; font-size: 1rem; }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* الفواتير الحديثة */
+        /* ═══════════════════════════════════════════════════ */
+        .invoice-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .invoice-item:hover {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            color: inherit;
+        }
+
+        .invoice-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .invoice-info { flex: 1; min-width: 0; }
+        .invoice-number {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+        .invoice-party { font-size: 0.85rem; color: #6c757d; }
+        .invoice-amount {
+            font-weight: 900;
+            color: #11998e;
+            font-size: 1rem;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* حركات الصندوق */
+        /* ═══════════════════════════════════════════════════ */
+        .cash-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-right: 4px solid;
+        }
+
+        .cash-item.income { border-color: #11998e; }
+        .cash-item.expense { border-color: #f5576c; }
+
+        .cash-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .cash-icon.income { background: linear-gradient(135deg, #11998e, #38ef7d); }
+        .cash-icon.expense { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+        .cash-info { flex: 1; min-width: 0; }
+        .cash-desc { font-weight: 600; color: #2c3e50; font-size: 0.9rem; }
+        .cash-meta { font-size: 0.75rem; color: #6c757d; }
+        .cash-amount { font-weight: 900; font-size: 1rem; }
+        .cash-amount.income { color: #11998e; }
+        .cash-amount.expense { color: #f5576c; }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* الرسوم البيانية */
+        /* ═══════════════════════════════════════════════════ */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 15px 0;
+        }
+
+        .chart-container.tall { height: 350px; }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* Quick Actions */
+        /* ═══════════════════════════════════════════════════ */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .quick-action {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-3px);
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102,126,234,0.2);
+            color: inherit;
+        }
+
+        .quick-action i {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .quick-action div {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* Animations */
+        /* ═══════════════════════════════════════════════════ */
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 30px 15px;
+            color: #95a5a6;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+    </style>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🌟 الترحيب -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="welcome-section animate-fadeInUp">
+    <div class="welcome-content">
+        <div class="welcome-text">
+            <h1>@Model.Greeting، @Model.UserFullName! 👋</h1>
+            <p>إليك ملخص أداء مؤسستك اليوم — كل شيء تحت السيطرة</p>
         </div>
-        <div class="sg-welcome-stats">
-            <div class="sg-quick-stat">
-                <span class="sg-qs-num">98%</span>
-                <span class="sg-qs-label">كفاءة المخزون</span>
+        <div class="welcome-time">
+            <div class="time" id="liveTime">--:--</div>
+            <div class="date">@Model.CurrentDateTime.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("ar-DZ"))</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 💰 الأداء المالي اليوم -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="financial-card animate-fadeInUp">
+    <div class="financial-header">
+        <h2><i class="fas fa-chart-line"></i> الأداء المالي اليوم</h2>
+        <div>
+            @if (Model.IsTodayBetterThanYesterday)
+            {
+                <span class="change-badge up">
+                    <i class="fas fa-arrow-up"></i>
+                    أفضل من الأمس
+                </span>
+            }
+            else
+            {
+                <span class="change-badge down">
+                    <i class="fas fa-arrow-down"></i>
+                    أقل من الأمس
+                </span>
+            }
+        </div>
+    </div>
+
+    <div class="financial-grid">
+        <div class="financial-item">
+            <div class="label">💰 المبيعات</div>
+            <div class="value">@Model.TodayPerformance.SalesAmount.ToString("N0", culture) <small>دج</small></div>
+            <div class="meta">@Model.TodayPerformance.SalesCount فاتورة</div>
+        </div>
+
+        <div class="financial-item">
+            <div class="label">🛒 المشتريات</div>
+            <div class="value">@Model.TodayPerformance.PurchasesAmount.ToString("N0", culture) <small>دج</small></div>
+            <div class="meta">@Model.TodayPerformance.PurchasesCount فاتورة</div>
+        </div>
+
+        <div class="financial-item">
+            <div class="label">💵 المحصّل</div>
+            <div class="value">@Model.TodayPerformance.CollectedAmount.ToString("N0", culture) <small>دج</small></div>
+            <div class="meta">إيرادات نقدية</div>
+        </div>
+
+        <div class="financial-item">
+            <div class="label">🏆 الربح الصافي</div>
+            <div class="value">@Model.TodayPerformance.NetProfit.ToString("N0", culture) <small>دج</small></div>
+            <div class="meta">بعد المصاريف</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 KPIs Cards -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="kpis-grid animate-fadeInUp">
+    <a href="@(Model.ProductsCount.ActionUrl ?? "#")" class="kpi-card kpi-primary" style="text-decoration:none;">
+        <div class="kpi-icon"><i class="fas @Model.ProductsCount.Icon"></i></div>
+        <div class="kpi-title">@Model.ProductsCount.Title</div>
+        <div class="kpi-value">@Model.ProductsCount.Value</div>
+        <div class="kpi-subtitle">@Model.ProductsCount.Subtitle</div>
+    </a>
+
+    <a href="@(Model.CustomersCount.ActionUrl ?? "#")" class="kpi-card kpi-info" style="text-decoration:none;">
+        <div class="kpi-icon"><i class="fas @Model.CustomersCount.Icon"></i></div>
+        <div class="kpi-title">@Model.CustomersCount.Title</div>
+        <div class="kpi-value">@Model.CustomersCount.Value</div>
+        <div class="kpi-subtitle">@Model.CustomersCount.Subtitle</div>
+    </a>
+
+    <a href="@(Model.SuppliersCount.ActionUrl ?? "#")" class="kpi-card kpi-warning" style="text-decoration:none;">
+        <div class="kpi-icon"><i class="fas @Model.SuppliersCount.Icon"></i></div>
+        <div class="kpi-title">@Model.SuppliersCount.Title</div>
+        <div class="kpi-value">@Model.SuppliersCount.Value</div>
+        <div class="kpi-subtitle">@Model.SuppliersCount.Subtitle</div>
+    </a>
+
+    <a href="@(Model.CashBalance.ActionUrl ?? "#")" class="kpi-card kpi-success" style="text-decoration:none;">
+        <div class="kpi-icon"><i class="fas @Model.CashBalance.Icon"></i></div>
+        <div class="kpi-title">@Model.CashBalance.Title</div>
+        <div class="kpi-value">@Model.CashBalance.Value</div>
+        <div class="kpi-subtitle">@Model.CashBalance.Subtitle</div>
+    </a>
+
+    <div class="kpi-card kpi-success">
+        <div class="kpi-icon"><i class="fas @Model.CustomersDebt.Icon"></i></div>
+        <div class="kpi-title">@Model.CustomersDebt.Title</div>
+        <div class="kpi-value">@Model.CustomersDebt.Value</div>
+        <div class="kpi-subtitle">@Model.CustomersDebt.Subtitle</div>
+    </div>
+
+    <div class="kpi-card kpi-danger">
+        <div class="kpi-icon"><i class="fas @Model.SuppliersDebt.Icon"></i></div>
+        <div class="kpi-title">@Model.SuppliersDebt.Title</div>
+        <div class="kpi-value">@Model.SuppliersDebt.Value</div>
+        <div class="kpi-subtitle">@Model.SuppliersDebt.Subtitle</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📈 الرسوم البيانية -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="row g-3 animate-fadeInUp">
+    <!-- Chart 1: المبيعات vs المشتريات (Bar Chart) -->
+    <div class="col-lg-8">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-chart-bar"></i> المبيعات والمشتريات (آخر 7 أيام)</h3>
             </div>
-            <div class="sg-quick-stat">
-                <span class="sg-qs-num">47</span>
-                <span class="sg-qs-label">مخزون منخفض</span>
-            </div>
-            <div class="sg-quick-stat">
-                <span class="sg-qs-num">@Model.TotalProducts.ToString("N0")</span>
-                <span class="sg-qs-label">إجمالي المنتجات</span>
+            <div class="chart-container">
+                <canvas id="salesPurchasesChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- KPI Cards -->
-    <div class="sg-kpi-row">
-        <div class="sg-kpi-card">
-            <div class="sg-kpi-body">
-                <div class="sg-kpi-info">
-                    <span class="sg-kpi-num">@Model.TotalProducts.ToString("N0")</span>
-                    <span class="sg-kpi-label">إجمالي المنتجات</span>
-                    <span class="sg-kpi-change positive">
-                        <i class="fas fa-arrow-up"></i> 3.2% منذ الأسبوع
-                    </span>
+    <!-- Chart 2: توزيع الفئات (Pie) -->
+    <div class="col-lg-4">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-chart-pie"></i> توزيع المبيعات حسب الفئة</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="categoriesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📈 الأرباح + تدفق الصندوق -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="row g-3 animate-fadeInUp">
+    <!-- Chart 3: الأرباح (Line) -->
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-chart-line"></i> الأرباح (آخر 30 يوم)</h3>
+            </div>
+            <div id="profitChart"></div>
+        </div>
+    </div>
+
+    <!-- Chart 4: تدفق الصندوق -->
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-money-bill-wave"></i> تدفق الصندوق (الشهر)</h3>
+            </div>
+            <div id="cashFlowChart"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ⚠️ التنبيهات + Quick Actions -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="row g-3 animate-fadeInUp">
+    <!-- التنبيهات -->
+    <div class="col-lg-8">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-bell"></i> التنبيهات المهمة</h3>
+                <span class="badge bg-primary">@Model.Alerts.Count</span>
+            </div>
+
+            @if (Model.Alerts.Any())
+            {
+                @foreach (var alert in Model.Alerts)
+                {
+                    <div class="alert-item alert-@alert.Color">
+                        <div class="alert-icon">
+                            <i class="fas @alert.Icon"></i>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-title">@alert.Title</div>
+                            <div class="alert-message">@alert.Message</div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(alert.ActionUrl))
+                        {
+                            <a href="@alert.ActionUrl" class="btn btn-sm btn-outline-dark">
+                                @alert.ActionText <i class="fas fa-arrow-left"></i>
+                            </a>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-check-circle text-success"></i>
+                    <p>لا توجد تنبيهات - كل شيء يسير بسلاسة! ✨</p>
                 </div>
-                <div class="sg-kpi-icon blue">
+            }
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-bolt"></i> إجراءات سريعة</h3>
+            </div>
+            <div class="quick-actions">
+                <a href="/Sales/Create" class="quick-action">
+                    <i class="fas fa-cash-register"></i>
+                    <div>فاتورة بيع</div>
+                </a>
+                <a href="/Sales/POS" class="quick-action" target="_blank">
+                    <i class="fas fa-store"></i>
+                    <div>نقطة بيع</div>
+                </a>
+                <a href="/Purchases/Create" class="quick-action">
+                    <i class="fas fa-shopping-cart"></i>
+                    <div>فاتورة شراء</div>
+                </a>
+                <a href="/CashRegister/AddTransaction" class="quick-action">
+                    <i class="fas fa-money-bill"></i>
+                    <div>حركة صندوق</div>
+                </a>
+                <a href="/Products/Create" class="quick-action">
                     <i class="fas fa-box"></i>
-                </div>
+                    <div>منتج جديد</div>
+                </a>
+                <a href="/Customers/Create" class="quick-action">
+                    <i class="fas fa-user-plus"></i>
+                    <div>عميل جديد</div>
+                </a>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="sg-kpi-card">
-            <div class="sg-kpi-body">
-                <div class="sg-kpi-info">
-                    <span class="sg-kpi-num">@Model.TotalStockValue.ToString("N0") دج</span>
-                    <span class="sg-kpi-label">قيمة المخزون</span>
-                    <span class="sg-kpi-change positive">
-                        <i class="fas fa-arrow-up"></i> +3.8% منذ الشهر
-                    </span>
-                </div>
-                <div class="sg-kpi-icon gold">
-                    <i class="fas fa-coins"></i>
-                </div>
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🏆 أعلى المنتجات + العملاء -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="row g-3 animate-fadeInUp">
+    <!-- أعلى المنتجات -->
+    <div class="col-lg-4">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-trophy"></i> أعلى المنتجات (الشهر)</h3>
             </div>
+            @if (Model.TopSellingProducts.Any())
+            {
+                int rank = 1;
+                @foreach (var product in Model.TopSellingProducts)
+                {
+                    <div class="top-item">
+                        <div class="top-rank @(rank <= 3 ? "rank-" + rank : "rank-other")">
+                            @rank
+                        </div>
+                        <div class="top-info">
+                            <div class="top-name">@product.ProductName</div>
+                            <div class="top-meta">
+                                <i class="fas fa-shopping-cart"></i> @product.QuantitySold قطعة
+                                | <i class="fas fa-warehouse"></i> @product.CurrentStock
+                            </div>
+                        </div>
+                        <div class="top-value">@product.TotalSales.ToString("N0", culture)</div>
+                    </div>
+                    rank++;
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>لا توجد مبيعات هذا الشهر</p>
+                </div>
+            }
         </div>
+    </div>
 
-        <div class="sg-kpi-card">
-            <div class="sg-kpi-body">
-                <div class="sg-kpi-info">
-                    <span class="sg-kpi-num warning-text">@Model.LowStockProducts.Count</span>
-                    <span class="sg-kpi-label">مخزون منخفض</span>
-                    <span class="sg-kpi-change negative">
-                        <i class="fas fa-arrow-down"></i> -3 هذا الأسبوع
-                    </span>
-                </div>
-                <div class="sg-kpi-icon orange">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
+    <!-- أعلى العملاء -->
+    <div class="col-lg-4">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-crown"></i> أعلى العملاء (الشهر)</h3>
             </div>
-        </div>
-
-        <div class="sg-kpi-card">
-            <div class="sg-kpi-body">
-                <div class="sg-kpi-info">
-                    <span class="sg-kpi-num">@Model.TotalSuppliers</span>
-                    <span class="sg-kpi-label">الموردون</span>
-                    <span class="sg-kpi-change neutral">عدد العملاء: @Model.TotalCustomers</span>
+            @if (Model.TopCustomers.Any())
+            {
+                int rank = 1;
+                @foreach (var customer in Model.TopCustomers)
+                {
+                    <div class="top-item">
+                        <div class="top-rank @(rank <= 3 ? "rank-" + rank : "rank-other")">
+                            @rank
+                        </div>
+                        <div class="top-info">
+                            <div class="top-name">@customer.CustomerName</div>
+                            <div class="top-meta">
+                                <i class="fas fa-receipt"></i> @customer.InvoicesCount فاتورة
+                            </div>
+                        </div>
+                        <div class="top-value">@customer.TotalPurchases.ToString("N0", culture)</div>
+                    </div>
+                    rank++;
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <p>لا توجد بيانات</p>
                 </div>
-                <div class="sg-kpi-icon green">
+            }
+        </div>
+    </div>
+
+    <!-- أعلى الموردين -->
+    <div class="col-lg-4">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-medal"></i> أعلى الموردين (الشهر)</h3>
+            </div>
+            @if (Model.TopSuppliers.Any())
+            {
+                int rank = 1;
+                @foreach (var supplier in Model.TopSuppliers)
+                {
+                    <div class="top-item">
+                        <div class="top-rank @(rank <= 3 ? "rank-" + rank : "rank-other")">
+                            @rank
+                        </div>
+                        <div class="top-info">
+                            <div class="top-name">@supplier.SupplierName</div>
+                            <div class="top-meta">
+                                <i class="fas fa-receipt"></i> @supplier.InvoicesCount فاتورة
+                            </div>
+                        </div>
+                        <div class="top-value">@supplier.TotalPurchases.ToString("N0", culture)</div>
+                    </div>
+                    rank++;
+                }
+            }
+            else
+            {
+                <div class="empty-state">
                     <i class="fas fa-truck"></i>
+                    <p>لا توجد بيانات</p>
                 </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📋 آخر الفواتير -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="row g-3 animate-fadeInUp">
+    <!-- آخر المبيعات -->
+    <div class="col-lg-4">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-cash-register text-danger"></i> آخر المبيعات</h3>
+                <a href="/Sales" class="btn btn-sm btn-outline-primary">عرض الكل</a>
             </div>
+            @if (Model.RecentSales.Any())
+            {
+                @foreach (var sale in Model.RecentSales)
+                {
+                    <a href="@sale.Url" class="invoice-item">
+                        <div class="invoice-icon" style="background: linear-gradient(135deg, #f5576c, #f093fb);">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="invoice-info">
+                            <div class="invoice-number">@sale.InvoiceNumber</div>
+                            <div class="invoice-party">@sale.PartyName</div>
+                        </div>
+                        <div class="invoice-amount">@sale.TotalAmount.ToString("N0", culture)</div>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <p>لا توجد مبيعات بعد</p>
+                </div>
+            }
         </div>
     </div>
 
-    <!-- Main Grid -->
-    <div class="sg-main-grid">
-        <!-- Low Stock Table -->
-        <div class="sg-card sg-stock-table-card">
-            <div class="sg-card-header">
-                <h3 class="sg-card-title">
-                    <i class="fas fa-history me-2"></i>آخر حركات المخزون
-                </h3>
+    <!-- آخر المشتريات -->
+    <div class="col-lg-4">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-shopping-cart text-success"></i> آخر المشتريات</h3>
+                <a href="/Purchases" class="btn btn-sm btn-outline-primary">عرض الكل</a>
             </div>
-            <div class="sg-card-body p-0">
-                <table class="sg-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>المنتج</th>
-                            <th>الكمية</th>
-                            <th>النوع</th>
-                            <th>الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.LowStockProducts.Any())
-                        {
-                            @foreach (var p in Model.LowStockProducts.Take(5))
-                            {
-                                <tr>
-                                    <td><span class="sg-ref">@p.Reference</span></td>
-                                    <td>@p.Name</td>
-                                    <td>@p.StockQuantity+</td>
-                                    <td><span class="sg-badge-cat">@p.Category?.Name</span></td>
-                                    <td>
-                                        @if (p.StockQuantity == 0)
-                                        {
-                                            <span class="sg-status-badge danger">✕ نفد</span>
-                                        }
-                                        else if (p.StockQuantity <= p.MinStockAlert)
-                                        {
-                                            <span class="sg-status-badge warning">⚠ متأخر</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="sg-status-badge success">✓ متوفر</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            @foreach (var m in Model.RecentMovements)
-                            {
-                                <tr>
-                                    <td><span class="sg-ref">@m.Product?.Reference</span></td>
-                                    <td>@m.Product?.Name</td>
-                                    <td>@Math.Abs(m.Quantity)+</td>
-                                    <td><span class="sg-badge-cat">@m.Product?.Category?.Name</span></td>
-                                    <td>
-                                        @if (m.MovementType == "إدخال")
-                                        {
-                                            <span class="sg-status-badge success">✓ استيراد</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="sg-status-badge danger">✕ بيع</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Alerts -->
-        <div class="sg-card sg-alerts-card">
-            <div class="sg-card-header">
-                <h3 class="sg-card-title">
-                    <i class="fas fa-bell me-2 text-warning"></i>التنبيهات
-                </h3>
-                <span class="sg-badge-count">@Model.LowStockProducts.Count</span>
-            </div>
-            <div class="sg-card-body">
-                @if (!Model.LowStockProducts.Any())
+            @if (Model.RecentPurchases.Any())
+            {
+                @foreach (var purchase in Model.RecentPurchases)
                 {
-                    <div class="sg-empty-alerts">
-                        <i class="fas fa-check-circle"></i>
-                        <span>لا توجد تنبيهات حالياً</span>
-                    </div>
-                }
-                @foreach (var p in Model.LowStockProducts.Take(5))
-                {
-                    <div class="sg-alert-item @(p.StockQuantity == 0 ? "danger" : "warning")">
-                        <div class="sg-alert-dot"></div>
-                        <div class="sg-alert-content">
-                            <span class="sg-alert-title">
-                                @if (p.StockQuantity == 0)
-                                {
-                                    <text>نفاد مخزون: @p.Name</text>
-                                }
-                                else
-                                {
-                                    <text>مخزون منخفض @p.Name</text>
-                                }
-                            </span>
-                            <span class="sg-alert-sub">الكمية المتبقية — الحد الأدنى @p.MinStockAlert — الكمية @p.StockQuantity</span>
+                    <a href="@purchase.Url" class="invoice-item">
+                        <div class="invoice-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                            <i class="fas fa-truck"></i>
                         </div>
-                    </div>
+                        <div class="invoice-info">
+                            <div class="invoice-number">@purchase.InvoiceNumber</div>
+                            <div class="invoice-party">@purchase.PartyName</div>
+                        </div>
+                        <div class="invoice-amount">@purchase.TotalAmount.ToString("N0", culture)</div>
+                    </a>
                 }
-            </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-truck"></i>
+                    <p>لا توجد مشتريات</p>
+                </div>
+            }
         </div>
     </div>
 
-    <!-- Bottom Grid -->
-    <div class="sg-bottom-grid">
-        <!-- Recent Activity -->
-        <div class="sg-card">
-            <div class="sg-card-header">
-                <h3 class="sg-card-title">
-                    <i class="fas fa-history me-2"></i>آخر الأنشطة
-                </h3>
+    <!-- آخر حركات الصندوق -->
+    <div class="col-lg-4">
+        <div class="section-card">
+            <div class="section-title">
+                <h3><i class="fas fa-money-bill-wave text-warning"></i> آخر حركات الصندوق</h3>
+                <a href="/CashRegister/Transactions" class="btn btn-sm btn-outline-primary">عرض الكل</a>
             </div>
-            <div class="sg-card-body">
-                @foreach (var m in Model.RecentMovements)
+            @if (Model.RecentCashTransactions.Any())
+            {
+                @foreach (var trx in Model.RecentCashTransactions)
                 {
-                    <div class="sg-activity-item">
-                        <div class="sg-activity-icon @(m.MovementType == "إدخال" ? "green" : m.MovementType == "إخراج" ? "red" : "blue")">
-                            @(m.UserName?.Substring(0, 1).ToUpper() ?? "م")
+                    <div class="cash-item @(trx.IsIncome ? "income" : "expense")">
+                        <div class="cash-icon @(trx.IsIncome ? "income" : "expense")">
+                            <i class="fas @trx.Icon"></i>
                         </div>
-                        <div class="sg-activity-content">
-                            <span>@m.Reason</span>
+                        <div class="cash-info">
+                            <div class="cash-desc">@trx.Description</div>
+                            <div class="cash-meta">@trx.Category | @trx.TransactionDate.ToString("HH:mm")</div>
                         </div>
-                        <span class="sg-activity-time">@m.MovementDate.ToString("HH:mm")</span>
+                        <div class="cash-amount @(trx.IsIncome ? "income" : "expense")">
+                            @(trx.IsIncome ? "+" : "-")@trx.Amount.ToString("N0", culture)
+                        </div>
                     </div>
                 }
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="sg-card">
-            <div class="sg-card-header">
-                <h3 class="sg-card-title">
-                    <i class="fas fa-bolt me-2"></i>إجراءات سريعة
-                </h3>
-            </div>
-            <div class="sg-card-body">
-                <div class="sg-quick-actions">
-                    <a href="@Url.Action("Index", "Purchases")" class="sg-quick-action">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>طلب شراء</span>
-                    </a>
-                    <a href="@Url.Action("Index", "StockMovements")" class="sg-quick-action">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>إضافة مخزن</span>
-                    </a>
-                    <a href="@Url.Action("Index", "Sales")" class="sg-quick-action">
-                        <i class="fas fa-receipt"></i>
-                        <span>فاتورة كريم</span>
-                    </a>
-                    <a href="@Url.Action("Stock", "Reports")" class="sg-quick-action">
-                        <i class="fas fa-file-export"></i>
-                        <span>تصدير الصحة</span>
-                    </a>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-money-bill"></i>
+                    <p>لا توجد حركات</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- Weekly Chart -->
-        <div class="sg-card">
-            <div class="sg-card-header">
-                <h3 class="sg-card-title">
-                    <i class="fas fa-chart-bar me-2"></i>حركة المخزون (أسبوعية)
-                </h3>
-            </div>
-            <div class="sg-card-body">
-                <canvas id="weeklyChart" height="120"></canvas>
-            </div>
+            }
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        const ctx = document.getElementById('weeklyChart').getContext('2d');
-        const weeklyData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeeklyMovements));
-        const days = ['السبت','الجمعة','الخميس','الأربعاء','الثلاثاء','الاثنين','الأحد'].reverse();
+        // ═══════════════════════════════════════════════════
+        // الوقت الحي
+        // ═══════════════════════════════════════════════════
+        function updateLiveTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('liveTime').textContent = `${hours}:${minutes}`;
+        }
+        updateLiveTime();
+        setInterval(updateLiveTime, 1000);
 
-        new Chart(ctx, {
+        // ═══════════════════════════════════════════════════
+        // 📊 Chart 1: المبيعات vs المشتريات (Bar)
+        // ═══════════════════════════════════════════════════
+        const ctx1 = document.getElementById('salesPurchasesChart').getContext('2d');
+        new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: days,
+                labels: @Html.Raw(Json.Serialize(Model.Last7DaysData.Select(d => d.DateLabel))),
+                datasets: [
+                    {
+                        label: '💰 المبيعات',
+                        data: @Html.Raw(Json.Serialize(Model.Last7DaysData.Select(d => d.SalesAmount))),
+                        backgroundColor: 'rgba(245,87,108,0.8)',
+                        borderColor: 'rgba(245,87,108,1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    },
+                    {
+                        label: '🛒 المشتريات',
+                        data: @Html.Raw(Json.Serialize(Model.Last7DaysData.Select(d => d.PurchasesAmount))),
+                        backgroundColor: 'rgba(17,153,142,0.8)',
+                        borderColor: 'rgba(17,153,142,1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { family: 'Cairo', size: 13 } } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { font: { family: 'Cairo' } }
+                    },
+                    x: {
+                        ticks: { font: { family: 'Cairo' } }
+                    }
+                }
+            }
+        });
+
+        // ═══════════════════════════════════════════════════
+        // 🥧 Chart 2: توزيع الفئات (Doughnut)
+        // ═══════════════════════════════════════════════════
+        const ctx2 = document.getElementById('categoriesChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.SalesByCategory.Select(c => c.CategoryName))),
                 datasets: [{
-                    data: weeklyData,
-                    backgroundColor: ['#c4a23a','#c4a23a','#1a5c38','#a8d5bc','#a8d5bc','#a8d5bc','#a8d5bc'],
-                    borderRadius: 6,
-                    borderSkipped: false
+                    data: @Html.Raw(Json.Serialize(Model.SalesByCategory.Select(c => c.Amount))),
+                    backgroundColor: @Html.Raw(Json.Serialize(Model.SalesByCategory.Select(c => c.Color))),
+                    borderWidth: 3,
+                    borderColor: '#fff'
                 }]
             },
             options: {
                 responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Cairo' } } },
-                    x: { grid: { display: false }, ticks: { font: { family: 'Cairo' } } }
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { family: 'Cairo', size: 11 } }
+                    }
                 }
             }
         });
+
+        // ═══════════════════════════════════════════════════
+        // 📈 Chart 3: الأرباح (ApexCharts Line)
+        // ═══════════════════════════════════════════════════
+        const profitOptions = {
+            series: [{
+                name: 'الربح',
+                data: @Html.Raw(Json.Serialize(Model.Last30DaysProfit.Select(p => p.Profit)))
+            }],
+            chart: {
+                type: 'area',
+                height: 300,
+                fontFamily: 'Cairo',
+                toolbar: { show: false }
+            },
+            colors: ['#11998e'],
+            fill: {
+                type: 'gradient',
+                gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.3 }
+            },
+            stroke: { curve: 'smooth', width: 3 },
+            xaxis: {
+                categories: @Html.Raw(Json.Serialize(Model.Last30DaysProfit.Select(p => p.DateLabel))),
+                labels: { style: { fontFamily: 'Cairo' } }
+            },
+            yaxis: {
+                labels: {
+                    style: { fontFamily: 'Cairo' },
+                    formatter: (value) => value.toLocaleString('ar-DZ')
+                }
+            },
+            tooltip: {
+                y: { formatter: (value) => value.toLocaleString('ar-DZ') + ' دج' }
+            }
+        };
+
+        new ApexCharts(document.querySelector("#profitChart"), profitOptions).render();
+
+        // ═══════════════════════════════════════════════════
+        // 💰 Chart 4: تدفق الصندوق
+        // ═══════════════════════════════════════════════════
+        const cashOptions = {
+            series: [
+                {
+                    name: '📥 الواردات',
+                    data: @Html.Raw(Json.Serialize(Model.CashFlowMonth.Select(c => c.Income)))
+                },
+                {
+                    name: '📤 الصادرات',
+                    data: @Html.Raw(Json.Serialize(Model.CashFlowMonth.Select(c => c.Expense)))
+                }
+            ],
+            chart: {
+                type: 'line',
+                height: 300,
+                fontFamily: 'Cairo',
+                toolbar: { show: false }
+            },
+            colors: ['#11998e', '#f5576c'],
+            stroke: { curve: 'smooth', width: 3 },
+            xaxis: {
+                categories: @Html.Raw(Json.Serialize(Model.CashFlowMonth.Select(c => c.DateLabel))),
+                labels: { style: { fontFamily: 'Cairo' } }
+            },
+            yaxis: {
+                labels: {
+                    style: { fontFamily: 'Cairo' },
+                    formatter: (value) => value.toLocaleString('ar-DZ')
+                }
+            },
+            legend: { position: 'top', fontFamily: 'Cairo' }
+        };
+
+        new ApexCharts(document.querySelector("#cashFlowChart"), cashOptions).render();
+
+        // ═══════════════════════════════════════════════════
+        // 🔄 تحديث تلقائي كل 30 ثانية
+        // ═══════════════════════════════════════════════════
+        setInterval(() => {
+            console.log('🔄 تحديث البيانات...');
+            // إعادة تحميل الصفحة كل 30 ثانية
+            // يمكنك استخدام AJAX بدلاً من ذلك للتحديث الجزئي
+            // location.reload();
+        }, 30000);
     </script>
 }

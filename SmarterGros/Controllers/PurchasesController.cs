@@ -555,7 +555,7 @@ namespace SmarterGros.Controllers
 
 //            var purchase = new Purchase
 //            {
-//                InvoiceNumber = $"PUR-{nextId:D6}",
+//                InvoiceNumber = $"FACT-{nextId:D6}",
 //                SupplierId = model.SupplierId,
 //                PurchaseDate = model.PurchaseDate,
 //                Discount = model.Discount,

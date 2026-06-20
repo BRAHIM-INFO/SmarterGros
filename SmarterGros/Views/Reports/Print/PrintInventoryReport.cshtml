@@ -1,0 +1,366 @@
+﻿@model SmarterGros.ViewModels.Reports.InventoryReportViewModel
+
+@{
+    Layout = null;
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>تقرير المخزون</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            background: #f0f0f0;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .toolbar {
+            background: #fa709a;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+            .toolbar h3 {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+
+        .btn-action {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-print {
+            background: white;
+            color: #fa709a;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            color: white;
+        }
+
+        .report-page {
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 15mm;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #fa709a;
+            margin-bottom: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            color: #fa709a;
+            margin-bottom: 5px;
+            font-weight: 900;
+        }
+
+        .header-title p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .header-meta {
+            text-align: left;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+        }
+
+            .summary-card .label {
+                font-size: 0.75rem;
+                opacity: 0.95;
+                margin-bottom: 3px;
+            }
+
+            .summary-card .value {
+                font-size: 1.1rem;
+                font-weight: 900;
+            }
+
+        .section-title {
+            font-size: 1rem;
+            color: #fa709a;
+            font-weight: 800;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #fa709a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+        }
+
+            .data-table thead {
+                background: #fa709a;
+                color: white;
+            }
+
+                .data-table thead th {
+                    padding: 8px;
+                    text-align: center;
+                    font-weight: 700;
+                    border: 1px solid #fa709a;
+                }
+
+            .data-table tbody td {
+                padding: 6px 8px;
+                border: 1px solid #ddd;
+                text-align: center;
+            }
+
+                .data-table tbody td.text-right {
+                    text-align: right;
+                }
+
+                .data-table tbody td.text-end {
+                    text-align: end;
+                }
+
+            .data-table tbody tr:nth-child(even) {
+                background: #f9f9f9;
+            }
+
+        .status-ok {
+            background: #d4edda !important;
+            color: #155724;
+            font-weight: 700;
+        }
+
+        .status-low {
+            background: #fff3cd !important;
+            color: #856404;
+            font-weight: 700;
+        }
+
+        .status-out {
+            background: #f8d7da !important;
+            color: #721c24;
+            font-weight: 700;
+        }
+
+        .status-expiring {
+            background: #ffe5b4 !important;
+            color: #856404;
+            font-weight: 700;
+        }
+
+        .status-expired {
+            background: #f5c6cb !important;
+            color: #721c24;
+            font-weight: 700;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #fa709a;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+            .footer .tagline {
+                font-weight: 700;
+                color: #fa709a;
+                margin-bottom: 3px;
+            }
+
+        @@media print {
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .report-page {
+                box-shadow: none;
+                margin: 0;
+                padding: 10mm;
+                width: 100%;
+            }
+
+            @@page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <h3><i class="fas fa-print"></i> تقرير المخزون</h3>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-action btn-print" onclick="window.print()">
+                <i class="fas fa-print"></i> طباعة
+            </button>
+            <button class="btn-action btn-back" onclick="window.close()">
+                <i class="fas fa-times"></i> إغلاق
+            </button>
+        </div>
+    </div>
+
+    <div class="report-page">
+        <div class="report-header">
+            <div class="header-title">
+                <h1><i class="fas fa-boxes"></i> تقرير المخزون</h1>
+                <p>@Model.ActiveProducts منتج نشط</p>
+            </div>
+            <div class="header-meta">
+                <div>تاريخ الطباعة: @DateTime.Now.ToString("yyyy/MM/dd")</div>
+                <div>الوقت: @DateTime.Now.ToString("HH:mm")</div>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-card" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                <div class="label">إجمالي المنتجات</div>
+                <div class="value">@Model.ActiveProducts</div>
+            </div>
+            <div class="summary-card" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                <div class="label">قيمة المخزون</div>
+                <div class="value">@Model.TotalInventoryValueAtPurchase.ToString("N0", culture)</div>
+            </div>
+            <div class="summary-card" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                <div class="label">الربح المتوقع</div>
+                <div class="value">@Model.PotentialProfit.ToString("N0", culture)</div>
+            </div>
+            <div class="summary-card" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                <div class="label">منخفض المخزون</div>
+                <div class="value">@Model.LowStockProducts</div>
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-chart-pie"></i> ملخص الحالة</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>الحالة</th>
+                    <th>العدد</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>✅ متوفر</strong></td><td>@(Model.ActiveProducts - Model.LowStockProducts - Model.OutOfStockProducts)</td></tr>
+                <tr><td class="status-low"><strong>⚠️ منخفض</strong></td><td>@Model.LowStockProducts</td></tr>
+                <tr><td class="status-out"><strong>❌ نافذ</strong></td><td>@Model.OutOfStockProducts</td></tr>
+                <tr><td class="status-expiring"><strong>⏰ قرب الانتهاء</strong></td><td>@Model.ExpiringProducts</td></tr>
+                <tr><td class="status-expired"><strong>💀 منتهي الصلاحية</strong></td><td>@Model.ExpiredProducts</td></tr>
+            </tbody>
+        </table>
+
+        @if (Model.Products.Any())
+        {
+            <div class="section-title"><i class="fas fa-list"></i> قائمة المنتجات (@Model.Products.Count)</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>المنتج</th>
+                        <th>الفئة</th>
+                        <th width="60">المخزون</th>
+                        <th width="70">سعر التكلفة</th>
+                        <th width="70">سعر البيع</th>
+                        <th width="80">قيمة المخزون</th>
+                        <th width="80">الربح المتوقع</th>
+                        <th width="80">الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in Model.Products)
+                    {
+                        var statusClass = product.StockStatus switch
+                        {
+                            "out" => "status-out",
+                            "low" => "status-low",
+                            "expiring" => "status-expiring",
+                            "expired" => "status-expired",
+                            _ => "status-ok"
+                        };
+
+                        var statusText = product.StockStatus switch
+                        {
+                            "out" => "نافذ",
+                            "low" => "منخفض",
+                            "expiring" => "قرب الانتهاء",
+                            "expired" => "منتهي",
+                            _ => "متوفر"
+                        };
+
+                        <tr>
+                            <td class="text-right">@product.Name</td>
+                            <td>@product.CategoryName</td>
+                            <td><strong>@product.StockQuantity</strong></td>
+                            <td class="text-end">@product.PurchasePrice.ToString("N0", culture)</td>
+                            <td class="text-end">@product.RetailPrice.ToString("N0", culture)</td>
+                            <td class="text-end" style="color: #4facfe; font-weight: 700;">@product.TotalValueAtCost.ToString("N0", culture)</td>
+                            <td class="text-end" style="color: #11998e; font-weight: 700;">@product.PotentialProfit.ToString("N0", culture)</td>
+                            <td class="@statusClass">@statusText</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        <div class="footer">
+            <div class="tagline">SmarterGros - نظام تسيير المخزون</div>
+            <div>طُبع بتاريخ: @DateTime.Now.ToString("yyyy/MM/dd HH:mm")</div>
+        </div>
+    </div>
+</body>
+</html>

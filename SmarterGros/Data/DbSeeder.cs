@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using SmarterGros.Models;
 using SmarterGros.Security; // ✅ جديد
 using System.Security.Claims;
@@ -32,6 +33,11 @@ namespace SmarterGros.Data
             // 4️⃣ الفئات الافتراضية
             // ═══════════════════════════════════════════════════
             await SeedCategoriesAsync(context);
+
+            // ═══════════════════════════════════════════════════
+            // 4️⃣ الصندوق
+            // ═══════════════════════════════════════════════════
+            await SeedDefaultCashRegister(context);
         }
 
         // ═══════════════════════════════════════════════════
@@ -145,6 +151,43 @@ namespace SmarterGros.Data
                 Console.WriteLine("✅ تم إنشاء الفئات الافتراضية");
             }
         }
+
+
+        // ═══════════════════════════════════════════════════
+        // 💰 إنشاء الصندوق الافتراضي
+        // ═══════════════════════════════════════════════════
+        public static async Task SeedDefaultCashRegister(ApplicationDbContext context)
+        {
+            try
+            {
+                // التحقق من وجود صندوق
+                if (await context.CashRegisters.AnyAsync())
+                    return; // يوجد صندوق بالفعل
+
+                var defaultRegister = new CashRegister
+                {
+                    Name = "الصندوق الرئيسي",
+                    Description = "الصندوق الافتراضي للمؤسسة",
+                    OpeningBalance = 0,
+                    CurrentBalance = 0,
+                    IsActive = true,
+                    IsDefault = true,
+                    Color = "#28a745",
+                    Icon = "fa-cash-register",
+                    CreatedAt = DateTime.Now
+                };
+
+                context.CashRegisters.Add(defaultRegister);
+                await context.SaveChangesAsync();
+
+                Console.WriteLine("✅ تم إنشاء الصندوق الافتراضي بنجاح");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ فشل إنشاء الصندوق: {ex.Message}");
+            }
+        }
+
     }
 }
 

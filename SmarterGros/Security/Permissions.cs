@@ -104,8 +104,26 @@
             public const string Create = "Sales.Create";
             public const string Edit = "Sales.Edit";
             public const string Delete = "Sales.Delete";
+            public const string Cancel = "Sales.Cancel";                  // ✅ جديد
+            public const string ManagePayments = "Sales.ManagePayments";  // ✅ جديد
             public const string Print = "Sales.Print";
             public const string Export = "Sales.Export";
+            public const string Duplicate = "Sales.Duplicate";            // ✅ جديد
+            public const string QuickSale = "Sales.QuickSale";            // ✅ جديد (للـ POS لاحقاً)
+        }
+
+        // ========================================
+        // 🔄 مرتجعات البيع - جديد!
+        // ========================================
+        public static class SaleReturns
+        {
+            public const string View = "SaleReturns.View";
+            public const string Create = "SaleReturns.Create";
+            public const string Edit = "SaleReturns.Edit";
+            public const string Delete = "SaleReturns.Delete";
+            public const string Cancel = "SaleReturns.Cancel";
+            public const string Print = "SaleReturns.Print";
+            public const string Export = "SaleReturns.Export";
         }
 
         // ========================================
@@ -117,6 +135,24 @@
             public const string Create = "StockMovements.Create";
             public const string Delete = "StockMovements.Delete";
             public const string Export = "StockMovements.Export";
+        }
+
+        // ========================================
+        // 💰 الصندوق (Caisse) - جديد!
+        // ========================================
+        public static class CashRegister
+        {
+            public const string View = "CashRegister.View";
+            public const string AddTransaction = "CashRegister.AddTransaction";
+            public const string EditTransaction = "CashRegister.EditTransaction";
+            public const string CancelTransaction = "CashRegister.CancelTransaction";
+            public const string DeleteTransaction = "CashRegister.DeleteTransaction";
+            public const string CloseDaily = "CashRegister.CloseDaily";
+            public const string ViewReports = "CashRegister.ViewReports";
+            public const string ExportReports = "CashRegister.ExportReports";
+            public const string PrintReports = "CashRegister.PrintReports";
+            public const string ManageRegister = "CashRegister.ManageRegister";
+            public const string SetOpeningBalance = "CashRegister.SetOpeningBalance";
         }
 
         // ========================================

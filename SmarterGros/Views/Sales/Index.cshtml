@@ -1,0 +1,490 @@
+﻿@model SmarterGros.ViewModels.SaleListViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = "المبيعات";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .page-header {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .page-title h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #d32f2f;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            margin: 4px 0 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .btn-sale-primary {
+            background: linear-gradient(135deg, #d32f2f, #ef5350);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+            .btn-sale-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(211,47,47,0.3);
+                color: white;
+            }
+
+        .filters-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 5px;
+        }
+
+            .view-toggle .btn {
+                padding: 6px 12px;
+            }
+
+                .view-toggle .btn.active {
+                    background: #d32f2f;
+                    color: white;
+                }
+
+        .sales-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 15px;
+        }
+
+        .sales-list {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+            .sales-list thead {
+                background: linear-gradient(135deg, #d32f2f, #ef5350);
+                color: white;
+            }
+
+                .sales-list thead th {
+                    border: none;
+                    padding: 12px;
+                    font-weight: 600;
+                }
+
+            .sales-list tbody tr {
+                transition: all 0.2s;
+            }
+
+                .sales-list tbody tr:hover {
+                    background: #f8f9fa;
+                }
+
+        .empty-state {
+            background: white;
+            padding: 60px 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+            .empty-state i {
+                font-size: 4rem;
+                color: #dee2e6;
+                margin-bottom: 15px;
+            }
+
+        .pagination {
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+            .pagination .page-link {
+                color: #d32f2f;
+                border-radius: 6px;
+                margin: 0 3px;
+            }
+
+            .pagination .page-item.active .page-link {
+                background: #d32f2f;
+                border-color: #d32f2f;
+            }
+    </style>
+}
+
+<!-- 📋 رأس الصفحة -->
+<div class="page-header">
+    <div class="page-title">
+        <h1><i class="fas fa-cash-register"></i> المبيعات</h1>
+        <p>@Model.TotalCount فاتورة — إدارة فواتير البيع والتحصيلات</p>
+    </div>
+    <div>
+        @if (User.HasClaim("Permission", "SaleReturns.View"))
+        {
+            <a href="@Url.Action("Index", "SaleReturns")" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-rotate-left"></i> المرتجعات
+            </a>
+        }
+        <a href="@Url.Action("Create")" class="btn btn-sale-primary">
+            <i class="fas fa-plus"></i> فاتورة بيع جديدة
+        </a>
+    </div>
+</div>
+
+<!-- 📊 الإحصائيات -->
+@await Html.PartialAsync("_StatsCards", Model.Stats)
+
+<!-- 🔍 الفلاتر -->
+<div class="filters-bar">
+    <form method="get">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">🔍 بحث</label>
+                <input type="text" name="search" value="@Model.SearchTerm"
+                       class="form-control" placeholder="رقم الفاتورة، العميل..." />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label small">العميل</label>
+                <select name="customerId" class="form-select">
+                    <option value="">جميع العملاء</option>
+                    @foreach (var customer in Model.Customers)
+                    {
+                        <option value="@customer.Id" selected="@(Model.CustomerId == customer.Id)">
+                            @customer.Name
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label small">الحالة</label>
+                <select name="status" class="form-select">
+                    <option value="">كل الحالات</option>
+                    @foreach (InvoiceStatus s in Enum.GetValues<InvoiceStatus>())
+                    {
+                        <option value="@((int)s)" selected="@(Model.Status == s)">
+                            @s.GetArabicName()
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label small">السعر</label>
+                <select name="priceType" class="form-select">
+                    <option value="">كل الأنواع</option>
+                    @foreach (SalePriceType p in Enum.GetValues<SalePriceType>())
+                    {
+                        <option value="@((int)p)" selected="@(Model.PriceType == p)">
+                            @p.GetArabicName()
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label small">من</label>
+                <input type="date" name="dateFrom" value="@(Model.DateFrom?.ToString("yyyy-MM-dd"))"
+                       class="form-control form-control-sm" />
+            </div>
+
+            <div class="col-md-1">
+                <label class="form-label small">إلى</label>
+                <input type="date" name="dateTo" value="@(Model.DateTo?.ToString("yyyy-MM-dd"))"
+                       class="form-control form-control-sm" />
+            </div>
+
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-sale-primary flex-fill">
+                    <i class="fas fa-search"></i>
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary" title="مسح">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="text-muted small">
+                <i class="fas fa-info-circle"></i>
+                عرض @Model.Sales.Count من @Model.TotalCount فاتورة
+            </div>
+            <div class="view-toggle">
+                <a href="@Url.Action("Index", new { viewMode = "grid", search = Model.SearchTerm, customerId = Model.CustomerId, status = Model.Status, priceType = Model.PriceType })"
+                   class="btn btn-sm btn-outline-secondary @(Model.ViewMode == "grid" ? "active" : "")">
+                    <i class="fas fa-th-large"></i> شبكة
+                </a>
+                <a href="@Url.Action("Index", new { viewMode = "list", search = Model.SearchTerm, customerId = Model.CustomerId, status = Model.Status, priceType = Model.PriceType })"
+                   class="btn btn-sm btn-outline-secondary @(Model.ViewMode == "list" ? "active" : "")">
+                    <i class="fas fa-list"></i> قائمة
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- 📋 عرض الفواتير -->
+@if (!Model.Sales.Any())
+{
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>لا توجد فواتير</h3>
+        <p>لم يتم العثور على فواتير بيع</p>
+        <a href="@Url.Action("Create")" class="btn btn-sale-primary mt-3">
+            <i class="fas fa-plus"></i> إنشاء فاتورة جديدة
+        </a>
+    </div>
+}
+else if (Model.ViewMode == "list")
+{
+    <div class="sales-list table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>رقم الفاتورة</th>
+                    <th>التاريخ</th>
+                    <th>العميل</th>
+                    <th>السعر</th>
+                    <th class="text-end">المجموع</th>
+                    <th class="text-end">الربح</th>
+                    <th>الدفع</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sale in Model.Sales)
+                {
+                    <tr>
+                        <td><strong class="text-danger">@sale.InvoiceNumber</strong></td>
+                        <td>@sale.SaleDate.ToString("yyyy/MM/dd")</td>
+                        <td>@(sale.Customer?.Name ?? sale.CustomerName ?? "عميل نقدي")</td>
+                        <td>
+                            <span class="badge bg-@sale.PriceType.GetBadgeColor()">
+                                @sale.PriceType.GetArabicName()
+                            </span>
+                        </td>
+                        <td class="text-end"><strong>@sale.TotalAmount.ToString("N2", culture) دج</strong></td>
+                        <td class="text-end text-success"><strong>+@sale.TotalProfit.ToString("N2", culture)</strong></td>
+                        <td>
+                            <span class="badge bg-@sale.PaymentType.GetBadgeColor()">
+                                @sale.PaymentType.GetArabicName()
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-@sale.Status.GetBadgeColor()">
+                                @sale.Status.GetArabicName()
+                            </span>
+                        </td>
+                        <td>
+                            <a href="@Url.Action("Details", new { id = sale.Id })" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="@Url.Action("Print", new { id = sale.Id })" target="_blank" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-print"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="sales-grid">
+        @foreach (var sale in Model.Sales)
+        {
+            @await Html.PartialAsync("_SaleCard", sale)
+        }
+    </div>
+}
+
+<!-- 📄 الترقيم -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination">
+            @if (Model.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1, search = Model.SearchTerm, customerId = Model.CustomerId, status = Model.Status })">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            }
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 2 && i <= Model.CurrentPage + 2))
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = i, search = Model.SearchTerm, customerId = Model.CustomerId, status = Model.Status })">
+                            @i
+                        </a>
+                    </li>
+                }
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1, search = Model.SearchTerm, customerId = Model.CustomerId, status = Model.Status })">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+<!-- ❌ Modal الإلغاء -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-ban"></i> إلغاء فاتورة
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    سيتم عكس التأثيرات على المخزون والصندوق!
+                </div>
+                <p>هل تريد إلغاء الفاتورة <strong id="cancelInvoiceNumber"></strong>؟</p>
+                <div class="mb-3">
+                    <label class="form-label">سبب الإلغاء *</label>
+                    <textarea id="cancellationReason" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="confirmReversal" class="form-check-input" />
+                    <label class="form-check-label">أؤكد عكس التأثيرات</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancel()">
+                    <i class="fas fa-ban"></i> تأكيد الإلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        let cancelSaleId = 0;
+
+        function showCancelModal(id, invoiceNumber) {
+            cancelSaleId = id;
+            document.getElementById('cancelInvoiceNumber').textContent = invoiceNumber;
+            document.getElementById('cancellationReason').value = '';
+            document.getElementById('confirmReversal').checked = false;
+            new bootstrap.Modal(document.getElementById('cancelModal')).show();
+        }
+
+        function confirmCancel() {
+            const reason = document.getElementById('cancellationReason').value.trim();
+            const confirmed = document.getElementById('confirmReversal').checked;
+
+            if (!reason) {
+                alert('سبب الإلغاء مطلوب');
+                return;
+            }
+            if (!confirmed) {
+                alert('يجب تأكيد عكس التأثيرات');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Cancel", "Sales")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({
+                    SaleId: cancelSaleId,
+                    CancellationReason: reason,
+                    ConfirmReversal: confirmed
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    location.reload();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            });
+        }
+
+        function deleteSale(id, invoiceNumber) {
+            if (!confirm(`هل تريد حذف الفاتورة "${invoiceNumber}"؟`)) return;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Delete", "Sales")/' + id, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    location.reload();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            });
+        }
+
+        function duplicateSale(id) {
+            if (!confirm('هل تريد نسخ هذه الفاتورة؟')) return;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Duplicate", "Sales")/' + id, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    }
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            });
+        }
+    </script>
+}

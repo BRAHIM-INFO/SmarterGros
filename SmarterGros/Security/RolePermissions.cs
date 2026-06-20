@@ -78,8 +78,13 @@
                 // مرتجعات المشتريات (عرض فقط) ✅ جديد
                 Permissions.PurchaseReturns.View,
 
-                // المبيعات (عرض فقط)
-                Permissions.Sales.View,
+                // الصندوق - عرض فقط
+                Permissions.CashRegister.View,
+                Permissions.CashRegister.ViewReports,
+
+
+               // مرتجعات البيع (عرض فقط) ✅ جديد
+                Permissions.SaleReturns.View,
 
                 // الموردون (عرض فقط)
                 Permissions.Suppliers.View,
@@ -111,13 +116,26 @@
                 // لوحة التحكم
                 Permissions.Dashboard.View,
 
-                // المبيعات (كامل)
+                // المبيعات (كامل) ✅ محدّث
                 Permissions.Sales.View,
                 Permissions.Sales.Create,
                 Permissions.Sales.Edit,
                 Permissions.Sales.Delete,
+                Permissions.Sales.Cancel,           // ✅ جديد
+                Permissions.Sales.ManagePayments,   // ✅ جديد
                 Permissions.Sales.Print,
                 Permissions.Sales.Export,
+                Permissions.Sales.Duplicate,        // ✅ جديد
+                Permissions.Sales.QuickSale,        // ✅ جديد
+
+                // مرتجعات البيع (كامل) ✅ جديد
+                Permissions.SaleReturns.View,
+                Permissions.SaleReturns.Create,
+                Permissions.SaleReturns.Edit,
+                Permissions.SaleReturns.Delete,
+                Permissions.SaleReturns.Cancel,
+                Permissions.SaleReturns.Print,
+                Permissions.SaleReturns.Export,
 
                 // العملاء (كامل)
                 Permissions.Customers.View,
@@ -135,6 +153,11 @@
 
                 // حركات المخزون (عرض فقط)
                 Permissions.StockMovements.View,
+
+                // الصندوق - صلاحيات للمبيعات
+                Permissions.CashRegister.View,
+                Permissions.CashRegister.AddTransaction,
+                Permissions.CashRegister.ViewReports,
 
                 // التقارير
                 Permissions.Reports.ViewStatistics,
@@ -190,6 +213,12 @@
                 Permissions.Suppliers.ManagePayments,
                 Permissions.Suppliers.Export,
 
+                 // الصندوق - صلاحيات محدودة
+                Permissions.CashRegister.View,
+                Permissions.CashRegister.AddTransaction,
+                Permissions.CashRegister.ViewReports,
+
+
                 // المنتجات (عرض + تعديل - لتحديث الأسعار)
                 Permissions.Products.View,
                 Permissions.Products.Edit,
@@ -232,10 +261,14 @@
                 Permissions.Purchases.View,
                 Permissions.PurchaseReturns.View,  // ✅ جديد
                 Permissions.Sales.View,
+                Permissions.SaleReturns.View,  // ✅ جديد
                 Permissions.StockMovements.View,
 
                 // الإحصائيات الأساسية
                 Permissions.Reports.ViewStatistics,
+
+                // الصندوق - عرض فقط
+                Permissions.CashRegister.View,
 
                 // الإشعارات (شخصية فقط)
                 Permissions.Notifications.View,

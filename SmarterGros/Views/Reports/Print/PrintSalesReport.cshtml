@@ -1,0 +1,431 @@
+﻿@model SmarterGros.ViewModels.Reports.SalesReportViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    Layout = null;
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>تقرير المبيعات - @Model.PeriodLabel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            background: #f0f0f0;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .toolbar {
+            background: #f5576c;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+            .toolbar h3 {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+
+            .toolbar .actions {
+                display: flex;
+                gap: 10px;
+            }
+
+        .btn-action {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-print {
+            background: white;
+            color: #f5576c;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            color: white;
+        }
+
+        .report-page {
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 15mm;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #f5576c;
+            margin-bottom: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            color: #f5576c;
+            margin-bottom: 5px;
+            font-weight: 900;
+        }
+
+        .header-title p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .header-meta {
+            text-align: left;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #f5576c, #f093fb);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+            .summary-card .label {
+                font-size: 0.75rem;
+                opacity: 0.95;
+                margin-bottom: 3px;
+            }
+
+            .summary-card .value {
+                font-size: 1.1rem;
+                font-weight: 900;
+            }
+
+        .section-title {
+            font-size: 1rem;
+            color: #f5576c;
+            font-weight: 800;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #f5576c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+        }
+
+            .data-table thead {
+                background: #f5576c;
+                color: white;
+            }
+
+                .data-table thead th {
+                    padding: 8px;
+                    text-align: center;
+                    font-weight: 700;
+                    border: 1px solid #f5576c;
+                }
+
+            .data-table tbody td {
+                padding: 6px 8px;
+                border: 1px solid #ddd;
+                text-align: center;
+            }
+
+                .data-table tbody td.text-right {
+                    text-align: right;
+                }
+
+                .data-table tbody td.text-end {
+                    text-align: end;
+                }
+
+            .data-table tbody tr:nth-child(even) {
+                background: #f9f9f9;
+            }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #f5576c;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+            .footer .tagline {
+                font-weight: 700;
+                color: #f5576c;
+                margin-bottom: 3px;
+            }
+
+        @@media print {
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .report-page {
+                box-shadow: none;
+                margin: 0;
+                padding: 10mm;
+                width: 100%;
+            }
+
+            @@page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- شريط الأدوات -->
+    <div class="toolbar">
+        <h3><i class="fas fa-print"></i> تقرير المبيعات</h3>
+        <div class="actions">
+            <button class="btn-action btn-print" onclick="window.print()">
+                <i class="fas fa-print"></i> طباعة
+            </button>
+            <button class="btn-action btn-back" onclick="window.close()">
+                <i class="fas fa-times"></i> إغلاق
+            </button>
+        </div>
+    </div>
+
+    <!-- صفحة التقرير -->
+    <div class="report-page">
+
+        <!-- الترويسة -->
+        <div class="report-header">
+            <div class="header-title">
+                <h1><i class="fas fa-cash-register"></i> تقرير المبيعات</h1>
+                <p>@Model.PeriodLabel</p>
+            </div>
+            <div class="header-meta">
+                <div>تاريخ الطباعة: @DateTime.Now.ToString("yyyy/MM/dd")</div>
+                <div>الوقت: @DateTime.Now.ToString("HH:mm")</div>
+            </div>
+        </div>
+
+        <!-- البطاقات الإحصائية -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="label">إجمالي المبيعات</div>
+                <div class="value">@Model.TotalSales.ToString("N0", culture)</div>
+            </div>
+            <div class="summary-card" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                <div class="label">صافي الربح</div>
+                <div class="value">@Model.TotalProfit.ToString("N0", culture)</div>
+            </div>
+            <div class="summary-card" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                <div class="label">عدد الفواتير</div>
+                <div class="value">@Model.TotalInvoices</div>
+            </div>
+            <div class="summary-card" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                <div class="label">هامش الربح</div>
+                <div class="value">@Model.ProfitMargin%</div>
+            </div>
+        </div>
+
+        <!-- ملخص شامل -->
+        <div class="section-title">
+            <i class="fas fa-info-circle"></i> ملخص شامل
+        </div>
+        <table class="data-table">
+            <tbody>
+                <tr>
+                    <td><strong>إجمالي المبيعات:</strong></td>
+                    <td class="text-end">@Model.TotalSales.ToString("N2", culture) دج</td>
+                    <td><strong>إجمالي التكلفة:</strong></td>
+                    <td class="text-end">@Model.TotalCost.ToString("N2", culture) دج</td>
+                </tr>
+                <tr>
+                    <td><strong>إجمالي الربح:</strong></td>
+                    <td class="text-end" style="color: #11998e; font-weight: 700;">@Model.TotalProfit.ToString("N2", culture) دج</td>
+                    <td><strong>الضريبة:</strong></td>
+                    <td class="text-end">@Model.TotalTax.ToString("N2", culture) دج</td>
+                </tr>
+                <tr>
+                    <td><strong>المحصّل:</strong></td>
+                    <td class="text-end" style="color: #11998e;">@Model.TotalCollected.ToString("N2", culture) دج</td>
+                    <td><strong>الديون:</strong></td>
+                    <td class="text-end" style="color: #f5576c;">@Model.TotalDebt.ToString("N2", culture) دج</td>
+                </tr>
+                <tr>
+                    <td><strong>عدد المنتجات المباعة:</strong></td>
+                    <td class="text-end">@Model.TotalItemsSold قطعة</td>
+                    <td><strong>متوسط الفاتورة:</strong></td>
+                    <td class="text-end">@Model.AverageInvoiceValue.ToString("N2", culture) دج</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- أعلى المنتجات -->
+        @if (Model.TopProducts.Any())
+        {
+            <div class="section-title">
+                <i class="fas fa-trophy"></i> أعلى 10 منتجات مبيعاً
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th width="30">#</th>
+                        <th>المنتج</th>
+                        <th>المرجع</th>
+                        <th width="80">الكمية</th>
+                        <th width="100">المبيعات</th>
+                        <th width="100">الربح</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int rank = 1;
+                    }
+                    @foreach (var product in Model.TopProducts)
+                    {
+                        <tr>
+                            <td>@rank</td>
+                            <td class="text-right">@product.ProductName</td>
+                            <td>@product.Reference</td>
+                            <td>@product.QuantitySold</td>
+                            <td class="text-end">@product.TotalSales.ToString("N0", culture)</td>
+                            <td class="text-end" style="color: #11998e;">@product.TotalProfit.ToString("N0", culture)</td>
+                        </tr>
+                        rank++;
+                    }
+                </tbody>
+            </table>
+        }
+
+        <!-- أعلى العملاء -->
+        @if (Model.TopCustomers.Any())
+        {
+            <div class="section-title">
+                <i class="fas fa-crown"></i> أعلى 10 عملاء
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th width="30">#</th>
+                        <th>العميل</th>
+                        <th width="80">الفواتير</th>
+                        <th width="100">المشتريات</th>
+                        <th width="100">الدين</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int rank = 1;
+                    }
+                    @foreach (var customer in Model.TopCustomers)
+                    {
+                        <tr>
+                            <td>@rank</td>
+                            <td class="text-right">@customer.CustomerName</td>
+                            <td>@customer.InvoicesCount</td>
+                            <td class="text-end">@customer.TotalPurchases.ToString("N0", culture)</td>
+                            <td class="text-end" style="color: #f5576c;">@customer.CurrentDebt.ToString("N0", culture)</td>
+                        </tr>
+                        rank++;
+                    }
+                </tbody>
+            </table>
+        }
+
+        <!-- الفواتير -->
+        @if (Model.Invoices.Any())
+        {
+            <div class="section-title">
+                <i class="fas fa-list"></i> الفواتير التفصيلية (@Model.TotalInvoices)
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>رقم الفاتورة</th>
+                        <th>العميل</th>
+                        <th width="80">المبلغ</th>
+                        <th width="80">المدفوع</th>
+                        <th width="80">المتبقي</th>
+                        <th width="80">الربح</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invoice in Model.Invoices.Take(50))
+                    {
+                        <tr>
+                            <td>@invoice.SaleDate.ToString("yyyy/MM/dd")</td>
+                            <td>@invoice.InvoiceNumber</td>
+                            <td class="text-right">@(invoice.Customer?.Name ?? invoice.CustomerName ?? "عميل نقدي")</td>
+                            <td class="text-end">@invoice.TotalAmount.ToString("N0", culture)</td>
+                            <td class="text-end" style="color: #11998e;">@invoice.PaidAmount.ToString("N0", culture)</td>
+                            <td class="text-end" style="color: #f5576c;">@invoice.RemainingAmount.ToString("N0", culture)</td>
+                            <td class="text-end" style="color: #11998e; font-weight: 700;">@invoice.TotalProfit.ToString("N0", culture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        <!-- الفوتر -->
+        <div class="footer">
+            <div class="tagline">SmarterGros - نظام تسيير المخزون</div>
+            <div>طُبع بتاريخ: @DateTime.Now.ToString("yyyy/MM/dd HH:mm")</div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,804 @@
+﻿@model SmarterGros.ViewModels.CashDashboardViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = "الصندوق";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+    var register = Model.CurrentRegister;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        /* ═══════════════════════════════════════════════════ */
+        /* الترويسة الرئيسية - بطاقة الرصيد الكبيرة */
+        /* ═══════════════════════════════════════════════════ */
+        .balance-card {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 30px 35px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(40,167,69,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .balance-card::before {
+                content: '';
+                position: absolute;
+                top: -50px;
+                left: -50px;
+                width: 200px;
+                height: 200px;
+                background: rgba(255,255,255,0.1);
+                border-radius: 50%;
+            }
+
+            .balance-card::after {
+                content: '';
+                position: absolute;
+                bottom: -80px;
+                right: -80px;
+                width: 250px;
+                height: 250px;
+                background: rgba(255,255,255,0.05);
+                border-radius: 50%;
+            }
+
+            .balance-card .content {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+        .balance-info h2 {
+            font-size: 1.2rem;
+            margin: 0 0 10px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .balance-info .amount {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+            .balance-info .amount small {
+                font-size: 1.2rem;
+                opacity: 0.9;
+                margin-right: 10px;
+            }
+
+        .balance-info .register-name {
+            margin-top: 8px;
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+
+        .balance-actions {
+            display: flex;
+            gap: 12px;
+            flex-direction: column;
+        }
+
+            .balance-actions .btn {
+                padding: 12px 25px;
+                border-radius: 10px;
+                font-weight: 700;
+                font-size: 0.95rem;
+                transition: all 0.3s;
+                border: none;
+            }
+
+        .btn-income {
+            background: white;
+            color: #28a745;
+        }
+
+            .btn-income:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                color: #28a745;
+            }
+
+        .btn-expense {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+        }
+
+            .btn-expense:hover {
+                background: #c82333;
+                transform: translateY(-3px);
+                color: white;
+            }
+
+        .btn-closure {
+            background: rgba(255, 193, 7, 0.9);
+            color: #856404;
+        }
+
+            .btn-closure:hover {
+                background: #ffc107;
+                transform: translateY(-3px);
+                color: #856404;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* البطاقات الإحصائية */
+        /* ═══════════════════════════════════════════════════ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            border-right: 5px solid;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            }
+
+            .stat-card .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+
+            .stat-card .value {
+                font-size: 1.6rem;
+                font-weight: 800;
+                margin: 0;
+            }
+
+                .stat-card .value small {
+                    font-size: 0.7em;
+                    color: #6c757d;
+                    font-weight: 500;
+                }
+
+            .stat-card .meta {
+                font-size: 0.8rem;
+                color: #95a5a6;
+                margin-top: 5px;
+            }
+
+        .stat-income {
+            border-color: #28a745;
+        }
+
+            .stat-income .value {
+                color: #28a745;
+            }
+
+        .stat-expense {
+            border-color: #dc3545;
+        }
+
+            .stat-expense .value {
+                color: #dc3545;
+            }
+
+        .stat-net-positive {
+            border-color: #17a2b8;
+        }
+
+            .stat-net-positive .value {
+                color: #17a2b8;
+            }
+
+        .stat-net-negative {
+            border-color: #ffc107;
+        }
+
+            .stat-net-negative .value {
+                color: #ff9800;
+            }
+
+        .stat-count {
+            border-color: #6c757d;
+        }
+
+            .stat-count .value {
+                color: #495057;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* بطاقات الفترات */
+        /* ═══════════════════════════════════════════════════ */
+        .period-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .period-card {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+            .period-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            }
+
+            .period-card .icon {
+                width: 50px;
+                height: 50px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                margin: 0 auto 10px;
+            }
+
+            .period-card .title {
+                font-size: 0.9rem;
+                color: #6c757d;
+                margin-bottom: 5px;
+                font-weight: 600;
+            }
+
+            .period-card .net {
+                font-size: 1.4rem;
+                font-weight: 800;
+                margin: 5px 0;
+            }
+
+                .period-card .net.positive {
+                    color: #28a745;
+                }
+
+                .period-card .net.negative {
+                    color: #dc3545;
+                }
+
+            .period-card .details {
+                font-size: 0.75rem;
+                color: #95a5a6;
+                margin-top: 5px;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* أقسام الصفحة */
+        /* ═══════════════════════════════════════════════════ */
+        .section {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #0E4D3A;
+        }
+
+            .section-header h5 {
+                margin: 0;
+                color: #0E4D3A;
+                font-weight: 700;
+                font-size: 1.1rem;
+            }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* قائمة الحركات */
+        /* ═══════════════════════════════════════════════════ */
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            transition: all 0.2s;
+            border-right: 4px solid;
+        }
+
+            .transaction-item:hover {
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+            .transaction-item.income {
+                border-color: #28a745;
+            }
+
+            .transaction-item.expense {
+                border-color: #dc3545;
+            }
+
+            .transaction-item.cancelled {
+                opacity: 0.5;
+                background: #f1f1f1;
+            }
+
+        .transaction-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .transaction-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .transaction-desc {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
+        .transaction-meta {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .transaction-amount {
+            text-align: left;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+            .transaction-amount.income {
+                color: #28a745;
+            }
+
+            .transaction-amount.expense {
+                color: #dc3545;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* قائمة الفئات */
+        /* ═══════════════════════════════════════════════════ */
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            transition: all 0.2s;
+        }
+
+            .category-item:hover {
+                background: white;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            }
+
+        .category-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .category-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .category-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .category-stats {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .category-amount {
+            font-weight: 800;
+            color: #2c3e50;
+        }
+
+        .category-bar {
+            width: 100%;
+            height: 5px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .category-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* Empty State */
+        /* ═══════════════════════════════════════════════════ */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #95a5a6;
+        }
+
+            .empty-state i {
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }
+
+        /* ═══════════════════════════════════════════════════ */
+        /* Badge اليوم مغلق */
+        /* ═══════════════════════════════════════════════════ */
+        .closed-banner {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(255,152,0,0.3);
+        }
+
+            .closed-banner i {
+                font-size: 2rem;
+            }
+    </style>
+}
+
+@if (register == null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        لا يوجد صندوق نشط. يرجى التواصل مع مدير النظام.
+    </div>
+    return;
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 💰 بطاقة الرصيد الرئيسية -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="balance-card">
+    <div class="content">
+        <div class="balance-info">
+            <h2><i class="fas fa-cash-register"></i> الرصيد الحالي</h2>
+            <div class="amount">
+                @Model.CurrentBalance.ToString("N2", culture)
+                <small>دج</small>
+            </div>
+            <div class="register-name">
+                <i class="fas fa-building"></i> @register.Name
+            </div>
+        </div>
+
+        <div class="balance-actions">
+            <a href="@Url.Action("AddTransaction", new { defaultType = TransactionType.Income })"
+               class="btn btn-income">
+                <i class="fas fa-plus-circle"></i> إضافة وارد
+            </a>
+            <a href="@Url.Action("AddTransaction", new { defaultType = TransactionType.Expense })"
+               class="btn btn-expense">
+                <i class="fas fa-minus-circle"></i> إضافة صادر
+            </a>
+            <a href="@Url.Action("DailyClosure")" class="btn btn-closure">
+                <i class="fas fa-lock"></i> الجرد اليومي
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🔒 Banner اليوم مغلق -->
+<!-- ═══════════════════════════════════════════════════ -->
+@if (Model.IsTodayClosed)
+{
+    <div class="closed-banner">
+        <i class="fas fa-lock"></i>
+        <div>
+            <strong>اليوم مغلق ✓</strong>
+            <div>تم تنفيذ الجرد اليومي. لا يمكن إضافة حركات جديدة لهذا اليوم.</div>
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 إحصائيات اليوم -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="stats-grid">
+    <div class="stat-card stat-income">
+        <div class="label">📥 واردات اليوم</div>
+        <div class="value">
+            +@Model.TodayIncome.ToString("N2", culture) <small>دج</small>
+        </div>
+        <div class="meta">@Model.TodayTransactionsCount حركة</div>
+    </div>
+
+    <div class="stat-card stat-expense">
+        <div class="label">📤 صادرات اليوم</div>
+        <div class="value">
+            -@Model.TodayExpense.ToString("N2", culture) <small>دج</small>
+        </div>
+        <div class="meta">عدد المعاملات</div>
+    </div>
+
+    <div class="stat-card @(Model.TodayNet >= 0 ? "stat-net-positive" : "stat-net-negative")">
+        <div class="label">⚖️ صافي اليوم</div>
+        <div class="value">
+            @(Model.TodayNet >= 0 ? "+" : "")@Model.TodayNet.ToString("N2", culture) <small>دج</small>
+        </div>
+        <div class="meta">@(Model.TodayNet >= 0 ? "ربح" : "خسارة")</div>
+    </div>
+
+    <div class="stat-card stat-count">
+        <div class="label">📊 إجمالي الحركات</div>
+        <div class="value">@Model.TodayTransactionsCount</div>
+        <div class="meta">حركة اليوم</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📅 بطاقات الفترات -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="period-cards">
+    <div class="period-card">
+        <div class="icon"><i class="fas fa-calendar-day"></i></div>
+        <div class="title">اليوم</div>
+        <div class="net @(Model.TodayNet >= 0 ? "positive" : "negative")">
+            @(Model.TodayNet >= 0 ? "+" : "")@Model.TodayNet.ToString("N0", culture)
+        </div>
+        <div class="details">@Model.TodayTransactionsCount حركة</div>
+    </div>
+
+    <div class="period-card">
+        <div class="icon" style="background: linear-gradient(135deg, #1976d2, #2196f3);">
+            <i class="fas fa-calendar-week"></i>
+        </div>
+        <div class="title">هذا الأسبوع</div>
+        <div class="net @(Model.WeekNet >= 0 ? "positive" : "negative")">
+            @(Model.WeekNet >= 0 ? "+" : "")@Model.WeekNet.ToString("N0", culture)
+        </div>
+        <div class="details">@Model.WeekTransactionsCount حركة</div>
+    </div>
+
+    <div class="period-card">
+        <div class="icon" style="background: linear-gradient(135deg, #7b1fa2, #9c27b0);">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div class="title">هذا الشهر</div>
+        <div class="net @(Model.MonthNet >= 0 ? "positive" : "negative")">
+            @(Model.MonthNet >= 0 ? "+" : "")@Model.MonthNet.ToString("N0", culture)
+        </div>
+        <div class="details">@Model.MonthTransactionsCount حركة</div>
+    </div>
+
+    <div class="period-card">
+        <div class="icon" style="background: linear-gradient(135deg, #e91e63, #f06292);">
+            <i class="fas fa-calendar"></i>
+        </div>
+        <div class="title">هذه السنة</div>
+        <div class="net @(Model.YearNet >= 0 ? "positive" : "negative")">
+            @(Model.YearNet >= 0 ? "+" : "")@Model.YearNet.ToString("N0", culture)
+        </div>
+        <div class="details">@Model.YearTransactionsCount حركة</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📜 آخر الحركات + الفئات -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="row g-3">
+    <!-- آخر الحركات -->
+    <div class="col-lg-7">
+        <div class="section">
+            <div class="section-header">
+                <h5><i class="fas fa-history"></i> آخر الحركات</h5>
+                <a href="@Url.Action("Transactions")" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list"></i> عرض الكل
+                </a>
+            </div>
+            <div class="section-body">
+                @if (!Model.RecentTransactions.Any())
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h6>لا توجد حركات بعد</h6>
+                        <p class="mb-0">ابدأ بإضافة حركة جديدة</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var t in Model.RecentTransactions)
+                    {
+                        <div class="transaction-item @(t.IsCancelled ? "cancelled" : "") @(t.Type == TransactionType.Income ? "income" : "expense")">
+                            <div class="transaction-icon" style="background: @t.Category.GetColor();">
+                                <i class="fas @t.Category.GetIcon()"></i>
+                            </div>
+                            <div class="transaction-info">
+                                <div class="transaction-desc">
+                                    @t.Description
+                                    @if (t.IsCancelled)
+                                    {
+                                        <span class="badge bg-danger ms-2">ملغى</span>
+                                    }
+                                </div>
+                                <div class="transaction-meta">
+                                    <i class="fas fa-tag"></i> @t.Category.GetArabicName()
+                                    <span class="mx-2">|</span>
+                                    <i class="fas fa-clock"></i> @t.TransactionDate.ToString("yyyy/MM/dd HH:mm")
+                                    @if (t.Supplier != null)
+                                    {
+                                        <span class="mx-2">|</span>
+                                        <i class="fas fa-truck"></i>
+
+                                        <text>@t.Supplier.Name</text>
+                                    }
+                                </div>
+                            </div>
+                            <div class="transaction-amount @(t.Type == TransactionType.Income ? "income" : "expense")">
+                                @t.Type.GetSign()@t.Amount.ToString("N2", culture)
+                                <br>
+                                <small class="text-muted">دج</small>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- أعلى الفئات -->
+    <div class="col-lg-5">
+        <!-- أعلى المصاريف -->
+        <div class="section">
+            <div class="section-header">
+                <h5><i class="fas fa-arrow-trend-up text-danger"></i> أعلى المصاريف هذا الشهر</h5>
+            </div>
+            <div class="section-body">
+                @if (!Model.TopExpenseCategories.Any())
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-chart-pie"></i>
+                        <p class="mb-0">لا توجد مصاريف بعد</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var cat in Model.TopExpenseCategories)
+                    {
+                        <div class="category-item">
+                            <div class="category-icon" style="background: @cat.Color;">
+                                <i class="fas @cat.Icon"></i>
+                            </div>
+                            <div class="category-info">
+                                <div class="d-flex justify-content-between">
+                                    <span class="category-name">@cat.CategoryName</span>
+                                    <span class="category-amount">@cat.TotalAmount.ToString("N0", culture) دج</span>
+                                </div>
+                                <div class="category-stats">
+                                    @cat.Count حركة | @cat.Percentage%
+                                </div>
+                                <div class="category-bar">
+                                    <div class="category-bar-fill"
+                                         style="width: @cat.Percentage%; background: @cat.Color;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- أعلى الإيرادات -->
+        @if (Model.TopIncomeCategories.Any())
+        {
+            <div class="section">
+                <div class="section-header">
+                    <h5><i class="fas fa-arrow-trend-down text-success"></i> أعلى الإيرادات هذا الشهر</h5>
+                </div>
+                <div class="section-body">
+                    @foreach (var cat in Model.TopIncomeCategories)
+                    {
+                        <div class="category-item">
+                            <div class="category-icon" style="background: @cat.Color;">
+                                <i class="fas @cat.Icon"></i>
+                            </div>
+                            <div class="category-info">
+                                <div class="d-flex justify-content-between">
+                                    <span class="category-name">@cat.CategoryName</span>
+                                    <span class="category-amount text-success">@cat.TotalAmount.ToString("N0", culture) دج</span>
+                                </div>
+                                <div class="category-stats">
+                                    @cat.Count حركة | @cat.Percentage%
+                                </div>
+                                <div class="category-bar">
+                                    <div class="category-bar-fill"
+                                         style="width: @cat.Percentage%; background: @cat.Color;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 أزرار التقارير -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+    <div class="section-header">
+        <h5><i class="fas fa-chart-bar"></i> التقارير</h5>
+    </div>
+    <div class="section-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="@Url.Action("DailyReport")" class="btn btn-outline-primary w-100 py-3">
+                    <i class="fas fa-calendar-day fa-2x d-block mb-2"></i>
+                    <strong>تقرير يومي</strong>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="@Url.Action("MonthlyReport")" class="btn btn-outline-info w-100 py-3">
+                    <i class="fas fa-calendar-alt fa-2x d-block mb-2"></i>
+                    <strong>تقرير شهري</strong>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="@Url.Action("YearlyReport")" class="btn btn-outline-success w-100 py-3">
+                    <i class="fas fa-calendar fa-2x d-block mb-2"></i>
+                    <strong>تقرير سنوي</strong>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="@Url.Action("Closures")" class="btn btn-outline-warning w-100 py-3">
+                    <i class="fas fa-lock fa-2x d-block mb-2"></i>
+                    <strong>سجل الجردات</strong>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,789 @@
+﻿@model SmarterGros.ViewModels.CashTransactionViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = "إضافة حركة";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+    var currentBalance = ViewBag.CurrentBalance ?? 0m;
+    var registerName = ViewBag.RegisterName ?? "الصندوق";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .page-header h1 {
+                margin: 0;
+                font-size: 1.6rem;
+                font-weight: 700;
+            }
+
+            .page-header p {
+                margin: 5px 0 0;
+                opacity: 0.9;
+            }
+
+        .balance-info {
+            background: rgba(255,255,255,0.15);
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+            .balance-info .label {
+                font-size: 0.8rem;
+                opacity: 0.9;
+            }
+
+            .balance-info .value {
+                font-size: 1.5rem;
+                font-weight: 800;
+                margin: 0;
+            }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #0E4D3A;
+        }
+
+            .section-header h4 {
+                margin: 0;
+                color: #0E4D3A;
+                font-weight: 700;
+                font-size: 1.1rem;
+            }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        /* نوع الحركة - بطاقات */
+        .type-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .type-card {
+            background: white;
+            border: 3px solid #dee2e6;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+            .type-card:hover {
+                border-color: #0E4D3A;
+                background: #f8f9fa;
+                transform: translateY(-3px);
+            }
+
+            .type-card.active.income {
+                border-color: #28a745;
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+            }
+
+            .type-card.active.expense {
+                border-color: #dc3545;
+                background: linear-gradient(135deg, #dc3545, #c82333);
+                color: white;
+            }
+
+            .type-card .icon {
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }
+
+            .type-card .title {
+                font-size: 1.3rem;
+                font-weight: 800;
+                margin-bottom: 5px;
+            }
+
+            .type-card .desc {
+                font-size: 0.85rem;
+                opacity: 0.85;
+            }
+
+        /* فئات الحركة */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .category-card {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+            .category-card:hover {
+                border-color: #0E4D3A;
+                background: #f8f9fa;
+                transform: translateY(-2px);
+            }
+
+            .category-card.active {
+                border-color: #0E4D3A;
+                background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+                color: white;
+            }
+
+            .category-card .icon {
+                font-size: 1.8rem;
+                margin-bottom: 5px;
+            }
+
+            .category-card .name {
+                font-size: 0.85rem;
+                font-weight: 700;
+            }
+
+        /* طرق الدفع */
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .payment-option {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+            .payment-option:hover {
+                border-color: #17a2b8;
+                background: #f8f9fa;
+            }
+
+            .payment-option.active {
+                border-color: #17a2b8;
+                background: linear-gradient(135deg, #17a2b8, #0288d1);
+                color: white;
+            }
+
+            .payment-option i {
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+
+            .payment-option .name {
+                font-size: 0.85rem;
+                font-weight: 700;
+                display: block;
+            }
+
+        /* المبلغ */
+        .amount-input-wrapper {
+            position: relative;
+        }
+
+        .amount-input {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            padding: 15px;
+            border: 3px solid #28a745;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+            .amount-input:focus {
+                border-color: #20c997;
+                box-shadow: 0 0 0 0.25rem rgba(40,167,69,0.25);
+            }
+
+            .amount-input.expense-style {
+                border-color: #dc3545;
+            }
+
+                .amount-input.expense-style:focus {
+                    border-color: #c82333;
+                    box-shadow: 0 0 0 0.25rem rgba(220,53,69,0.25);
+                }
+
+        .amount-currency {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        /* معاينة الرصيد بعد الحركة */
+        .balance-preview {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: center;
+            border: 2px dashed #dee2e6;
+        }
+
+            .balance-preview .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+            }
+
+            .balance-preview .value {
+                font-size: 1.5rem;
+                font-weight: 800;
+                margin: 5px 0;
+            }
+
+                .balance-preview .value.positive {
+                    color: #28a745;
+                }
+
+                .balance-preview .value.negative {
+                    color: #dc3545;
+                }
+
+                .balance-preview .value.warning {
+                    color: #ffc107;
+                }
+
+        /* أزرار الحفظ */
+        .action-buttons {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+            .btn-save:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+                color: white;
+            }
+
+            .btn-save:disabled {
+                background: #6c757d;
+                cursor: not-allowed;
+            }
+
+        /* الشيك */
+        .check-info {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+    </style>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📋 الترويسة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-plus-circle"></i> إضافة حركة جديدة</h1>
+        <p><i class="fas fa-cash-register"></i> @registerName</p>
+    </div>
+    <div class="d-flex gap-3 align-items-center">
+        <div class="balance-info">
+            <div class="label">الرصيد الحالي</div>
+            <div class="value">@(((decimal)currentBalance).ToString("N2", culture)) دج</div>
+        </div>
+        <a href="@Url.Action("Index")" class="btn btn-light">
+            <i class="fas fa-arrow-right"></i> العودة
+        </a>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🔄 نوع الحركة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-exchange-alt"></i>
+        <h4>نوع الحركة *</h4>
+    </div>
+    <div class="section-body">
+        <div class="type-cards">
+            <div class="type-card @(Model.Type == TransactionType.Income ? "active income" : "")"
+                 data-type="1" onclick="selectType(1)">
+                <div class="icon"><i class="fas fa-arrow-down"></i></div>
+                <div class="title">🟢 وارد (دخل)</div>
+                <div class="desc">إضافة أموال للصندوق</div>
+            </div>
+
+            <div class="type-card @(Model.Type == TransactionType.Expense ? "active expense" : "")"
+                 data-type="2" onclick="selectType(2)">
+                <div class="icon"><i class="fas fa-arrow-up"></i></div>
+                <div class="title">🔴 صادر (خرج)</div>
+                <div class="desc">سحب أموال من الصندوق</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📂 الفئة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-folder"></i>
+        <h4>فئة الحركة *</h4>
+    </div>
+    <div class="section-body">
+        <div class="categories-grid" id="categoriesGrid">
+            <!-- ستُملأ ديناميكياً -->
+        </div>
+        <input type="hidden" id="categoryValue" value="@((int)Model.Category)" />
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 💵 المبلغ والتاريخ -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-money-bill-wave"></i>
+        <h4>المبلغ والتاريخ</h4>
+    </div>
+    <div class="section-body">
+        <div class="row g-3">
+            <div class="col-md-7">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-coins"></i> المبلغ *
+                </label>
+                <div class="amount-input-wrapper">
+                    <input type="number" id="amount" class="form-control amount-input"
+                           value="@Model.Amount" min="0.01" step="0.01"
+                           placeholder="0.00" required
+                           oninput="updateBalancePreview()" />
+                    <span class="amount-currency">دج</span>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-calendar"></i> تاريخ الحركة *
+                </label>
+                <input type="datetime-local" id="transactionDate" class="form-control form-control-lg"
+                       value="@Model.TransactionDate.ToString("yyyy-MM-ddTHH:mm")" required />
+            </div>
+        </div>
+
+        <!-- معاينة الرصيد -->
+        <div class="balance-preview" id="balancePreview" style="display:none;">
+            <div class="label">الرصيد بعد الحركة:</div>
+            <div class="value" id="balanceAfter">0.00 دج</div>
+            <div id="balanceWarning" style="display:none;" class="text-danger small mt-2">
+                <i class="fas fa-exclamation-triangle"></i> الرصيد غير كافٍ!
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 💳 طريقة الدفع -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-credit-card"></i>
+        <h4>طريقة الدفع *</h4>
+    </div>
+    <div class="section-body">
+        <div class="payment-options">
+            @foreach (PaymentMethod pm in Enum.GetValues<PaymentMethod>())
+            {
+                <div class="payment-option @(Model.PaymentMethod == pm ? "active" : "")"
+                     data-method="@((int)pm)" onclick="selectPaymentMethod(@((int)pm))">
+                    <i class="fas @pm.GetIcon()"></i>
+                    <span class="name">@pm.GetArabicName()</span>
+                </div>
+            }
+        </div>
+        <input type="hidden" id="paymentMethodValue" value="@((int)Model.PaymentMethod)" />
+
+        <!-- معلومات الشيك -->
+        <div class="check-info" id="checkInfo" style="display:none;">
+            <h6 class="text-warning"><i class="fas fa-money-check"></i> معلومات الشيك</h6>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <label class="form-label small">رقم الشيك</label>
+                    <input type="text" id="checkNumber" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small">اسم البنك</label>
+                    <input type="text" id="bankName" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small">تاريخ الاستحقاق</label>
+                    <input type="date" id="checkDueDate" class="form-control form-control-sm" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📝 الوصف والمعلومات -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-file-alt"></i>
+        <h4>الوصف والمعلومات</h4>
+    </div>
+    <div class="section-body">
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-comment"></i> الوصف *
+                </label>
+                <input type="text" id="description" class="form-control form-control-lg"
+                       value="@Model.Description" maxlength="500"
+                       placeholder="مثال: دفع كهرباء شهر يناير" required />
+            </div>
+
+            <!-- المورد -->
+            <div class="col-md-6" id="supplierContainer">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-truck"></i> المورد (اختياري)
+                </label>
+                <select id="supplierId" class="form-select">
+                    <option value="">-- لا يوجد --</option>
+                    @if (ViewBag.Suppliers != null)
+                    {
+                        foreach (var s in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Suppliers)
+                        {
+                            <option value="@s.Value">@s.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- العميل -->
+            <div class="col-md-6" id="customerContainer">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-user"></i> العميل (اختياري)
+                </label>
+                <select id="customerId" class="form-select">
+                    <option value="">-- لا يوجد --</option>
+                    @if (ViewBag.Customers != null)
+                    {
+                        foreach (var c in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Customers)
+                        {
+                            <option value="@c.Value">@c.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-sticky-note"></i> ملاحظات
+                </label>
+                <textarea id="notes" class="form-control" rows="2"
+                          placeholder="ملاحظات إضافية...">@Model.Notes</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🎯 أزرار الحفظ -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="action-buttons">
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-lg">
+        <i class="fas fa-times"></i> إلغاء
+    </a>
+    <button type="button" class="btn btn-save" onclick="saveTransaction()" id="saveBtn">
+        <i class="fas fa-save"></i> حفظ الحركة
+    </button>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        const currentBalance = @currentBalance;
+        const cashRegisterId = @Model.CashRegisterId;
+        let selectedType = @((int)Model.Type);
+        let selectedCategory = @((int)Model.Category);
+        let selectedPaymentMethod = @((int)Model.PaymentMethod);
+
+               // فئات الواردات
+        const incomeCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    ViewBag.IncomeCategories as List<object> ?? new List<object>()));
+
+    // فئات الصادرات
+    const expenseCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                ViewBag.ExpenseCategories as List<object> ?? new List<object>()));
+
+    document.addEventListener('DOMContentLoaded', function() {
+        renderCategories();
+        updateBalancePreview();
+        updatePaymentMethodVisibility();
+        updateSupplierCustomerVisibility();
+    });
+
+        // ═══════════════════════════════════════════════════
+        // 🔄 اختيار النوع
+        // ═══════════════════════════════════════════════════
+        function selectType(type) {
+            selectedType = type;
+
+            // تحديث UI
+            document.querySelectorAll('.type-card').forEach(card => {
+                card.classList.remove('active', 'income', 'expense');
+            });
+            const card = document.querySelector(`.type-card[data-type="${type}"]`);
+            card.classList.add('active', type === 1 ? 'income' : 'expense');
+
+            // تحديث لون input المبلغ
+            const amountInput = document.getElementById('amount');
+            if (type === 2) {
+                amountInput.classList.add('expense-style');
+            } else {
+                amountInput.classList.remove('expense-style');
+            }
+
+            // إعادة عرض الفئات
+            renderCategories();
+            updateBalancePreview();
+            updateSupplierCustomerVisibility();
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 📂 عرض الفئات
+        // ═══════════════════════════════════════════════════
+        function renderCategories() {
+            const categories = selectedType === 1 ? incomeCategories : expenseCategories;
+            const grid = document.getElementById('categoriesGrid');
+
+            let html = '';
+            categories.forEach(cat => {
+                const isActive = cat.value === selectedCategory ? 'active' : '';
+                html += `
+                    <div class="category-card ${isActive}"
+                         data-category="${cat.value}"
+                         onclick="selectCategory(${cat.value})">
+                        <div class="icon"><i class="fas ${cat.icon}"></i></div>
+                        <div class="name">${cat.name}</div>
+                    </div>`;
+            });
+
+            grid.innerHTML = html;
+
+            // إذا الفئة الحالية غير موجودة في القائمة الجديدة، اختر الأولى
+            const currentExists = categories.some(c => c.value === selectedCategory);
+            if (!currentExists && categories.length > 0) {
+                selectCategory(categories[0].value);
+            }
+        }
+
+        function selectCategory(categoryId) {
+            selectedCategory = categoryId;
+            document.getElementById('categoryValue').value = categoryId;
+
+            document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
+            const card = document.querySelector(`.category-card[data-category="${categoryId}"]`);
+            if (card) card.classList.add('active');
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 💳 طريقة الدفع
+        // ═══════════════════════════════════════════════════
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            document.getElementById('paymentMethodValue').value = method;
+
+            document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('active'));
+            document.querySelector(`.payment-option[data-method="${method}"]`).classList.add('active');
+
+            updatePaymentMethodVisibility();
+        }
+
+        function updatePaymentMethodVisibility() {
+            const checkInfo = document.getElementById('checkInfo');
+            // عرض حقول الشيك إذا كانت طريقة الدفع شيك (2)
+            checkInfo.style.display = selectedPaymentMethod === 2 ? 'block' : 'none';
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 👥 إخفاء/إظهار المورد/العميل
+        // ═══════════════════════════════════════════════════
+        function updateSupplierCustomerVisibility() {
+            // إذا كان النوع وارد، نعرض العميل ونخفي المورد
+            // إذا كان صادر، نعرض المورد ونخفي العميل
+            document.getElementById('supplierContainer').style.display =
+                selectedType === 2 ? 'block' : 'none';
+            document.getElementById('customerContainer').style.display =
+                selectedType === 1 ? 'block' : 'none';
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 💰 معاينة الرصيد
+        // ═══════════════════════════════════════════════════
+        function updateBalancePreview() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const preview = document.getElementById('balancePreview');
+            const balanceAfter = document.getElementById('balanceAfter');
+            const warning = document.getElementById('balanceWarning');
+
+            if (amount <= 0) {
+                preview.style.display = 'none';
+                return;
+            }
+
+            let newBalance;
+            if (selectedType === 1) {
+                newBalance = currentBalance + amount;
+                balanceAfter.className = 'value positive';
+            } else {
+                newBalance = currentBalance - amount;
+                balanceAfter.className = newBalance < 0 ? 'value negative' : 'value warning';
+            }
+
+            balanceAfter.textContent = newBalance.toLocaleString('ar-DZ', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }) + ' دج';
+
+            warning.style.display = (selectedType === 2 && amount > currentBalance) ? 'block' : 'none';
+            preview.style.display = 'block';
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 💾 حفظ الحركة
+        // ═══════════════════════════════════════════════════
+        function saveTransaction() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const description = document.getElementById('description').value.trim();
+
+            // التحقق
+            if (!amount || amount <= 0) {
+                showToast('error', 'المبلغ يجب أن يكون أكبر من 0');
+                return;
+            }
+
+            if (!description) {
+                showToast('error', 'الوصف مطلوب');
+                return;
+            }
+
+            if (selectedType === 2 && amount > currentBalance) {
+                showToast('error', `الرصيد غير كافٍ! الرصيد الحالي: ${currentBalance.toLocaleString('ar-DZ')} دج`);
+                return;
+            }
+
+            const model = {
+                CashRegisterId: cashRegisterId,
+                TransactionDate: document.getElementById('transactionDate').value,
+                Type: selectedType,
+                Category: selectedCategory,
+                PaymentMethod: selectedPaymentMethod,
+                Amount: amount,
+                Description: description,
+                Notes: document.getElementById('notes').value,
+                SupplierId: parseInt(document.getElementById('supplierId').value) || null,
+                CustomerId: parseInt(document.getElementById('customerId').value) || null,
+                CheckNumber: document.getElementById('checkNumber').value || null,
+                BankName: document.getElementById('bankName').value || null,
+                CheckDueDate: document.getElementById('checkDueDate').value || null
+            };
+
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            btn.disabled = true;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("AddTransaction", "CashRegister")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(model)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => window.location.href = data.redirectUrl, 1000);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('error', 'حدث خطأ في الاتصال');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 🛠️ Toast
+        // ═══════════════════════════════════════════════════
+        function showToast(type, message) {
+            const colors = { success: 'bg-success', error: 'bg-danger', info: 'bg-info', warning: 'bg-warning' };
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${colors[type] || 'bg-secondary'} border-0 show`;
+            toast.style.cssText = 'position: fixed; top: 80px; left: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
+        }
+    </script>
+}

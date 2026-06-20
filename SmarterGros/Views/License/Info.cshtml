@@ -1,0 +1,370 @@
+﻿@{
+    ViewData["Title"] = "معلومات الترخيص";
+    var license = ViewBag.License as SmarterGros.Models.LicenseInfo;
+    var status = (SmarterGros.Services.LicenseStatus)ViewBag.Status;
+    var remainingDays = (int)ViewBag.RemainingDays;
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+            .page-header h1 {
+                margin: 0;
+                font-size: 1.6rem;
+                font-weight: 800;
+            }
+
+            .page-header p {
+                margin: 5px 0 0;
+                opacity: 0.95;
+            }
+
+        .status-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .status-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        .status-trial {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .status-expiring {
+            background: linear-gradient(135deg, #f5576c, #f093fb);
+            animation: pulse 2s infinite;
+        }
+
+        .status-expired {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        @@keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .info-item .icon {
+                width: 45px;
+                height: 45px;
+                background: linear-gradient(135deg, #4facfe, #00f2fe);
+                color: white;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.2rem;
+            }
+
+            .info-item .label {
+                font-size: 0.8rem;
+                color: #6c757d;
+            }
+
+            .info-item .value {
+                font-weight: 700;
+                color: #2c3e50;
+            }
+
+        .hw-id-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .hw-id-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            margin: 15px 0;
+            user-select: all;
+        }
+
+        .btn-copy {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-activate-big {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+            .btn-activate-big:hover {
+                transform: translateY(-2px);
+                color: white;
+            }
+    </style>
+}
+
+<div class="page-header">
+    <h1><i class="fas fa-key"></i> معلومات الترخيص</h1>
+    <p>تفاصيل ترخيص النظام والجهاز</p>
+</div>
+
+<!-- بطاقة الحالة -->
+<div class="status-card">
+    @switch (status)
+    {
+        case SmarterGros.Services.LicenseStatus.Active:
+            <div class="status-icon status-active">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 style="color: #11998e;">✅ ترخيص مفعّل</h2>
+            <p>النظام مفعّل بالكامل ويعمل بدون قيود</p>
+            break;
+
+        case SmarterGros.Services.LicenseStatus.TrialActive:
+            <div class="status-icon status-trial">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h2 style="color: #4facfe;">🆓 نسخة تجريبية</h2>
+            <p>متبقي <strong style="font-size: 1.5rem; color: #11998e;">@remainingDays</strong> يوم من الفترة التجريبية</p>
+            <a href="@Url.Action("Activate")" class="btn-activate-big">
+                <i class="fas fa-key"></i> تفعيل الترخيص الكامل
+            </a>
+            break;
+
+        case SmarterGros.Services.LicenseStatus.TrialExpiring:
+            <div class="status-icon status-expiring">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 style="color: #f5576c;">⚠️ التجربة ستنتهي قريباً</h2>
+            <p>متبقي <strong style="font-size: 1.5rem; color: #f5576c;">@remainingDays</strong> يوم فقط!</p>
+            <p>سارع بالتفعيل لتجنب انقطاع الخدمة</p>
+            <a href="@Url.Action("Activate")" class="btn-activate-big">
+                <i class="fas fa-key"></i> تفعيل الآن
+            </a>
+            break;
+
+        case SmarterGros.Services.LicenseStatus.Expired:
+            <div class="status-icon status-expired">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <h2 style="color: #dc3545;">❌ انتهت الفترة التجريبية</h2>
+            <p>يجب تفعيل النظام للاستمرار في الاستخدام</p>
+            <a href="@Url.Action("Expired")" class="btn-activate-big">
+                <i class="fas fa-key"></i> تفعيل الترخيص
+            </a>
+            break;
+    }
+</div>
+
+<!-- Hardware ID -->
+<div class="hw-id-card">
+    <h3><i class="fas fa-laptop-code"></i> رقم جهازك الفريد</h3>
+    <p style="opacity: 0.9;">استخدم هذا الرقم عند طلب مفتاح التفعيل</p>
+    <div class="hw-id-value" id="hardwareId">@ViewBag.HardwareId</div>
+    <button class="btn-copy" onclick="copyHwId()">
+        <i class="fas fa-copy"></i> نسخ الرقم
+    </button>
+</div>
+
+<!-- تفاصيل الترخيص -->
+@if (license != null)
+{
+    <div class="status-card">
+        <h3 style="color: #2c3e50; margin-bottom: 20px;">
+            <i class="fas fa-info-circle"></i> تفاصيل الترخيص
+        </h3>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="icon"><i class="fas fa-id-card"></i></div>
+                <div>
+                    <div class="label">نوع الترخيص</div>
+                    <div class="value">
+                        @switch (license.LicenseType)
+                        {
+                            case "Trial":
+                                <span>🆓 تجريبي</span>
+                                break;
+                            case "Full":
+                                <span>♾️ كامل (دائم)</span>
+                                break;
+                            case "Yearly":
+                                <span>📅 سنوي</span>
+                                break;
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="icon"><i class="fas fa-calendar-plus"></i></div>
+                <div>
+                    <div class="label">تاريخ التثبيت</div>
+                    <div class="value">@license.InstallationDate.ToString("yyyy/MM/dd")</div>
+                </div>
+            </div>
+
+            @if (license.ActivationDate.HasValue)
+            {
+                <div class="info-item">
+                    <div class="icon"><i class="fas fa-check"></i></div>
+                    <div>
+                        <div class="label">تاريخ التفعيل</div>
+                        <div class="value">@license.ActivationDate.Value.ToString("yyyy/MM/dd")</div>
+                    </div>
+                </div>
+            }
+
+            @if (license.ExpiryDate.HasValue && license.LicenseType != "Full")
+            {
+                <div class="info-item">
+                    <div class="icon"><i class="fas fa-calendar-times"></i></div>
+                    <div>
+                        <div class="label">تاريخ الانتهاء</div>
+                        <div class="value">@license.ExpiryDate.Value.ToString("yyyy/MM/dd")</div>
+                    </div>
+                </div>
+            }
+
+            <div class="info-item">
+                <div class="icon"><i class="fas fa-power-off"></i></div>
+                <div>
+                    <div class="label">عدد مرات التشغيل</div>
+                    <div class="value">@license.RunCount مرة</div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(license.CustomerName))
+            {
+                <div class="info-item">
+                    <div class="icon"><i class="fas fa-user"></i></div>
+                    <div>
+                        <div class="label">اسم العميل</div>
+                        <div class="value">@license.CustomerName</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- معلومات التواصل -->
+<div class="status-card" style="background: linear-gradient(135deg, #f8f9fa, #ffffff);">
+    <h3 style="color: #2c3e50; margin-bottom: 15px;">
+        <i class="fas fa-headset"></i> للدعم والاستفسار
+    </h3>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                <i class="fas fa-user"></i>
+            </div>
+            <div>
+                <div class="label">المطور</div>
+                <div class="value">بن يونس إبراهيم</div>
+            </div>
+        </div>
+
+        <div class="info-item">
+            <div class="icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                <i class="fas fa-phone"></i>
+            </div>
+            <div>
+                <div class="label">الهاتف</div>
+                <div class="value">0551 73 52 94</div>
+            </div>
+        </div>
+
+        <div class="info-item">
+            <div class="icon" style="background: linear-gradient(135deg, #25d366, #128c7e);">
+                <i class="fab fa-whatsapp"></i>
+            </div>
+            <div>
+                <div class="label">واتساب</div>
+                <div class="value">0790 05 86 77</div>
+            </div>
+        </div>
+
+        <div class="info-item">
+            <div class="icon" style="background: linear-gradient(135deg, #f5576c, #f093fb);">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <div>
+                <div class="label">الإيميل</div>
+                <div class="value" style="font-size: 0.85rem;">Benyounesibrahiminfo@Gmail.com</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyHwId() {
+            const hwId = document.getElementById('hardwareId').textContent;
+            navigator.clipboard.writeText(hwId).then(() => {
+                alert('✅ تم نسخ الرقم بنجاح!');
+            });
+        }
+    </script>
+}

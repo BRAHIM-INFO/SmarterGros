@@ -105,7 +105,7 @@ namespace SmarterGros.Services
         // ═══════════════════════════════════════════════════
 
         /// <summary>
-        /// توليد رقم فاتورة جديد (PUR-2025-00001)
+        /// توليد رقم فاتورة جديد (FACT-2025-00001)
         /// </summary>
         Task<string> GenerateInvoiceNumberAsync();
 

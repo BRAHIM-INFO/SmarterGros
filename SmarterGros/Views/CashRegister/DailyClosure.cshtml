@@ -1,0 +1,677 @@
+﻿@model SmarterGros.ViewModels.DailyClosureViewModel
+
+@{
+    ViewData["Title"] = "الجرد اليومي";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(255,152,0,0.3);
+        }
+
+            .page-header h1 {
+                margin: 0;
+                font-size: 1.6rem;
+                font-weight: 700;
+            }
+
+            .page-header p {
+                margin: 5px 0 0;
+                opacity: 0.9;
+            }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .section-header h4 {
+                margin: 0;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        /* بطاقات الإحصائيات */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid;
+        }
+
+            .summary-card .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+
+            .summary-card .value {
+                font-size: 1.5rem;
+                font-weight: 800;
+            }
+
+        .card-opening {
+            border-color: #6c757d;
+        }
+
+            .card-opening .value {
+                color: #495057;
+            }
+
+        .card-income {
+            border-color: #28a745;
+        }
+
+            .card-income .value {
+                color: #28a745;
+            }
+
+        .card-expense {
+            border-color: #dc3545;
+        }
+
+            .card-expense .value {
+                color: #dc3545;
+            }
+
+        .card-expected {
+            border-color: #17a2b8;
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        }
+
+            .card-expected .value {
+                color: #17a2b8;
+                font-size: 1.8rem;
+            }
+
+        /* جدول العد */
+        .cash-count-table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+            .cash-count-table th {
+                background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+                color: white;
+                padding: 12px;
+                text-align: center;
+                font-weight: 700;
+            }
+
+            .cash-count-table td {
+                padding: 10px 12px;
+                border-bottom: 1px solid #e9ecef;
+                vertical-align: middle;
+            }
+
+            .cash-count-table tr:hover {
+                background: #f8f9fa;
+            }
+
+        .denomination-label {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .count-input {
+            width: 100px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .subtotal-cell {
+            text-align: end;
+            font-weight: 800;
+            color: #28a745;
+            font-size: 1.1rem;
+        }
+
+        .total-row {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+            .total-row td {
+                padding: 15px !important;
+            }
+
+        /* صندوق المقارنة */
+        .comparison-box {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid;
+        }
+
+            .comparison-box.match {
+                border-color: #28a745;
+                background: linear-gradient(135deg, #d4edda, #ffffff);
+            }
+
+            .comparison-box.difference {
+                border-color: #dc3545;
+                background: linear-gradient(135deg, #f8d7da, #ffffff);
+            }
+
+        .comparison-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 1rem;
+        }
+
+            .comparison-row.final {
+                font-size: 1.5rem;
+                font-weight: 800;
+                border-top: 2px solid currentColor;
+                padding-top: 12px;
+                margin-top: 8px;
+            }
+
+        /* أزرار الحفظ */
+        .action-buttons {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn-save-draft {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .btn-close-day {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+            .btn-close-day:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+                color: white;
+            }
+
+        /* تحذيرات */
+        .alert-info-custom {
+            background: linear-gradient(135deg, #cce5ff, #ffffff);
+            border: 2px solid #17a2b8;
+            color: #004085;
+            border-radius: 10px;
+            padding: 15px;
+        }
+    </style>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📋 الترويسة -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-header">
+    <div>
+        <h1><i class="fas fa-lock"></i> الجرد اليومي</h1>
+        <p>
+            <i class="fas fa-cash-register"></i> @Model.CashRegisterName
+            <span class="mx-3">|</span>
+            <i class="fas fa-calendar"></i> @Model.ClosureDate.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("ar-DZ"))
+        </p>
+    </div>
+    <a href="@Url.Action("Index")" class="btn btn-light">
+        <i class="fas fa-arrow-right"></i> العودة
+    </a>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ℹ️ تنبيه -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="alert-info-custom mb-3">
+    <strong><i class="fas fa-info-circle"></i> ملاحظة مهمة:</strong>
+    قم بعدّ النقود الفعلية الموجودة في الصندوق وأدخل العدد لكل فئة.
+    سيتم حساب الفرق تلقائياً بين الرصيد المتوقع والفعلي.
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📊 ملخص اليوم -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-chart-bar"></i>
+        <h4>ملخص اليوم</h4>
+    </div>
+    <div class="section-body">
+        <div class="summary-cards">
+            <div class="summary-card card-opening">
+                <div class="label">الرصيد الافتتاحي</div>
+                <div class="value">@Model.OpeningBalance.ToString("N2", culture) دج</div>
+            </div>
+
+            <div class="summary-card card-income">
+                <div class="label">إجمالي الواردات</div>
+                <div class="value">+@Model.TotalIncome.ToString("N2", culture) دج</div>
+            </div>
+
+            <div class="summary-card card-expense">
+                <div class="label">إجمالي الصادرات</div>
+                <div class="value">-@Model.TotalExpense.ToString("N2", culture) دج</div>
+            </div>
+
+            <div class="summary-card card-expected">
+                <div class="label">الرصيد المتوقع</div>
+                <div class="value">@Model.ExpectedBalance.ToString("N2", culture) دج</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 💵 العد اليدوي للنقود -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-money-bill-wave"></i>
+        <h4>العد اليدوي للنقود</h4>
+    </div>
+    <div class="section-body">
+        <table class="cash-count-table">
+            <thead>
+                <tr>
+                    <th>الفئة</th>
+                    <th width="120">العدد</th>
+                    <th>القيمة</th>
+                    <th class="text-end">المجموع الفرعي</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="denomination-label">💴 فئة 2000 دج</span></td>
+                    <td>
+                        <input type="number" id="count2000" class="form-control count-input"
+                               value="@Model.Count2000" min="0" onchange="calculateTotal()" />
+                    </td>
+                    <td>× 2,000 دج</td>
+                    <td class="subtotal-cell" id="subtotal2000">0.00 دج</td>
+                </tr>
+
+                <tr>
+                    <td><span class="denomination-label">💴 فئة 1000 دج</span></td>
+                    <td>
+                        <input type="number" id="count1000" class="form-control count-input"
+                               value="@Model.Count1000" min="0" onchange="calculateTotal()" />
+                    </td>
+                    <td>× 1,000 دج</td>
+                    <td class="subtotal-cell" id="subtotal1000">0.00 دج</td>
+                </tr>
+
+                <tr>
+                    <td><span class="denomination-label">💴 فئة 500 دج</span></td>
+                    <td>
+                        <input type="number" id="count500" class="form-control count-input"
+                               value="@Model.Count500" min="0" onchange="calculateTotal()" />
+                    </td>
+                    <td>× 500 دج</td>
+                    <td class="subtotal-cell" id="subtotal500">0.00 دج</td>
+                </tr>
+
+                <tr>
+                    <td><span class="denomination-label">💴 فئة 200 دج</span></td>
+                    <td>
+                        <input type="number" id="count200" class="form-control count-input"
+                               value="@Model.Count200" min="0" onchange="calculateTotal()" />
+                    </td>
+                    <td>× 200 دج</td>
+                    <td class="subtotal-cell" id="subtotal200">0.00 دج</td>
+                </tr>
+
+                <tr>
+                    <td><span class="denomination-label">💴 فئة 100 دج</span></td>
+                    <td>
+                        <input type="number" id="count100" class="form-control count-input"
+                               value="@Model.Count100" min="0" onchange="calculateTotal()" />
+                    </td>
+                    <td>× 100 دج</td>
+                    <td class="subtotal-cell" id="subtotal100">0.00 دج</td>
+                </tr>
+
+                <tr>
+                    <td><span class="denomination-label">🪙 فئة 50 دج</span></td>
+                    <td>
+                        <input type="number" id="count50" class="form-control count-input"
+                               value="@Model.Count50" min="0" onchange="calculateTotal()" />
+                    </td>
+                    <td>× 50 دج</td>
+                    <td class="subtotal-cell" id="subtotal50">0.00 دج</td>
+                </tr>
+
+                <tr>
+                    <td><span class="denomination-label">🪙 فئة 20 دج</span></td>
+                    <td>
+                        <input type="number" id="count20" class="form-control count-input"
+                               value="@Model.Count20" min="0" onchange="calculateTotal()" />
+                    </td>
+                    <td>× 20 دج</td>
+                    <td class="subtotal-cell" id="subtotal20">0.00 دج</td>
+                </tr>
+
+                <tr>
+                    <td><span class="denomination-label">🪙 فئة 10 دج</span></td>
+                    <td>
+                        <input type="number" id="count10" class="form-control count-input"
+                               value="@Model.Count10" min="0" onchange="calculateTotal()" />
+                    </td>
+                    <td>× 10 دج</td>
+                    <td class="subtotal-cell" id="subtotal10">0.00 دج</td>
+                </tr>
+
+                <tr>
+                    <td><span class="denomination-label">🪙 فئة 5 دج</span></td>
+                    <td>
+                        <input type="number" id="count5" class="form-control count-input"
+                               value="@Model.Count5" min="0" onchange="calculateTotal()" />
+                    </td>
+                    <td>× 5 دج</td>
+                    <td class="subtotal-cell" id="subtotal5">0.00 دج</td>
+                </tr>
+
+                <tr>
+                    <td><span class="denomination-label">🪙 عملات معدنية أخرى</span></td>
+                    <td>
+                        <input type="number" id="coinsAmount" class="form-control count-input"
+                               value="@Model.CoinsAmount" min="0" step="0.01" onchange="calculateTotal()" />
+                    </td>
+                    <td>(دج)</td>
+                    <td class="subtotal-cell" id="subtotalCoins">0.00 دج</td>
+                </tr>
+
+                <tr class="total-row">
+                    <td colspan="3"><strong>💰 الإجمالي الفعلي:</strong></td>
+                    <td class="text-end"><strong id="actualTotal">0.00 دج</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ⚖️ المقارنة والفرق -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="form-section">
+    <div class="section-header">
+        <i class="fas fa-scale-balanced"></i>
+        <h4>المقارنة والفرق</h4>
+    </div>
+    <div class="section-body">
+        <div class="comparison-box" id="comparisonBox">
+            <div class="comparison-row">
+                <span>💼 الرصيد المتوقع (من النظام):</span>
+                <strong>@Model.ExpectedBalance.ToString("N2", culture) دج</strong>
+            </div>
+            <div class="comparison-row">
+                <span>💵 الرصيد الفعلي (من العد):</span>
+                <strong id="actualBalance">0.00 دج</strong>
+            </div>
+            <div class="comparison-row final" id="differenceRow">
+                <span>⚖️ الفرق:</span>
+                <strong id="differenceAmount">0.00 دج</strong>
+            </div>
+        </div>
+
+        <!-- سبب الفرق (يظهر فقط إذا كان هناك فرق) -->
+        <div id="differenceReasonSection" style="display:none; margin-top: 15px;">
+            <label class="form-label fw-bold text-danger">
+                <i class="fas fa-exclamation-triangle"></i> سبب الفرق *
+            </label>
+            <textarea id="differenceReason" class="form-control" rows="2"
+                      placeholder="اشرح سبب الفرق بين الرصيد المتوقع والفعلي...">@Model.DifferenceReason</textarea>
+        </div>
+
+        <!-- ملاحظات عامة -->
+        <div class="mt-3">
+            <label class="form-label fw-bold">
+                <i class="fas fa-sticky-note"></i> ملاحظات عامة (اختياري)
+            </label>
+            <textarea id="notes" class="form-control" rows="2"
+                      placeholder="أي ملاحظات أخرى...">@Model.Notes</textarea>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 🎯 أزرار الحفظ -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="action-buttons">
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-lg">
+        <i class="fas fa-times"></i> إلغاء
+    </a>
+    <button type="button" class="btn btn-save-draft" onclick="saveClosure(false)">
+        <i class="fas fa-save"></i> حفظ كمسودة
+    </button>
+    <button type="button" class="btn btn-close-day" onclick="saveClosure(true)" id="closeDayBtn">
+        <i class="fas fa-lock"></i> إغلاق اليوم نهائياً
+    </button>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        const expectedBalance = @Model.ExpectedBalance;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateTotal();
+        });
+
+        function calculateTotal() {
+            const count2000 = parseInt(document.getElementById('count2000').value) || 0;
+            const count1000 = parseInt(document.getElementById('count1000').value) || 0;
+            const count500 = parseInt(document.getElementById('count500').value) || 0;
+            const count200 = parseInt(document.getElementById('count200').value) || 0;
+            const count100 = parseInt(document.getElementById('count100').value) || 0;
+            const count50 = parseInt(document.getElementById('count50').value) || 0;
+            const count20 = parseInt(document.getElementById('count20').value) || 0;
+            const count10 = parseInt(document.getElementById('count10').value) || 0;
+            const count5 = parseInt(document.getElementById('count5').value) || 0;
+            const coinsAmount = parseFloat(document.getElementById('coinsAmount').value) || 0;
+
+            // حساب المجاميع الفرعية
+            const subtotal2000 = count2000 * 2000;
+            const subtotal1000 = count1000 * 1000;
+            const subtotal500 = count500 * 500;
+            const subtotal200 = count200 * 200;
+            const subtotal100 = count100 * 100;
+            const subtotal50 = count50 * 50;
+            const subtotal20 = count20 * 20;
+            const subtotal10 = count10 * 10;
+            const subtotal5 = count5 * 5;
+
+            // عرض المجاميع الفرعية
+            document.getElementById('subtotal2000').textContent = subtotal2000.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('subtotal1000').textContent = subtotal1000.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('subtotal500').textContent = subtotal500.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('subtotal200').textContent = subtotal200.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('subtotal100').textContent = subtotal100.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('subtotal50').textContent = subtotal50.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('subtotal20').textContent = subtotal20.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('subtotal10').textContent = subtotal10.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('subtotal5').textContent = subtotal5.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('subtotalCoins').textContent = coinsAmount.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+
+            // الإجمالي
+            const totalActual = subtotal2000 + subtotal1000 + subtotal500 + subtotal200
+                              + subtotal100 + subtotal50 + subtotal20 + subtotal10 + subtotal5 + coinsAmount;
+
+            document.getElementById('actualTotal').textContent = totalActual.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+            document.getElementById('actualBalance').textContent = totalActual.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج';
+
+            // حساب الفرق
+            const difference = totalActual - expectedBalance;
+            const diffElement = document.getElementById('differenceAmount');
+            const comparisonBox = document.getElementById('comparisonBox');
+            const reasonSection = document.getElementById('differenceReasonSection');
+
+            comparisonBox.classList.remove('match', 'difference');
+
+            if (Math.abs(difference) < 0.01) {
+                diffElement.textContent = '0.00 دج (✅ متطابق)';
+                diffElement.style.color = '#28a745';
+                comparisonBox.classList.add('match');
+                reasonSection.style.display = 'none';
+            } else if (difference > 0) {
+                diffElement.textContent = '+' + difference.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج (📈 زيادة)';
+                diffElement.style.color = '#17a2b8';
+                comparisonBox.classList.add('difference');
+                reasonSection.style.display = 'block';
+            } else {
+                diffElement.textContent = difference.toLocaleString('ar-DZ', { minimumFractionDigits: 2 }) + ' دج (📉 نقص)';
+                diffElement.style.color = '#dc3545';
+                comparisonBox.classList.add('difference');
+                reasonSection.style.display = 'block';
+            }
+        }
+
+        function saveClosure(closeDay) {
+            const actualTotal = parseFloat(document.getElementById('actualTotal').textContent.replace(/[^\d.-]/g, '').replace(',', '.')) || 0;
+            const difference = actualTotal - expectedBalance;
+
+            // إذا هناك فرق، سبب الفرق مطلوب
+            if (Math.abs(difference) > 0.01) {
+                const reason = document.getElementById('differenceReason').value.trim();
+                if (!reason) {
+                    showToast('error', 'سبب الفرق مطلوب');
+                    document.getElementById('differenceReason').focus();
+                    return;
+                }
+            }
+
+            // تأكيد إغلاق اليوم
+            if (closeDay) {
+                if (!confirm('⚠️ هل أنت متأكد من إغلاق اليوم نهائياً؟\n\n' +
+                           '✅ لن تتمكن من إضافة حركات لهذا اليوم بعد الإغلاق\n' +
+                           '✅ سيتم تثبيت الرصيد الفعلي\n\n' +
+                           'استمر؟')) {
+                    return;
+                }
+            }
+
+            const model = {
+                Id: @(Model.Id?.ToString() ?? "null"),
+                CashRegisterId: @Model.CashRegisterId,
+                ClosureDate: '@Model.ClosureDate.ToString("yyyy-MM-dd")',
+                OpeningBalance: @Model.OpeningBalance,
+                TotalIncome: @Model.TotalIncome,
+                TotalExpense: @Model.TotalExpense,
+                ExpectedBalance: @Model.ExpectedBalance,
+                Count2000: parseInt(document.getElementById('count2000').value) || 0,
+                Count1000: parseInt(document.getElementById('count1000').value) || 0,
+                Count500: parseInt(document.getElementById('count500').value) || 0,
+                Count200: parseInt(document.getElementById('count200').value) || 0,
+                Count100: parseInt(document.getElementById('count100').value) || 0,
+                Count50: parseInt(document.getElementById('count50').value) || 0,
+                Count20: parseInt(document.getElementById('count20').value) || 0,
+                Count10: parseInt(document.getElementById('count10').value) || 0,
+                Count5: parseInt(document.getElementById('count5').value) || 0,
+                CoinsAmount: parseFloat(document.getElementById('coinsAmount').value) || 0,
+                Notes: document.getElementById('notes').value,
+                DifferenceReason: document.getElementById('differenceReason')?.value || '',
+                CloseDay: closeDay
+            };
+
+            const btn = closeDay ? document.getElementById('closeDayBtn') : event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            btn.disabled = true;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("DailyClosure", "CashRegister")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(model)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', '✅ ' + data.message);
+                    setTimeout(() => window.location.href = data.redirectUrl, 1500);
+                } else {
+                    showToast('error', '❌ ' + data.message);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('error', 'حدث خطأ في الاتصال');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        function showToast(type, message) {
+            const colors = { success: 'bg-success', error: 'bg-danger', info: 'bg-info', warning: 'bg-warning' };
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${colors[type] || 'bg-secondary'} border-0 show`;
+            toast.style.cssText = 'position: fixed; top: 80px; left: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 3000);
+        }
+    </script>
+}

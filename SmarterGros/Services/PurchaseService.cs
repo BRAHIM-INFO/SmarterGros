@@ -17,16 +17,20 @@ namespace SmarterGros.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IActivityLogService _activityLogService;
 
+        private readonly ICashRegisterService _cashRegisterService;
+
         public PurchaseService(
             ApplicationDbContext context,
             IHttpContextAccessor httpContextAccessor,
             UserManager<ApplicationUser> userManager,
-            IActivityLogService activityLogService)
+            IActivityLogService activityLogService,
+            ICashRegisterService cashRegisterService)  // ⭐ جديد
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
             _activityLogService = activityLogService;
+            _cashRegisterService = cashRegisterService;  // ⭐ جديد
         }
 
         // ═══════════════════════════════════════════════════
@@ -138,6 +142,16 @@ namespace SmarterGros.Services
                     };
                     _context.SupplierPayments.Add(payment);
                     await _context.SaveChangesAsync();
+
+                    // ✅ التكامل مع الصندوق - خصم المبلغ المدفوع
+                    await _cashRegisterService.RecordPurchasePaymentAsync(
+                        purchaseId: purchase.Id,
+                        invoiceNumber: purchase.InvoiceNumber,
+                        amount: purchase.PaidAmount,
+                        supplierId: purchase.SupplierId,
+                        supplierName: supplier.Name,
+                        notes: $"دفعة نقدية لفاتورة {purchase.InvoiceNumber}"
+                    );
                 }
 
                 // تسجيل في Activity Log
@@ -654,6 +668,17 @@ namespace SmarterGros.Services
 
                 await _context.SaveChangesAsync();
 
+                // ✅ التكامل مع الصندوق - خصم الدفعة
+                await _cashRegisterService.RecordSupplierPaymentAsync(
+                    paymentId: payment.Id,
+                    amount: model.Amount,
+                    supplierId: model.SupplierId,
+                    supplierName: supplier.Name,
+                    notes: purchase != null
+                        ? $"دفعة على فاتورة {purchase.InvoiceNumber}"
+                        : "دفعة عامة للمورد"
+                );
+
                 await _activityLogService.LogCreateAsync(
                     module: "Purchases",
                     entityName: "SupplierPayment",
@@ -896,7 +921,7 @@ namespace SmarterGros.Services
         public async Task<string> GenerateInvoiceNumberAsync()
         {
             var year = DateTime.Now.Year;
-            var prefix = $"PUR-{year}-";
+            var prefix = $"FACT-{year}-";
 
             var lastNumber = await _context.Purchases
                 .Where(p => p.InvoiceNumber.StartsWith(prefix))

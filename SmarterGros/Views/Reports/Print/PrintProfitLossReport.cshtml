@@ -1,0 +1,361 @@
+﻿@model SmarterGros.ViewModels.Reports.ProfitLossReportViewModel
+
+@{
+    Layout = null;
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>الأرباح والخسائر - @Model.PeriodLabel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            background: #f0f0f0;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .toolbar {
+            background: #4facfe;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+            .toolbar h3 {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+
+        .btn-action {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-print {
+            background: white;
+            color: #4facfe;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            color: white;
+        }
+
+        .report-page {
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 15mm;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #4facfe;
+            margin-bottom: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            color: #4facfe;
+            margin-bottom: 5px;
+            font-weight: 900;
+        }
+
+        .header-title p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .header-meta {
+            text-align: left;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .main-summary {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+            .main-summary .value {
+                font-size: 2rem;
+                font-weight: 900;
+            }
+
+            .main-summary .label {
+                font-size: 1rem;
+                opacity: 0.95;
+            }
+
+            .main-summary .meta {
+                font-size: 0.85rem;
+                opacity: 0.9;
+                margin-top: 5px;
+            }
+
+        .statement-section {
+            margin-bottom: 20px;
+        }
+
+        .section-bar {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-right: 4px solid;
+            border-radius: 6px;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-revenues {
+            border-color: #11998e;
+        }
+
+            .section-revenues .total {
+                color: #11998e;
+            }
+
+        .section-expenses {
+            border-color: #f5576c;
+        }
+
+            .section-expenses .total {
+                color: #f5576c;
+            }
+
+        .line-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 15px;
+            border-bottom: 1px dashed #e9ecef;
+            font-size: 0.95rem;
+        }
+
+            .line-item.gross {
+                background: #e8f5e9;
+                border: 2px solid #11998e;
+                border-radius: 6px;
+                margin-top: 8px;
+                padding: 10px 15px;
+                font-weight: 800;
+            }
+
+                .line-item.gross .label,
+                .line-item.gross .amount {
+                    color: #11998e;
+                }
+
+            .line-item.net-profit {
+                background: linear-gradient(135deg, #4facfe, #00f2fe);
+                color: white;
+                border-radius: 10px;
+                margin-top: 15px;
+                padding: 15px 20px;
+                font-size: 1.2rem;
+                font-weight: 900;
+            }
+
+            .line-item.net-loss {
+                background: linear-gradient(135deg, #f5576c, #f093fb);
+                color: white;
+                border-radius: 10px;
+                margin-top: 15px;
+                padding: 15px 20px;
+                font-size: 1.2rem;
+                font-weight: 900;
+            }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #4facfe;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+            .footer .tagline {
+                font-weight: 700;
+                color: #4facfe;
+                margin-bottom: 3px;
+            }
+
+        @@media print {
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .report-page {
+                box-shadow: none;
+                margin: 0;
+                padding: 10mm;
+                width: 100%;
+            }
+
+            @@page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <h3><i class="fas fa-print"></i> تقرير الأرباح والخسائر</h3>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-action btn-print" onclick="window.print()">
+                <i class="fas fa-print"></i> طباعة
+            </button>
+            <button class="btn-action btn-back" onclick="window.close()">
+                <i class="fas fa-times"></i> إغلاق
+            </button>
+        </div>
+    </div>
+
+    <div class="report-page">
+        <div class="report-header">
+            <div class="header-title">
+                <h1><i class="fas fa-chart-line"></i> قائمة الدخل</h1>
+                <p>@Model.PeriodLabel</p>
+            </div>
+            <div class="header-meta">
+                <div>تاريخ الطباعة: @DateTime.Now.ToString("yyyy/MM/dd")</div>
+                <div>الوقت: @DateTime.Now.ToString("HH:mm")</div>
+            </div>
+        </div>
+
+        <!-- الملخص الرئيسي -->
+        <div class="main-summary" style="@(Model.NetProfit < 0 ? "background: linear-gradient(135deg, #f5576c, #f093fb);" : "")">
+            <div class="label">@(Model.NetProfit >= 0 ? "💰 صافي الربح" : "📉 صافي الخسارة")</div>
+            <div class="value">@Model.NetProfit.ToString("N2", culture) دج</div>
+            <div class="meta">هامش الربح: @Model.NetProfitMargin%</div>
+        </div>
+
+        <!-- الإيرادات -->
+        <div class="statement-section">
+            <div class="section-bar section-revenues">
+                <span><i class="fas fa-arrow-circle-down"></i> الإيرادات (Revenues)</span>
+                <span class="total">@Model.TotalRevenues.ToString("N2", culture) دج</span>
+            </div>
+
+            <div class="line-item">
+                <span><strong>💰 إيرادات المبيعات</strong></span>
+                <span>@Model.SalesRevenue.ToString("N2", culture) دج</span>
+            </div>
+
+            @if (Model.OtherIncome > 0)
+            {
+                <div class="line-item">
+                    <span><strong>📈 إيرادات أخرى</strong></span>
+                    <span>@Model.OtherIncome.ToString("N2", culture) دج</span>
+                </div>
+            }
+        </div>
+
+        <!-- المصاريف -->
+        <div class="statement-section">
+            <div class="section-bar section-expenses">
+                <span><i class="fas fa-arrow-circle-up"></i> المصاريف (Expenses)</span>
+                <span class="total">@Model.TotalExpenses.ToString("N2", culture) دج</span>
+            </div>
+
+            <div class="line-item">
+                <span><strong>📦 تكلفة البضاعة المباعة</strong></span>
+                <span>@Model.CostOfGoodsSold.ToString("N2", culture) دج</span>
+            </div>
+
+            <div class="line-item gross">
+                <span>🎯 الربح الإجمالي (Gross Profit)</span>
+                <span>@Model.GrossProfit.ToString("N2", culture) دج (@Model.GrossProfitMargin%)</span>
+            </div>
+
+            @if (Model.Electricity > 0)
+            {
+                <div class="line-item"><span>⚡ كهرباء</span><span>@Model.Electricity.ToString("N2", culture) دج</span></div>
+            }
+            @if (Model.Water > 0)
+            {
+                <div class="line-item"><span>💧 ماء</span><span>@Model.Water.ToString("N2", culture) دج</span></div>
+            }
+            @if (Model.Communications > 0)
+            {
+                <div class="line-item"><span>📞 اتصالات</span><span>@Model.Communications.ToString("N2", culture) دج</span></div>
+            }
+            @if (Model.Rent > 0)
+            {
+                <div class="line-item"><span>🏠 إيجار</span><span>@Model.Rent.ToString("N2", culture) دج</span></div>
+            }
+            @if (Model.Salaries > 0)
+            {
+                <div class="line-item"><span>👔 رواتب</span><span>@Model.Salaries.ToString("N2", culture) دج</span></div>
+            }
+            @if (Model.Transportation > 0)
+            {
+                <div class="line-item"><span>🚚 نقل</span><span>@Model.Transportation.ToString("N2", culture) دج</span></div>
+            }
+            @if (Model.Maintenance > 0)
+            {
+                <div class="line-item"><span>🔧 صيانة</span><span>@Model.Maintenance.ToString("N2", culture) دج</span></div>
+            }
+            @if (Model.Taxes > 0)
+            {
+                <div class="line-item"><span>📄 ضرائب</span><span>@Model.Taxes.ToString("N2", culture) دج</span></div>
+            }
+            @if (Model.OtherExpenses > 0)
+            {
+                <div class="line-item"><span>➕ مصاريف أخرى</span><span>@Model.OtherExpenses.ToString("N2", culture) دج</span></div>
+            }
+        </div>
+
+        <!-- النتيجة النهائية -->
+        <div class="line-item @(Model.NetProfit >= 0 ? "net-profit" : "net-loss")">
+            <span>@(Model.NetProfit >= 0 ? "💰 صافي الربح" : "📉 صافي الخسارة") (Net @(Model.NetProfit >= 0 ? "Profit" : "Loss"))</span>
+            <span>@Model.NetProfit.ToString("N2", culture) دج (@Model.NetProfitMargin%)</span>
+        </div>
+
+        <div class="footer">
+            <div class="tagline">SmarterGros - نظام تسيير المخزون</div>
+            <div>طُبع بتاريخ: @DateTime.Now.ToString("yyyy/MM/dd HH:mm")</div>
+        </div>
+    </div>
+</body>
+</html>

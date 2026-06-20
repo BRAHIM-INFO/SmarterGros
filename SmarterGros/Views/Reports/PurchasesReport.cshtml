@@ -1,0 +1,621 @@
+﻿@model SmarterGros.ViewModels.Reports.PurchasesReportViewModel
+@using SmarterGros.Models.Enums
+
+@{
+    ViewData["Title"] = "تقرير المشتريات";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { background: #f5f7fa; font-family: 'Cairo', Arial, sans-serif; }
+
+        .report-header {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 25px rgba(17,153,142,0.3);
+        }
+
+        .report-header h1 { margin: 0; font-size: 1.6rem; font-weight: 800; }
+        .report-header p { margin: 5px 0 0; opacity: 0.95; }
+
+        .btn-print-custom {
+            background: white;
+            color: #11998e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .btn-back-custom {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .filters-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-right: 4px solid;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .stat-card .icon-wrapper {
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .value {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #2c3e50;
+        }
+
+        .stat-card .value small {
+            font-size: 0.65em;
+            color: #6c757d;
+        }
+
+        .stat-card .meta {
+            font-size: 0.75rem;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+
+        .growth-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .growth-positive { background: #d4edda; color: #155724; }
+        .growth-negative { background: #f8d7da; color: #721c24; }
+
+        .stat-purchases { border-color: #11998e; }
+        .stat-purchases .icon-wrapper { background: linear-gradient(135deg, #11998e, #38ef7d); }
+
+        .stat-paid { border-color: #28a745; }
+        .stat-paid .icon-wrapper { background: linear-gradient(135deg, #28a745, #20c997); }
+
+        .stat-debt { border-color: #f5576c; }
+        .stat-debt .icon-wrapper { background: linear-gradient(135deg, #f5576c, #f093fb); }
+
+        .stat-invoices { border-color: #4facfe; }
+        .stat-invoices .icon-wrapper { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+        .stat-shipping { border-color: #fa709a; }
+        .stat-shipping .icon-wrapper { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h3 i {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .data-table thead th {
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            border: none;
+        }
+
+        .data-table tbody td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table tbody tr:hover { background: #f0fdf4; }
+
+        .top-list { list-style: none; padding: 0; margin: 0; }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .top-item:hover {
+            background: white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            transform: translateX(-5px);
+        }
+
+        .top-rank {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .top-rank.rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); }
+        .top-rank.rank-2 { background: linear-gradient(135deg, #C0C0C0, #808080); }
+        .top-rank.rank-3 { background: linear-gradient(135deg, #CD7F32, #8B4513); }
+        .top-rank.rank-other { background: linear-gradient(135deg, #11998e, #38ef7d); }
+
+        .top-info { flex: 1; min-width: 0; }
+        .top-name { font-weight: 700; color: #2c3e50; }
+        .top-meta { font-size: 0.75rem; color: #6c757d; }
+        .top-value { font-weight: 900; color: #11998e; }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #95a5a6;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 10px 0;
+        }
+
+        @@media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+}
+
+<!-- الترويسة -->
+<div class="report-header">
+    <div>
+        <h1><i class="fas fa-shopping-cart"></i> تقرير المشتريات</h1>
+        <p><i class="fas fa-calendar"></i> @Model.PeriodLabel</p>
+    </div>
+    <div class="d-flex gap-2 no-print">
+        <a href="@Url.Action("PrintPurchasesReport", new {
+            dateFrom = Model.DateFrom,
+            dateTo = Model.DateTo,
+            supplierId = Model.SupplierId,
+            categoryId = Model.CategoryId
+        })" target="_blank" class="btn-print-custom">
+            <i class="fas fa-print"></i> طباعة
+        </a>
+        <a href="@Url.Action("Index")" class="btn-back-custom">
+            <i class="fas fa-arrow-right"></i> العودة
+        </a>
+    </div>
+</div>
+
+<!-- الفلاتر -->
+<div class="filters-card no-print">
+    <form method="get" action="@Url.Action("PurchasesReport")">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">من تاريخ</label>
+                <input type="date" name="dateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" class="form-control" required />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">إلى تاريخ</label>
+                <input type="date" name="dateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" class="form-control" required />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">المورد</label>
+                <select name="supplierId" class="form-select">
+                    <option value="">جميع الموردين</option>
+                    @foreach (var supplier in Model.Suppliers)
+                    {
+                        <option value="@supplier.Id" selected="@(Model.SupplierId == supplier.Id)">@supplier.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">الفئة</label>
+                <select name="categoryId" class="form-select">
+                    <option value="">جميع الفئات</option>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">@category.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-search"></i> عرض التقرير
+                </button>
+                <a href="@Url.Action("PurchasesReport")" class="btn btn-outline-secondary">
+                    <i class="fas fa-redo"></i> إعادة تعيين
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- البطاقات الإحصائية -->
+<div class="stats-grid">
+    <div class="stat-card stat-purchases">
+        <div class="icon-wrapper"><i class="fas fa-shopping-cart"></i></div>
+        <div class="label">إجمالي المشتريات</div>
+        <div class="value">@Model.TotalPurchases.ToString("N0", culture) <small>دج</small></div>
+        @if (Model.PurchasesGrowthPercent != 0)
+        {
+            <div class="growth-badge @(Model.PurchasesGrowthPercent > 0 ? "growth-positive" : "growth-negative")">
+                <i class="fas fa-arrow-@(Model.PurchasesGrowthPercent > 0 ? "up" : "down")"></i>
+                @Math.Abs(Model.PurchasesGrowthPercent)%
+            </div>
+        }
+    </div>
+
+    <div class="stat-card stat-paid">
+        <div class="icon-wrapper"><i class="fas fa-check-circle"></i></div>
+        <div class="label">المدفوع</div>
+        <div class="value">@Model.TotalPaid.ToString("N0", culture) <small>دج</small></div>
+        <div class="meta">من إجمالي المشتريات</div>
+    </div>
+
+    <div class="stat-card stat-debt">
+        <div class="icon-wrapper"><i class="fas fa-credit-card"></i></div>
+        <div class="label">الديون المستحقة</div>
+        <div class="value">@Model.TotalDebt.ToString("N0", culture) <small>دج</small></div>
+        <div class="meta">للموردين</div>
+    </div>
+
+    <div class="stat-card stat-invoices">
+        <div class="icon-wrapper"><i class="fas fa-receipt"></i></div>
+        <div class="label">عدد الفواتير</div>
+        <div class="value">@Model.TotalInvoices</div>
+        <div class="meta">متوسط: @Model.AverageInvoiceValue.ToString("N0", culture) دج</div>
+    </div>
+
+    <div class="stat-card stat-shipping">
+        <div class="icon-wrapper"><i class="fas fa-truck"></i></div>
+        <div class="label">تكاليف الشحن</div>
+        <div class="value">@Model.TotalShippingCost.ToString("N0", culture) <small>دج</small></div>
+        <div class="meta">@Model.TotalItemsPurchased قطعة</div>
+    </div>
+</div>
+
+<!-- الرسوم البيانية -->
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-chart-bar"></i> المشتريات اليومية</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="dailyPurchasesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-chart-pie"></i> توزيع الفئات</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="categoriesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- توزيع الدفع -->
+<div class="section-card">
+    <div class="section-header">
+        <h3><i class="fas fa-credit-card"></i> توزيع طرق الدفع</h3>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>طريقة الدفع</th>
+                <th>المبلغ</th>
+                <th>العدد</th>
+                <th>النسبة</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pt in Model.PurchasesByPaymentType)
+            {
+                <tr>
+                    <td><strong>@pt.PaymentTypeName</strong></td>
+                    <td class="text-end">@pt.Amount.ToString("N0", culture) دج</td>
+                    <td class="text-center">@pt.Count</td>
+                    <td class="text-center">@pt.Percentage%</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- أعلى الموردين والمنتجات -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-medal"></i> أعلى 10 موردين</h3>
+            </div>
+            @if (Model.TopSuppliers.Any())
+            {
+                <ul class="top-list">
+                    @{ int rank = 1; }
+                    @foreach (var supplier in Model.TopSuppliers)
+                    {
+                        <li class="top-item">
+                            <div class="top-rank @(rank <= 3 ? "rank-" + rank : "rank-other")">@rank</div>
+                            <div class="top-info">
+                                <div class="top-name">@supplier.SupplierName</div>
+                                <div class="top-meta">
+                                    @supplier.InvoicesCount فاتورة
+                                    @if (supplier.CurrentDebt > 0)
+                                    {
+                                        <span class="text-danger">| دين: @supplier.CurrentDebt.ToString("N0", culture)</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="top-value">@supplier.TotalPurchases.ToString("N0", culture)</div>
+                        </li>
+                        rank++;
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-truck"></i>
+                    <p>لا توجد بيانات</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-box"></i> أعلى 10 منتجات</h3>
+            </div>
+            @if (Model.TopPurchasedProducts.Any())
+            {
+                <ul class="top-list">
+                    @{ int rank = 1; }
+                    @foreach (var product in Model.TopPurchasedProducts)
+                    {
+                        <li class="top-item">
+                            <div class="top-rank @(rank <= 3 ? "rank-" + rank : "rank-other")">@rank</div>
+                            <div class="top-info">
+                                <div class="top-name">@product.ProductName</div>
+                                <div class="top-meta">
+                                    @product.QuantityPurchased قطعة | مخزون: @product.CurrentStock
+                                </div>
+                            </div>
+                            <div class="top-value">@product.TotalCost.ToString("N0", culture)</div>
+                        </li>
+                        rank++;
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>لا توجد بيانات</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- الفواتير -->
+<div class="section-card">
+    <div class="section-header">
+        <h3><i class="fas fa-list"></i> الفواتير التفصيلية (@Model.TotalInvoices)</h3>
+    </div>
+
+    @if (Model.Invoices.Any())
+    {
+        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="data-table">
+                <thead style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>رقم الفاتورة</th>
+                        <th>المورد</th>
+                        <th>نوع الدفع</th>
+                        <th class="text-end">المبلغ</th>
+                        <th class="text-end">المدفوع</th>
+                        <th class="text-end">المتبقي</th>
+                        <th class="text-end">الشحن</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invoice in Model.Invoices.Take(50))
+                    {
+                        <tr>
+                            <td>@invoice.PurchaseDate.ToString("yyyy/MM/dd")</td>
+                            <td><strong class="text-success">@invoice.InvoiceNumber</strong></td>
+                            <td>@(invoice.Supplier?.Name ?? "---")</td>
+                            <td><span class="badge bg-secondary">@invoice.PaymentType.GetArabicName()</span></td>
+                            <td class="text-end fw-bold">@invoice.TotalAmount.ToString("N0", culture)</td>
+                            <td class="text-end text-success">@invoice.PaidAmount.ToString("N0", culture)</td>
+                            <td class="text-end @(invoice.RemainingAmount > 0 ? "text-danger fw-bold" : "")">
+                                @invoice.RemainingAmount.ToString("N0", culture)
+                            </td>
+                            <td class="text-end text-info">@invoice.ShippingCost.ToString("N0", culture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.Invoices.Count > 50)
+        {
+            <div class="text-center mt-3 text-muted small">
+                <i class="fas fa-info-circle"></i>
+                عرض أول 50 فاتورة من إجمالي @Model.Invoices.Count
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>لا توجد فواتير في الفترة المحددة</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // المشتريات اليومية
+        const ctx1 = document.getElementById('dailyPurchasesChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.DailyPurchases.Select(d => d.DateLabel))),
+                datasets: [{
+                    label: '🛒 المشتريات',
+                    data: @Html.Raw(Json.Serialize(Model.DailyPurchases.Select(d => d.PurchasesAmount))),
+                    backgroundColor: 'rgba(17,153,142,0.8)',
+                    borderColor: '#11998e',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { family: 'Cairo', size: 13 } } }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { font: { family: 'Cairo' } } },
+                    x: { ticks: { font: { family: 'Cairo' } } }
+                }
+            }
+        });
+
+        // توزيع الفئات
+        const ctx2 = document.getElementById('categoriesChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.PurchasesByCategory.Select(c => c.CategoryName))),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.PurchasesByCategory.Select(c => c.Amount))),
+                    backgroundColor: @Html.Raw(Json.Serialize(Model.PurchasesByCategory.Select(c => c.Color))),
+                    borderWidth: 3,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { family: 'Cairo', size: 11 } } }
+                }
+            }
+        });
+    </script>
+}

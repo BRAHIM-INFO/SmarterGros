@@ -344,6 +344,209 @@ namespace SmarterGros.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("SmarterGros.Models.CashRegister", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrentBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("OpeningBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("OpeningBalanceDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ResponsibleUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResponsibleUserName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("IsDefault");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("CashRegisters");
+                });
+
+            modelBuilder.Entity("SmarterGros.Models.CashTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BalanceBefore")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CancelledById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CancelledByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("CashRegisterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CheckDueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CheckNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DailyClosureId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsCancelled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ReferenceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CashRegisterId");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("DailyClosureId");
+
+                    b.HasIndex("IsCancelled");
+
+                    b.HasIndex("ReferenceType");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("TransactionDate");
+
+                    b.HasIndex("TransactionNumber")
+                        .IsUnique();
+
+                    b.HasIndex("Type");
+
+                    b.HasIndex("CashRegisterId", "TransactionDate");
+
+                    b.HasIndex("Category", "TransactionDate");
+
+                    b.HasIndex("Type", "TransactionDate");
+
+                    b.ToTable("CashTransactions");
+                });
+
             modelBuilder.Entity("SmarterGros.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -524,6 +727,175 @@ namespace SmarterGros.Migrations
                     b.HasIndex("SaleId");
 
                     b.ToTable("CustomerPayments");
+                });
+
+            modelBuilder.Entity("SmarterGros.Models.DailyClosure", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("ActualBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("CashRegisterId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ClosedById")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClosedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("ClosureDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("CoinsAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Count10")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count100")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count1000")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count20")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count200")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count2000")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count5")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count50")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Count500")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Difference")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("DifferenceReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("ExpectedBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ExpenseCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IncomeCount")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal>("OpeningBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalExpense")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalIncome")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TransactionsCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CashRegisterId");
+
+                    b.HasIndex("ClosureDate");
+
+                    b.HasIndex("IsClosed");
+
+                    b.HasIndex("CashRegisterId", "ClosureDate")
+                        .IsUnique();
+
+                    b.ToTable("DailyClosures");
+                });
+
+            modelBuilder.Entity("SmarterGros.Models.LicenseInfo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ActivationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ActivationKey")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("CustomerCity")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("CustomerPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HardwareId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("InstallationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActivated")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastRunDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LicenseType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("RunCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LicenseInfos");
                 });
 
             modelBuilder.Entity("SmarterGros.Models.Product", b =>
@@ -981,32 +1353,65 @@ namespace SmarterGros.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int?>("CustomerId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CustomerId1")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<decimal>("Discount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<string>("InvoiceNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("PaymentType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PriceType")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("RemainingAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("SaleDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("SaleType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("SubTotal")
                         .HasColumnType("decimal(18,2)");
@@ -1017,9 +1422,37 @@ namespace SmarterGros.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("TotalCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalProfit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("CustomerId1");
+
+                    b.HasIndex("InvoiceNumber")
+                        .IsUnique();
+
+                    b.HasIndex("PaymentType");
+
+                    b.HasIndex("PriceType");
+
+                    b.HasIndex("SaleDate");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("CustomerId", "Status");
+
+                    b.HasIndex("Status", "SaleDate");
 
                     b.ToTable("Sales");
                 });
@@ -1032,6 +1465,13 @@ namespace SmarterGros.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
@@ -1041,10 +1481,19 @@ namespace SmarterGros.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("ReturnedQuantity")
+                        .HasColumnType("int");
+
                     b.Property<int>("SaleId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("TaxRate")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitCost")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("UnitPrice")
@@ -1273,6 +1722,38 @@ namespace SmarterGros.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SmarterGros.Models.CashTransaction", b =>
+                {
+                    b.HasOne("SmarterGros.Models.CashRegister", "CashRegister")
+                        .WithMany("Transactions")
+                        .HasForeignKey("CashRegisterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmarterGros.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SmarterGros.Models.DailyClosure", "DailyClosure")
+                        .WithMany("Transactions")
+                        .HasForeignKey("DailyClosureId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SmarterGros.Models.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CashRegister");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("DailyClosure");
+
+                    b.Navigation("Supplier");
+                });
+
             modelBuilder.Entity("SmarterGros.Models.CustomerPayment", b =>
                 {
                     b.HasOne("SmarterGros.Models.Customer", "Customer")
@@ -1289,6 +1770,17 @@ namespace SmarterGros.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Sale");
+                });
+
+            modelBuilder.Entity("SmarterGros.Models.DailyClosure", b =>
+                {
+                    b.HasOne("SmarterGros.Models.CashRegister", "CashRegister")
+                        .WithMany("DailyClosures")
+                        .HasForeignKey("CashRegisterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CashRegister");
                 });
 
             modelBuilder.Entity("SmarterGros.Models.Product", b =>
@@ -1381,8 +1873,13 @@ namespace SmarterGros.Migrations
             modelBuilder.Entity("SmarterGros.Models.Sale", b =>
                 {
                     b.HasOne("SmarterGros.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SmarterGros.Models.Customer", null)
                         .WithMany("Sales")
-                        .HasForeignKey("CustomerId");
+                        .HasForeignKey("CustomerId1");
 
                     b.Navigation("Customer");
                 });
@@ -1392,7 +1889,7 @@ namespace SmarterGros.Migrations
                     b.HasOne("SmarterGros.Models.Product", "Product")
                         .WithMany("SaleItems")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SmarterGros.Models.Sale", "Sale")
@@ -1435,6 +1932,13 @@ namespace SmarterGros.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("SmarterGros.Models.CashRegister", b =>
+                {
+                    b.Navigation("DailyClosures");
+
+                    b.Navigation("Transactions");
+                });
+
             modelBuilder.Entity("SmarterGros.Models.Category", b =>
                 {
                     b.Navigation("Products");
@@ -1445,6 +1949,11 @@ namespace SmarterGros.Migrations
                     b.Navigation("Payments");
 
                     b.Navigation("Sales");
+                });
+
+            modelBuilder.Entity("SmarterGros.Models.DailyClosure", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("SmarterGros.Models.Product", b =>

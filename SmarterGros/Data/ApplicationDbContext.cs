@@ -21,6 +21,7 @@ namespace SmarterGros.Data
         public DbSet<StockMovement> StockMovements { get; set; }
         public DbSet<CompanySettings> CompanySettings { get; set; }
         public DbSet<CustomerPayment> CustomerPayments { get; set; }
+
         // ═══════════════════════════════════════════════════
         // 📝 جدول سجل النشاطات - ✅ جديد
         // ═══════════════════════════════════════════════════
@@ -32,6 +33,16 @@ namespace SmarterGros.Data
         public DbSet<PurchaseReturn> PurchaseReturns { get; set; }
         public DbSet<PurchaseReturnItem> PurchaseReturnItems { get; set; }
 
+        // ═══════════════════════════════════════════════════
+        // 💰 جداول الصندوق - ✅ جديد
+        // ═══════════════════════════════════════════════════
+        public DbSet<CashRegister> CashRegisters { get; set; }
+
+        // 🔐 نظام الترخيص
+        public DbSet<LicenseInfo> LicenseInfos { get; set; }
+
+        public DbSet<CashTransaction> CashTransactions { get; set; }
+        public DbSet<DailyClosure> DailyClosures { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -98,6 +109,120 @@ namespace SmarterGros.Data
                 .Property(p => p.RetailMargin).HasColumnType("decimal(5,2)");
 
             // ═══════════════════════════════════════════════════
+            // 💰 Sale Configuration - محدّث
+            // ═══════════════════════════════════════════════════
+            builder.Entity<Sale>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // ✅ تحويل Enums إلى int
+                entity.Property(e => e.Status)
+                      .HasConversion<int>();
+
+                entity.Property(e => e.PaymentType)
+                      .HasConversion<int>();
+
+                entity.Property(e => e.PriceType)
+                      .HasConversion<int>();
+
+                // الحقول النصية
+                entity.Property(e => e.InvoiceNumber)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                // Decimal Precision
+                entity.Property(e => e.SubTotal)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.TaxAmount)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.Discount)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.DiscountPercentage)
+                      .HasColumnType("decimal(5,2)");
+
+                entity.Property(e => e.TotalAmount)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.PaidAmount)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.RemainingAmount)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.TotalCost)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.TotalProfit)
+                      .HasColumnType("decimal(18,2)");
+
+                // علاقة مع Customer (اختياري)
+                entity.HasOne(e => e.Customer)
+                      .WithMany()
+                      .HasForeignKey(e => e.CustomerId)
+                      .OnDelete(DeleteBehavior.SetNull)
+                      .IsRequired(false);
+
+                // Indexes للأداء السريع
+                entity.HasIndex(e => e.InvoiceNumber).IsUnique();
+                entity.HasIndex(e => e.SaleDate);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.PaymentType);
+                entity.HasIndex(e => e.CustomerId);
+                entity.HasIndex(e => e.PriceType);
+                entity.HasIndex(e => e.CreatedById);
+
+                // Index مركّب
+                entity.HasIndex(e => new { e.Status, e.SaleDate });
+                entity.HasIndex(e => new { e.CustomerId, e.Status });
+            });
+
+            // ═══════════════════════════════════════════════════
+            // 📦 SaleItem Configuration - محدّث
+            // ═══════════════════════════════════════════════════
+            builder.Entity<SaleItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // Decimal Precision
+                entity.Property(e => e.UnitPrice)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.UnitCost)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.TotalPrice)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.Profit)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.Discount)
+                      .HasColumnType("decimal(5,2)");
+
+                entity.Property(e => e.TaxRate)
+                      .HasColumnType("decimal(5,2)");
+
+                // علاقة مع Sale
+                entity.HasOne(e => e.Sale)
+                      .WithMany(s => s.SaleItems)
+                      .HasForeignKey(e => e.SaleId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // علاقة مع Product
+                entity.HasOne(e => e.Product)
+                      .WithMany(p => p.SaleItems)
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes
+                entity.HasIndex(e => e.SaleId);
+                entity.HasIndex(e => e.ProductId);
+            });
+
+            // ═══════════════════════════════════════════════════
             // 🛒 Purchase - تحديث Configuration
             // ═══════════════════════════════════════════════════
             builder.Entity<Purchase>(entity =>
@@ -145,57 +270,7 @@ namespace SmarterGros.Data
 
 
             });
-
-            // ═══════════════════════════════════════════════════
-            // 🛒 Purchase - تحديث Configuration
-            // ═══════════════════════════════════════════════════
-            //builder.Entity<Purchase>(entity =>
-            //{ 
-
-            //    entity.Property(e => e.SubTotal)
-            //         .HasColumnType("decimal(18,2)"); 
-
-            //    entity.Property(e => e.TaxAmount)
-            //         .HasColumnType("decimal(18,2)");
-
-            //    entity.Property(e => e.Discount)
-            //         .HasColumnType("decimal(18,2)");
-
-
-            //    entity.Property(e => e.TotalAmount)
-            //         .HasColumnType("decimal(18,2)"); 
-
-            //    // Decimal Precision للحقول الجديدة
-            //    entity.Property(e => e.PaidAmount)
-            //          .HasColumnType("decimal(18,2)");
-
-            //    entity.Property(e => e.RemainingAmount)
-            //          .HasColumnType("decimal(18,2)");
-
-            //    entity.Property(e => e.ShippingCost)
-            //          .HasColumnType("decimal(18,2)");
-
-            //    entity.Property(e => e.DiscountPercentage)
-            //          .HasColumnType("decimal(5,2)");
-
-            //    // Indexes للأداء السريع
-            //    entity.HasIndex(e => e.InvoiceNumber).IsUnique();
-            //    entity.HasIndex(e => e.Status);
-            //    entity.HasIndex(e => e.PaymentType);
-            //    entity.HasIndex(e => e.PurchaseDate);
-            //    entity.HasIndex(e => e.SupplierId);
-            //    entity.HasIndex(e => e.CreatedById);
-
-            //    // Index مركّب للبحث المتقدم
-            //    entity.HasIndex(e => new { e.Status, e.PurchaseDate });
-            //    entity.HasIndex(e => new { e.SupplierId, e.Status });
-
-            //    entity.HasOne(e => e.Supplier)
-            //          .WithMany(s => s.Purchases)
-            //          .HasForeignKey(e => e.SupplierId)
-            //          .OnDelete(DeleteBehavior.Restrict); 
-            //});
-
+             
             // ═══════════════════════════════════════════════════
             // 📦 PurchaseItem - تحديث Configuration
             // ═══════════════════════════════════════════════════
@@ -305,8 +380,7 @@ namespace SmarterGros.Data
                       .OnDelete(DeleteBehavior.SetNull)
                       .IsRequired(false);
             });
-
-
+             
             // ═══════════════════════════════════════════════════
             // 📝 ActivityLog Configuration - ✅ جديد
             // ═══════════════════════════════════════════════════
@@ -383,59 +457,7 @@ namespace SmarterGros.Data
                 // Index مركّب
                 entity.HasIndex(e => new { e.SupplierId, e.ReturnDate });
             });
-
-            // ═══════════════════════════════════════════════════
-            // 🔄 PurchaseReturn Configuration - ✅ جديد
-            // ═══════════════════════════════════════════════════
-            //builder.Entity<PurchaseReturn>(entity =>
-            //{
-            //    entity.HasKey(e => e.Id);
-
-            //    // الحقول النصية
-            //    entity.Property(e => e.ReturnNumber)
-            //          .IsRequired()
-            //          .HasMaxLength(50);
-
-            //    // Decimal Precision
-            //    entity.Property(e => e.SubTotal)
-            //          .HasColumnType("decimal(18,2)");
-
-            //    entity.Property(e => e.TaxAmount)
-            //          .HasColumnType("decimal(18,2)");
-
-            //    entity.Property(e => e.TotalAmount)
-            //          .HasColumnType("decimal(18,2)");
-
-            //    entity.Property(e => e.DeductedFromDebt)
-            //          .HasColumnType("decimal(18,2)");
-
-            //    entity.Property(e => e.CashRefunded)
-            //          .HasColumnType("decimal(18,2)");
-
-            //    // علاقة مع Purchase (الفاتورة الأصلية)
-            //    entity.HasOne(e => e.Purchase)
-            //          .WithMany(p => p.Returns)
-            //          .HasForeignKey(e => e.PurchaseId)
-            //          .OnDelete(DeleteBehavior.Restrict);
-
-            //    // علاقة مع Supplier
-            //    entity.HasOne(e => e.Supplier)
-            //          .WithMany()
-            //          .HasForeignKey(e => e.SupplierId)
-            //          .OnDelete(DeleteBehavior.Restrict);
-
-            //    // Indexes للبحث السريع
-            //    entity.HasIndex(e => e.ReturnNumber).IsUnique();
-            //    entity.HasIndex(e => e.ReturnDate);
-            //    entity.HasIndex(e => e.PurchaseId);
-            //    entity.HasIndex(e => e.SupplierId);
-            //    entity.HasIndex(e => e.IsCancelled);
-            //    entity.HasIndex(e => e.RefundMethod);
-
-            //    // Index مركّب
-            //    entity.HasIndex(e => new { e.SupplierId, e.ReturnDate });
-            //});
-
+             
             // ═══════════════════════════════════════════════════
             // 📦 PurchaseReturnItem Configuration - ✅ جديد
             // ═══════════════════════════════════════════════════
@@ -476,6 +498,157 @@ namespace SmarterGros.Data
                 entity.HasIndex(e => e.PurchaseItemId);
                 entity.HasIndex(e => e.ProductId);
             });
+
+
+            // ═══════════════════════════════════════════════════
+            // 💰 CashRegister Configuration - ✅ جديد
+            // ═══════════════════════════════════════════════════
+            builder.Entity<CashRegister>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Name)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                // Decimal Precision
+                entity.Property(e => e.OpeningBalance)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.CurrentBalance)
+                      .HasColumnType("decimal(18,2)");
+
+                // Indexes
+                entity.HasIndex(e => e.Name);
+                entity.HasIndex(e => e.IsActive);
+                entity.HasIndex(e => e.IsDefault);
+            });
+
+            // ═══════════════════════════════════════════════════
+            // 🔄 CashTransaction Configuration - ✅ جديد
+            // ═══════════════════════════════════════════════════
+            builder.Entity<CashTransaction>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // ✅ تحويل Enums إلى int
+                entity.Property(e => e.Type)
+                      .HasConversion<int>();
+
+                entity.Property(e => e.Category)
+                      .HasConversion<int>();
+
+                entity.Property(e => e.PaymentMethod)
+                      .HasConversion<int>();
+
+                // الحقول النصية
+                entity.Property(e => e.TransactionNumber)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(e => e.Description)
+                      .IsRequired()
+                      .HasMaxLength(500);
+
+                // Decimal Precision
+                entity.Property(e => e.Amount)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.BalanceBefore)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.BalanceAfter)
+                      .HasColumnType("decimal(18,2)");
+
+                // علاقة مع CashRegister
+                entity.HasOne(e => e.CashRegister)
+                      .WithMany(c => c.Transactions)
+                      .HasForeignKey(e => e.CashRegisterId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // علاقة مع Supplier (اختيارية)
+                entity.HasOne(e => e.Supplier)
+                      .WithMany()
+                      .HasForeignKey(e => e.SupplierId)
+                      .OnDelete(DeleteBehavior.SetNull)
+                      .IsRequired(false);
+
+                // علاقة مع Customer (اختيارية)
+                entity.HasOne(e => e.Customer)
+                      .WithMany()
+                      .HasForeignKey(e => e.CustomerId)
+                      .OnDelete(DeleteBehavior.SetNull)
+                      .IsRequired(false);
+
+                // علاقة مع DailyClosure (اختيارية)
+                entity.HasOne(e => e.DailyClosure)
+                      .WithMany(d => d.Transactions)
+                      .HasForeignKey(e => e.DailyClosureId)
+                      .OnDelete(DeleteBehavior.SetNull)
+                      .IsRequired(false);
+
+                // Indexes للبحث السريع
+                entity.HasIndex(e => e.TransactionNumber).IsUnique();
+                entity.HasIndex(e => e.TransactionDate);
+                entity.HasIndex(e => e.Type);
+                entity.HasIndex(e => e.Category);
+                entity.HasIndex(e => e.CashRegisterId);
+                entity.HasIndex(e => e.SupplierId);
+                entity.HasIndex(e => e.CustomerId);
+                entity.HasIndex(e => e.IsCancelled);
+                entity.HasIndex(e => e.ReferenceType);
+
+                // Index مركّب للتقارير
+                entity.HasIndex(e => new { e.CashRegisterId, e.TransactionDate });
+                entity.HasIndex(e => new { e.Type, e.TransactionDate });
+                entity.HasIndex(e => new { e.Category, e.TransactionDate });
+            });
+
+            // ═══════════════════════════════════════════════════
+            // 🔒 DailyClosure Configuration - ✅ جديد
+            // ═══════════════════════════════════════════════════
+            builder.Entity<DailyClosure>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // Decimal Precision
+                entity.Property(e => e.OpeningBalance)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.TotalIncome)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.TotalExpense)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.ExpectedBalance)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.ActualBalance)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.Difference)
+                      .HasColumnType("decimal(18,2)");
+
+                entity.Property(e => e.CoinsAmount)
+                      .HasColumnType("decimal(18,2)");
+
+                // علاقة مع CashRegister
+                entity.HasOne(e => e.CashRegister)
+                      .WithMany(c => c.DailyClosures)
+                      .HasForeignKey(e => e.CashRegisterId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes
+                entity.HasIndex(e => e.ClosureDate);
+                entity.HasIndex(e => e.CashRegisterId);
+                entity.HasIndex(e => e.IsClosed);
+
+                // Index مركّب - لا يمكن إغلاق نفس اليوم مرتين لنفس الصندوق
+                entity.HasIndex(e => new { e.CashRegisterId, e.ClosureDate })
+                      .IsUnique();
+            });
+
         }
     }
 }

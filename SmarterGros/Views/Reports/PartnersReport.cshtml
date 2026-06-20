@@ -1,0 +1,484 @@
+﻿@model SmarterGros.ViewModels.Reports.PartnersReportViewModel
+
+@{
+    ViewData["Title"] = Model.ReportType == "customers" ? "تقرير العملاء" : "تقرير الموردين";
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+    var isCustomers = Model.ReportType == "customers";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: 'Cairo', Arial, sans-serif;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 25px rgba(67,233,123,0.3);
+        }
+
+            .report-header h1 {
+                margin: 0;
+                font-size: 1.6rem;
+                font-weight: 800;
+            }
+
+            .report-header p {
+                margin: 5px 0 0;
+                opacity: 0.95;
+            }
+
+        .btn-back-custom {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .type-switcher {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+            .type-switcher a {
+                flex: 1;
+                padding: 12px;
+                text-align: center;
+                background: #f8f9fa;
+                border: 2px solid #dee2e6;
+                border-radius: 10px;
+                color: #495057;
+                text-decoration: none;
+                font-weight: 700;
+                transition: all 0.3s;
+            }
+
+                .type-switcher a:hover {
+                    transform: translateY(-2px);
+                }
+
+                .type-switcher a.active {
+                    background: linear-gradient(135deg, #43e97b, #38f9d7);
+                    color: white;
+                    border-color: #43e97b;
+                }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-right: 4px solid;
+        }
+
+            .stat-card .icon-wrapper {
+                width: 55px;
+                height: 55px;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.5rem;
+                margin-bottom: 12px;
+            }
+
+            .stat-card .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+                font-weight: 600;
+            }
+
+            .stat-card .value {
+                font-size: 1.6rem;
+                font-weight: 900;
+                color: #2c3e50;
+                margin: 5px 0;
+            }
+
+                .stat-card .value small {
+                    font-size: 0.65em;
+                    color: #6c757d;
+                }
+
+            .stat-card .meta {
+                font-size: 0.75rem;
+                color: #95a5a6;
+            }
+
+        .stat-total {
+            border-color: #4facfe;
+        }
+
+            .stat-total .icon-wrapper {
+                background: linear-gradient(135deg, #4facfe, #00f2fe);
+            }
+
+        .stat-active {
+            border-color: #43e97b;
+        }
+
+            .stat-active .icon-wrapper {
+                background: linear-gradient(135deg, #43e97b, #38f9d7);
+            }
+
+        .stat-debt {
+            border-color: #f5576c;
+        }
+
+            .stat-debt .icon-wrapper {
+                background: linear-gradient(135deg, #f5576c, #f093fb);
+            }
+
+        .stat-aging {
+            border-color: #fa709a;
+        }
+
+            .stat-aging .icon-wrapper {
+                background: linear-gradient(135deg, #fa709a, #fee140);
+            }
+
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+            .section-header h3 {
+                margin: 0;
+                font-size: 1.2rem;
+                font-weight: 800;
+                color: #2c3e50;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+                .section-header h3 i {
+                    background: linear-gradient(135deg, #43e97b, #38f9d7);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+        /* أعمار الديون */
+        .aging-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .aging-card {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+            transition: all 0.3s;
+        }
+
+            .aging-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            }
+
+            .aging-card .period {
+                font-size: 0.9rem;
+                opacity: 0.9;
+                margin-bottom: 5px;
+            }
+
+            .aging-card .amount {
+                font-size: 1.5rem;
+                font-weight: 900;
+                margin-bottom: 5px;
+            }
+
+            .aging-card .count {
+                font-size: 0.85rem;
+                opacity: 0.9;
+            }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .data-table thead {
+                background: linear-gradient(135deg, #43e97b, #38f9d7);
+                color: white;
+            }
+
+                .data-table thead th {
+                    padding: 12px;
+                    text-align: center;
+                    font-weight: 700;
+                    border: none;
+                }
+
+            .data-table tbody td {
+                padding: 10px 12px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            .data-table tbody tr:hover {
+                background: #f0fff4;
+            }
+
+        @@media print {
+            body {
+                background: white;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+}
+
+<!-- الترويسة -->
+<div class="report-header">
+    <div>
+        <h1>
+            <i class="fas @(isCustomers ? "fa-users" : "fa-truck")"></i>
+            تقرير @(isCustomers ? "العملاء" : "الموردين")
+        </h1>
+        <p>تحليل الديون والمعاملات</p>
+    </div>
+    <a href="@Url.Action("Index")" class="btn-back-custom">
+        <i class="fas fa-arrow-right"></i> العودة
+    </a>
+</div>
+
+<!-- تبديل النوع -->
+<div class="type-switcher no-print">
+    <a href="@Url.Action("PartnersReport", new { reportType = "customers" })"
+       class="@(isCustomers ? "active" : "")">
+        <i class="fas fa-users"></i> العملاء
+    </a>
+    <a href="@Url.Action("PartnersReport", new { reportType = "suppliers" })"
+       class="@(!isCustomers ? "active" : "")">
+        <i class="fas fa-truck"></i> الموردون
+    </a>
+</div>
+
+<!-- البطاقات الإحصائية -->
+@if (isCustomers)
+{
+    <div class="stats-grid">
+        <div class="stat-card stat-total">
+            <div class="icon-wrapper"><i class="fas fa-users"></i></div>
+            <div class="label">إجمالي العملاء</div>
+            <div class="value">@Model.TotalCustomers</div>
+            <div class="meta">@Model.ActiveCustomers نشط</div>
+        </div>
+
+        <div class="stat-card stat-debt">
+            <div class="icon-wrapper"><i class="fas fa-hand-holding-usd"></i></div>
+            <div class="label">إجمالي الديون</div>
+            <div class="value">@Model.TotalCustomersDebt.ToString("N0", culture) <small>دج</small></div>
+            <div class="meta">@Model.CustomersWithDebt عميل مدين</div>
+        </div>
+    </div>
+
+    <!-- أعمار الديون -->
+    <div class="section-card">
+        <div class="section-header">
+            <h3><i class="fas fa-hourglass-half"></i> تحليل أعمار الديون</h3>
+        </div>
+        <div class="aging-grid">
+            @foreach (var aging in Model.CustomerDebtAging)
+            {
+                <div class="aging-card" style="background: linear-gradient(135deg, @aging.Color, @aging.Color);">
+                    <div class="period">@aging.Period</div>
+                    <div class="amount">@aging.Amount.ToString("N0", culture) دج</div>
+                    <div class="count">@aging.Count فاتورة</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- جدول العملاء -->
+    <div class="section-card">
+        <div class="section-header">
+            <h3><i class="fas fa-list"></i> قائمة العملاء (@Model.Customers.Count)</h3>
+        </div>
+
+        @if (Model.Customers.Any())
+        {
+            <div class="table-responsive" style="max-height: 600px;">
+                <table class="data-table">
+                    <thead style="position: sticky; top: 0;">
+                        <tr>
+                            <th>العميل</th>
+                            <th>الهاتف</th>
+                            <th>المدينة</th>
+                            <th>الفواتير</th>
+                            <th class="text-end">إجمالي المشتريات</th>
+                            <th class="text-end">المدفوع</th>
+                            <th class="text-end">الدين</th>
+                            <th>آخر شراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var customer in Model.Customers)
+                        {
+                            <tr>
+                                <td><strong>@customer.Name</strong></td>
+                                <td>@(customer.Phone ?? "---")</td>
+                                <td>@(customer.City ?? "---")</td>
+                                <td class="text-center">@customer.InvoicesCount</td>
+                                <td class="text-end fw-bold">@customer.TotalPurchases.ToString("N0", culture)</td>
+                                <td class="text-end text-success">@customer.TotalPaid.ToString("N0", culture)</td>
+                                <td class="text-end @(customer.CurrentDebt > 0 ? "text-danger fw-bold" : "")">
+                                    @customer.CurrentDebt.ToString("N0", culture)
+                                </td>
+                                <td>
+                                    @if (customer.LastPurchaseDate.HasValue)
+                                    {
+                                        <div>@customer.LastPurchaseDate.Value.ToString("yyyy/MM/dd")</div>
+                                        <small class="text-muted">قبل @customer.DaysSinceLastPurchase يوم</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                <p>لا يوجد عملاء</p>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <!-- الموردون -->
+    <div class="stats-grid">
+        <div class="stat-card stat-total">
+            <div class="icon-wrapper"><i class="fas fa-truck"></i></div>
+            <div class="label">إجمالي الموردين</div>
+            <div class="value">@Model.TotalSuppliers</div>
+            <div class="meta">@Model.ActiveSuppliers نشط</div>
+        </div>
+
+        <div class="stat-card stat-debt">
+            <div class="icon-wrapper"><i class="fas fa-credit-card"></i></div>
+            <div class="label">إجمالي الديون علينا</div>
+            <div class="value">@Model.TotalSuppliersDebt.ToString("N0", culture) <small>دج</small></div>
+            <div class="meta">@Model.SuppliersWithDebt مورد دائن</div>
+        </div>
+    </div>
+
+    <!-- أعمار الديون -->
+    <div class="section-card">
+        <div class="section-header">
+            <h3><i class="fas fa-hourglass-half"></i> تحليل أعمار الديون</h3>
+        </div>
+        <div class="aging-grid">
+            @foreach (var aging in Model.SupplierDebtAging)
+            {
+                <div class="aging-card" style="background: linear-gradient(135deg, @aging.Color, @aging.Color);">
+                    <div class="period">@aging.Period</div>
+                    <div class="amount">@aging.Amount.ToString("N0", culture) دج</div>
+                    <div class="count">@aging.Count فاتورة</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- جدول الموردين -->
+    <div class="section-card">
+        <div class="section-header">
+            <h3><i class="fas fa-list"></i> قائمة الموردين (@Model.Suppliers.Count)</h3>
+        </div>
+
+        @if (Model.Suppliers.Any())
+        {
+            <div class="table-responsive" style="max-height: 600px;">
+                <table class="data-table">
+                    <thead style="position: sticky; top: 0;">
+                        <tr>
+                            <th>المورد</th>
+                            <th>الهاتف</th>
+                            <th>المدينة</th>
+                            <th>الفواتير</th>
+                            <th class="text-end">إجمالي المشتريات</th>
+                            <th class="text-end">المدفوع</th>
+                            <th class="text-end">الدين علينا</th>
+                            <th>آخر شراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var supplier in Model.Suppliers)
+                        {
+                            <tr>
+                                <td><strong>@supplier.Name</strong></td>
+                                <td>@(supplier.Phone ?? "---")</td>
+                                <td>@(supplier.City ?? "---")</td>
+                                <td class="text-center">@supplier.InvoicesCount</td>
+                                <td class="text-end fw-bold">@supplier.TotalPurchases.ToString("N0", culture)</td>
+                                <td class="text-end text-success">@supplier.TotalPaid.ToString("N0", culture)</td>
+                                <td class="text-end @(supplier.CurrentDebt > 0 ? "text-danger fw-bold" : "")">
+                                    @supplier.CurrentDebt.ToString("N0", culture)
+                                </td>
+                                <td>@(supplier.LastPurchaseDate?.ToString("yyyy/MM/dd") ?? "---")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                <p>لا يوجد موردين</p>
+            </div>
+        }
+    </div>
+}

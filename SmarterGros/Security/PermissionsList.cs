@@ -150,22 +150,67 @@
                      }
                  },
 
-                // ========== المبيعات ==========
+     
+                 // ========== الصندوق (Caisse) ==========
                 new PermissionGroup
                 {
-                    GroupName = "المبيعات",
+                    GroupName = "الصندوق (Caisse)",
                     GroupIcon = "fa-cash-register",
-                    GroupColor = "#d32f2f",
+                    GroupColor = "#28a745",
                     Permissions = new List<PermissionInfo>
                     {
-                        new() { Key = Permissions.Sales.View, DisplayName = "عرض المبيعات", Description = "عرض فواتير المبيعات" },
-                        new() { Key = Permissions.Sales.Create, DisplayName = "إنشاء فاتورة بيع", Description = "تسجيل فواتير بيع جديدة" },
-                        new() { Key = Permissions.Sales.Edit, DisplayName = "تعديل المبيعات", Description = "تعديل فواتير البيع" },
-                        new() { Key = Permissions.Sales.Delete, DisplayName = "حذف المبيعات", Description = "حذف فواتير البيع" },
-                        new() { Key = Permissions.Sales.Print, DisplayName = "طباعة الفواتير", Description = "طباعة فواتير البيع" },
-                        new() { Key = Permissions.Sales.Export, DisplayName = "تصدير المبيعات", Description = "تصدير فواتير البيع" }
+                        new() { Key = Permissions.CashRegister.View, DisplayName = "عرض الصندوق", Description = "عرض الرصيد والحركات اليومية" },
+                        new() { Key = Permissions.CashRegister.AddTransaction, DisplayName = "إضافة حركة", Description = "تسجيل وارد أو صادر يدوياً" },
+                        new() { Key = Permissions.CashRegister.EditTransaction, DisplayName = "تعديل الحركات", Description = "تعديل حركات سابقة (خطر)" },
+                        new() { Key = Permissions.CashRegister.CancelTransaction, DisplayName = "إلغاء الحركات", Description = "إلغاء حركة مع تسجيل السبب" },
+                        new() { Key = Permissions.CashRegister.DeleteTransaction, DisplayName = "حذف الحركات", Description = "حذف نهائي للحركات (خطير)" },
+                        new() { Key = Permissions.CashRegister.CloseDaily, DisplayName = "إغلاق اليوم", Description = "تنفيذ الجرد اليومي وإغلاق الصندوق" },
+                        new() { Key = Permissions.CashRegister.ViewReports, DisplayName = "عرض التقارير", Description = "عرض تقارير الصندوق المتنوعة" },
+                        new() { Key = Permissions.CashRegister.ExportReports, DisplayName = "تصدير التقارير", Description = "تصدير التقارير لـ Excel و PDF" },
+                        new() { Key = Permissions.CashRegister.PrintReports, DisplayName = "طباعة التقارير", Description = "طباعة التقارير اليومية والشهرية" },
+                        new() { Key = Permissions.CashRegister.ManageRegister, DisplayName = "إدارة الصندوق", Description = "تعديل إعدادات الصندوق الأساسية" },
+                        new() { Key = Permissions.CashRegister.SetOpeningBalance, DisplayName = "تحديد الرصيد الافتتاحي", Description = "تعديل الرصيد الافتتاحي (مرة واحدة فقط)" }
                     }
                 },
+
+                            // ========== المبيعات ==========
+            new PermissionGroup
+            {
+                GroupName = "المبيعات",
+                GroupIcon = "fa-cash-register",
+                GroupColor = "#d32f2f",
+                Permissions = new List<PermissionInfo>
+                {
+                    new() { Key = Permissions.Sales.View, DisplayName = "عرض المبيعات", Description = "عرض فواتير المبيعات" },
+                    new() { Key = Permissions.Sales.Create, DisplayName = "إنشاء فاتورة بيع", Description = "تسجيل فواتير بيع جديدة" },
+                    new() { Key = Permissions.Sales.Edit, DisplayName = "تعديل المبيعات", Description = "تعديل فواتير البيع (مسودة فقط)" },
+                    new() { Key = Permissions.Sales.Delete, DisplayName = "حذف المبيعات", Description = "حذف فواتير البيع (مسودة فقط)" },
+                    new() { Key = Permissions.Sales.Cancel, DisplayName = "إلغاء الفاتورة", Description = "إلغاء فاتورة مع عكس التأثيرات على المخزون والصندوق" },
+                    new() { Key = Permissions.Sales.ManagePayments, DisplayName = "إدارة الدفعات", Description = "تسجيل دفعات على فواتير الكريدي" },
+                    new() { Key = Permissions.Sales.Print, DisplayName = "طباعة الفواتير", Description = "طباعة فواتير البيع" },
+                    new() { Key = Permissions.Sales.Export, DisplayName = "تصدير المبيعات", Description = "تصدير فواتير البيع" },
+                    new() { Key = Permissions.Sales.Duplicate, DisplayName = "نسخ فاتورة", Description = "إنشاء فاتورة جديدة من فاتورة موجودة" },
+                    new() { Key = Permissions.Sales.QuickSale, DisplayName = "البيع السريع (POS)", Description = "استخدام شاشة البيع السريع" }
+                }
+            },
+
+            // ========== مرتجعات البيع - جديد! ==========
+            new PermissionGroup
+            {
+                GroupName = "مرتجعات البيع",
+                GroupIcon = "fa-rotate-left",
+                GroupColor = "#c2185b",
+                Permissions = new List<PermissionInfo>
+                {
+                    new() { Key = Permissions.SaleReturns.View, DisplayName = "عرض المرتجعات", Description = "عرض قائمة مرتجعات البيع" },
+                    new() { Key = Permissions.SaleReturns.Create, DisplayName = "إنشاء مرتجع", Description = "إرجاع منتجات من العميل" },
+                    new() { Key = Permissions.SaleReturns.Edit, DisplayName = "تعديل المرتجعات", Description = "تعديل بيانات المرتجع" },
+                    new() { Key = Permissions.SaleReturns.Delete, DisplayName = "حذف المرتجعات", Description = "حذف مرتجع نهائياً (خطير)" },
+                    new() { Key = Permissions.SaleReturns.Cancel, DisplayName = "إلغاء المرتجع", Description = "إلغاء مرتجع وعكس التأثيرات" },
+                    new() { Key = Permissions.SaleReturns.Print, DisplayName = "طباعة المرتجعات", Description = "طباعة فواتير المرتجعات" },
+                    new() { Key = Permissions.SaleReturns.Export, DisplayName = "تصدير المرتجعات", Description = "تصدير قائمة المرتجعات" }
+                }
+            },
 
                 // ========== حركات المخزون ==========
                 new PermissionGroup

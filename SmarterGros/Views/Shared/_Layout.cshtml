@@ -66,6 +66,199 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="sg-body">
+    @using SmarterGros.Services
+    @inject ILicenseService LicenseService
+    @inject IHardwareIdService HardwareIdService
+
+    @{
+        var licenseStatus = await LicenseService.CheckLicenseAsync();
+        var remainingDays = await LicenseService.GetRemainingDaysAsync();
+        var currentLicense = await LicenseService.GetCurrentLicenseAsync();
+    }
+
+    <!-- 🔐 شريط تنبيه الترخيص -->
+    @if (licenseStatus == LicenseStatus.TrialActive || licenseStatus == LicenseStatus.TrialExpiring)
+    {
+        <div class="license-banner @(licenseStatus == LicenseStatus.TrialExpiring ? "expiring" : "")">
+            <div class="banner-content">
+                <div class="banner-info">
+                    @if (licenseStatus == LicenseStatus.TrialExpiring)
+                    {
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>⚠️ تنبيه!</strong>
+                        <span>الفترة التجريبية ستنتهي خلال <strong>@remainingDays</strong> أيام</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-info-circle"></i>
+                        <strong>🆓 نسخة تجريبية</strong>
+                        <span>متبقي <strong>@remainingDays</strong> يوم من الفترة التجريبية</span>
+                    }
+                </div>
+                <a href="/License/Activate" class="banner-btn">
+                    <i class="fas fa-key"></i> تفعيل الترخيص الآن
+                </a>
+            </div>
+        </div>
+    }
+
+    <style>
+        .license-banner {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            box-shadow: 0 2px 10px rgba(220,53,69,0.3);
+            animation: pulse-banner 2s infinite;
+        }
+
+        @@keyframes pulse-banner {
+            0%, 100% {
+                box-shadow: 0 2px 10px rgba(220,53,69,0.3);
+            }
+
+            50% {
+                box-shadow: 0 2px 25px rgba(220,53,69,0.7);
+            }
+        }
+
+        .license-banner.expiring {
+            background: linear-gradient(135deg, #dc3545, #ff4757);
+            animation: pulse-banner-urgent 1s infinite;
+        }
+
+        @@keyframes pulse-banner-urgent {
+            0%, 100% {
+                box-shadow: 0 2px 10px rgba(220,53,69,0.3);
+                opacity: 1;
+            }
+
+            50% {
+                box-shadow: 0 2px 30px rgba(220,53,69,0.8);
+                opacity: 0.9;
+            }
+        }
+
+        .banner-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .banner-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+            .banner-info i {
+                font-size: 1.3rem;
+            }
+
+        .banner-btn {
+            background: white;
+            color: #dc3545;
+            padding: 8px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+            .banner-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                color: #dc3545;
+            }
+    </style>
+   @*  <style>
+        .license-banner {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+            .license-banner.expiring {
+                background: linear-gradient(135deg, #f5576c, #f093fb);
+                animation: pulse-warning 2s infinite;
+            }
+
+        @@keyframes pulse-warning {
+            0%, 100% {
+                box-shadow: 0 2px 10px rgba(245,87,108,0.3);
+            }
+
+            50% {
+                box-shadow: 0 2px 25px rgba(245,87,108,0.6);
+            }
+        }
+
+        .banner-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .banner-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+            .banner-info i {
+                font-size: 1.3rem;
+            }
+
+        .banner-btn {
+            background: white;
+            color: #11998e;
+            padding: 8px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .license-banner.expiring .banner-btn {
+            color: #f5576c;
+        }
+
+        .banner-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: #11998e;
+        }
+
+        .license-banner.expiring .banner-btn:hover {
+            color: #f5576c;
+        }
+    </style> *@
     <div class="sg-wrapper">
         <!-- Sidebar -->
         <aside class="sg-sidebar" id="sidebar">
@@ -139,10 +332,11 @@
                 ═══════════════════════════════════════════════════ -->
                 @{
                     var canViewPurchases = await HasPermission(Permissions.Purchases.View);
+                    var canViewPurchaseReturns = await HasPermission(Permissions.PurchaseReturns.View);
                     var canViewSales = await HasPermission(Permissions.Sales.View);
                     var canViewSuppliers = await HasPermission(Permissions.Suppliers.View);
                     var canViewCustomers = await HasPermission(Permissions.Customers.View);
-                    var showCommerceSection = canViewPurchases || canViewSales || canViewSuppliers || canViewCustomers;
+                    var showCommerceSection = canViewPurchases || canViewPurchaseReturns || canViewSales || canViewSuppliers || canViewCustomers;
                 }
                 @if (showCommerceSection)
                 {
@@ -157,11 +351,30 @@
                             </a>
                         }
 
+                        @if (canViewPurchaseReturns)
+                        {
+                            <a href="@Url.Action("Index", "PurchaseReturns")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "PurchaseReturns" ? "active" : "")">
+                                <i class="fas fa-rotate-left"></i>
+                                <span>مرتجعات الشراء</span>
+                            </a>
+                        }
+
                         @if (canViewSales)
                         {
                             <a href="@Url.Action("Index", "Sales")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Sales" ? "active" : "")">
                                 <i class="fas fa-cash-register"></i>
                                 <span>المبيعات</span>
+                            </a>
+                        }
+
+                        @{
+                            var canViewSaleReturns = await HasPermission(Permissions.SaleReturns.View);
+                        }
+                        @if (canViewSaleReturns)
+                        {
+                            <a href="@Url.Action("Index", "SaleReturns")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "SaleReturns" ? "active" : "")">
+                                <i class="fas fa-rotate-left"></i>
+                                <span>مرتجعات البيع</span>
                             </a>
                         }
 
@@ -180,6 +393,35 @@
                                 <span>العملاء</span>
                             </a>
                         }
+
+                        @if (User.HasClaim("Permission", "Sales.QuickSale"))
+                        {
+                            <a href="@Url.Action("POS", "Sales")" class="sg-nav-item" target="_blank">
+                                <i class="fas fa-cash-register"></i>
+                                <span>نقطة البيع (POS)</span>
+                                <span class="badge bg-warning text-dark ms-auto">⚡</span>
+                            </a>
+                        }
+
+
+                    </div>
+                }
+
+                <!-- ═══════════════════════════════════════════════════
+                     💰 المالية
+                ═══════════════════════════════════════════════════ -->
+                @{
+                    var canViewCashRegister = await HasPermission(Permissions.CashRegister.View);
+                }
+                @if (canViewCashRegister)
+                {
+                    <div class="sg-nav-section">
+                        <span class="sg-nav-label">المالية</span>
+
+                        <a href="@Url.Action("Index", "CashRegister")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "CashRegister" ? "active" : "")">
+                            <i class="fas fa-cash-register"></i>
+                            <span>الصندوق</span>
+                        </a>
                     </div>
                 }
 
@@ -252,6 +494,49 @@
                     </div>
                 }
 
+                <!-- 🔐 الترخيص -->
+                <div class="sg-nav-section">
+                    <span class="sg-nav-label">الترخيص</span>
+
+                    <a href="@Url.Action("Info", "License")" class="sg-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "License" ? "active" : "")">
+                        <i class="fas fa-key"></i>
+                        <span>معلومات الترخيص</span>
+                        @{
+                            var licStatus = await LicenseService.CheckLicenseAsync();
+                            var licDays = await LicenseService.GetRemainingDaysAsync();
+                        }
+                        @if (licStatus == LicenseStatus.TrialActive)
+                        {
+                            <span class="badge bg-success ms-auto">@licDays يوم</span>
+                        }
+                        else if (licStatus == LicenseStatus.TrialExpiring)
+                        {
+                            <span class="badge bg-warning ms-auto blink">@licDays يوم</span>
+                        }
+                        else if (licStatus == LicenseStatus.Active)
+                        {
+                            <span class="badge bg-info ms-auto">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        }
+                    </a>
+                </div>
+
+                <style>
+                    .blink {
+                        animation: blink 1.5s infinite;
+                    }
+
+                    @@keyframes blink {
+                        0%, 100% {
+                            opacity: 1;
+                        }
+
+                        50% {
+                            opacity: 0.5;
+                        }
+                    }
+                </style>
 
             </nav>
 
