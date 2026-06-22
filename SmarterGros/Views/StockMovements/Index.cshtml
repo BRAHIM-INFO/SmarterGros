@@ -1,0 +1,630 @@
+﻿@model List<SmarterGros.Models.StockMovement>
+
+@{
+    ViewData["Title"] = "حركات المخزون";
+    var products = ViewBag.Products as List<SmarterGros.Models.Product> ?? new();
+    var culture = new System.Globalization.CultureInfo("ar-DZ");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <style>
+        .page-header {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .page-title h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #0E4D3A;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            margin: 4px 0 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+            .btn-primary-custom:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(14,77,58,0.3);
+                color: white;
+            }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-right: 4px solid;
+        }
+
+            .stat-card .icon {
+                width: 50px;
+                height: 50px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.4rem;
+            }
+
+            .stat-card .value {
+                font-size: 1.3rem;
+                font-weight: 700;
+                color: #2c3e50;
+            }
+
+            .stat-card .label {
+                font-size: 0.85rem;
+                color: #6c757d;
+            }
+
+        .stat-total {
+            border-color: #0E4D3A;
+        }
+
+            .stat-total .icon {
+                background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+            }
+
+        .stat-in {
+            border-color: #28a745;
+        }
+
+            .stat-in .icon {
+                background: linear-gradient(135deg, #28a745, #20c997);
+            }
+
+        .stat-out {
+            border-color: #dc3545;
+        }
+
+            .stat-out .icon {
+                background: linear-gradient(135deg, #dc3545, #e74c3c);
+            }
+
+        .stat-today {
+            border-color: #17a2b8;
+        }
+
+            .stat-today .icon {
+                background: linear-gradient(135deg, #17a2b8, #0288d1);
+            }
+
+        .filters-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .movements-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+            .movements-table table {
+                margin: 0;
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .movements-table thead {
+                background: linear-gradient(135deg, #0E4D3A, #1a6b54);
+                color: white;
+            }
+
+                .movements-table thead th {
+                    border: none;
+                    padding: 14px;
+                    font-weight: 600;
+                }
+
+            .movements-table tbody td {
+                padding: 12px 14px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            .movements-table tbody tr:hover {
+                background: #f8f9fa;
+            }
+
+        .movement-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+            .movement-type.in {
+                background: #d4edda;
+                color: #155724;
+            }
+
+            .movement-type.out {
+                background: #f8d7da;
+                color: #721c24;
+            }
+
+            .movement-type.adjust {
+                background: #cce5ff;
+                color: #004085;
+            }
+
+        .qty-badge {
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+
+            .qty-badge.positive {
+                color: #28a745;
+            }
+
+            .qty-badge.negative {
+                color: #dc3545;
+            }
+
+            .qty-badge.adjust {
+                color: #17a2b8;
+            }
+
+        .empty-state {
+            background: white;
+            padding: 60px 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+            .empty-state i {
+                font-size: 4rem;
+                color: #dee2e6;
+                margin-bottom: 15px;
+            }
+
+        /* Modal */
+        .movement-types {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .type-card {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+            .type-card:hover {
+                border-color: #0E4D3A;
+            }
+
+            .type-card.active.type-in {
+                border-color: #28a745;
+                background: #d4edda;
+            }
+
+            .type-card.active.type-out {
+                border-color: #dc3545;
+                background: #f8d7da;
+            }
+
+            .type-card.active.type-adjust {
+                border-color: #17a2b8;
+                background: #cce5ff;
+            }
+
+            .type-card i {
+                font-size: 2rem;
+                margin-bottom: 8px;
+            }
+
+            .type-card strong {
+                display: block;
+                font-size: 1rem;
+            }
+
+            .type-card small {
+                display: block;
+                margin-top: 4px;
+                font-size: 0.8rem;
+                color: #6c757d;
+            }
+    </style>
+}
+
+<!-- الترويسة -->
+<div class="page-header">
+    <div class="page-title">
+        <h1><i class="fas fa-exchange-alt"></i> حركات المخزون</h1>
+        <p>@Model.Count حركة — سجل كل عمليات الإدخال والإخراج</p>
+    </div>
+    <button class="btn btn-primary-custom" onclick="showAddMovementModal()">
+        <i class="fas fa-plus"></i> إضافة حركة
+    </button>
+</div>
+
+<!-- الإحصائيات -->
+@{
+    var totalIn = Model.Where(m => m.Quantity > 0).Sum(m => m.Quantity);
+    var totalOut = Model.Where(m => m.Quantity < 0).Sum(m => Math.Abs(m.Quantity));
+    var todayCount = Model.Count(m => m.MovementDate.Date == DateTime.Today);
+}
+
+<div class="stats-grid">
+    <div class="stat-card stat-total">
+        <div class="icon"><i class="fas fa-exchange-alt"></i></div>
+        <div>
+            <div class="value">@Model.Count</div>
+            <div class="label">إجمالي الحركات</div>
+        </div>
+    </div>
+
+    <div class="stat-card stat-in">
+        <div class="icon"><i class="fas fa-arrow-down"></i></div>
+        <div>
+            <div class="value" style="color: #28a745;">+@totalIn</div>
+            <div class="label">إجمالي الإدخال</div>
+        </div>
+    </div>
+
+    <div class="stat-card stat-out">
+        <div class="icon"><i class="fas fa-arrow-up"></i></div>
+        <div>
+            <div class="value" style="color: #dc3545;">-@totalOut</div>
+            <div class="label">إجمالي الإخراج</div>
+        </div>
+    </div>
+
+    <div class="stat-card stat-today">
+        <div class="icon"><i class="fas fa-calendar-day"></i></div>
+        <div>
+            <div class="value">@todayCount</div>
+            <div class="label">حركات اليوم</div>
+        </div>
+    </div>
+</div>
+
+<!-- الفلاتر -->
+<div class="filters-bar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small">🔍 المنتج</label>
+            <select name="productId" class="form-select">
+                <option value="">جميع المنتجات</option>
+                @foreach (var p in products)
+                {
+                    <option value="@p.Id">@p.Name (@p.Reference)</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">النوع</label>
+            <select name="type" class="form-select">
+                <option value="">الكل</option>
+                <option value="إدخال">إدخال</option>
+                <option value="إخراج">إخراج</option>
+                <option value="تعديل">تعديل</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">من</label>
+            <input type="date" name="from" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">إلى</label>
+            <input type="date" name="to" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary-custom w-100">
+                <i class="fas fa-search"></i> بحث
+            </button>
+        </div>
+        <div class="col-md-1">
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-times"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- الجدول -->
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>لا توجد حركات</h3>
+        <p class="text-muted">لم يتم تسجيل أي حركات مخزون</p>
+    </div>
+}
+else
+{
+    <div class="movements-table">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="40">#</th>
+                        <th>التاريخ</th>
+                        <th>المنتج</th>
+                        <th>النوع</th>
+                        <th class="text-center">الكمية</th>
+                        <th class="text-center">قبل</th>
+                        <th class="text-center">بعد</th>
+                        <th>السبب</th>
+                        <th>المستخدم</th>
+                        <th>ملاحظات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int rowNum = 1;
+                    }
+                    @foreach (var m in Model)
+                    {
+                        var typeClass = m.MovementType.Contains("إدخال") || m.MovementType.Contains("شراء") || m.MovementType.Contains("إلغاء مرتجع") ? "in" :
+                        m.MovementType.Contains("تعديل") ? "adjust" : "out";
+                        var qtyClass = m.Quantity > 0 ? "positive" : m.Quantity < 0 ? "negative" : "adjust";
+
+                        <tr>
+                            <td class="text-center"><strong>@rowNum</strong></td>
+                            <td>
+                                <div>@m.MovementDate.ToString("yyyy/MM/dd")</div>
+                                <small class="text-muted">@m.MovementDate.ToString("HH:mm")</small>
+                            </td>
+                            <td>
+                                <strong>@(m.Product?.Name ?? "---")</strong>
+                                @if (m.Product != null)
+                                {
+                                    <br>
+                        
+                                    <small class="text-muted">
+                                        <span class="badge bg-secondary">@m.Product.Reference</span>
+                                    </small>
+                                }
+                            </td>
+                            <td>
+                                <span class="movement-type @typeClass">
+                                    @if (typeClass == "in")
+                                    {
+                                        <i class="fas fa-arrow-down"></i>
+                                    }
+                                    else if (typeClass == "out")
+                                    {
+                                        <i class="fas fa-arrow-up"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-sync-alt"></i>
+                                    }
+                                    @m.MovementType
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="qty-badge @qtyClass">
+                                    @(m.Quantity > 0 ? "+" : "")@m.Quantity
+                                </span>
+                            </td>
+                            <td class="text-center">@m.QuantityBefore</td>
+                            <td class="text-center fw-bold">@m.QuantityAfter</td>
+                            <td><small>@(m.Reason ?? "---")</small></td>
+                            <td><small>@(m.UserName ?? "---")</small></td>
+                            <td><small class="text-muted">@(m.Notes ?? "---")</small></td>
+                        </tr>
+                        rowNum++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- 📦 Modal إضافة حركة يدوية -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal fade" id="addMovementModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0E4D3A, #1a6b54); color: white;">
+                <h5 class="modal-title"><i class="fas fa-exchange-alt"></i> إضافة حركة مخزون</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- نوع الحركة -->
+                <label class="form-label fw-bold mb-2">نوع الحركة *</label>
+                <div class="movement-types">
+                    <div class="type-card type-in active" data-type="إدخال" onclick="selectMovementType(this, 'إدخال')">
+                        <i class="fas fa-arrow-down text-success"></i>
+                        <strong>إدخال</strong>
+                        <small>إضافة كمية للمخزون</small>
+                    </div>
+                    <div class="type-card type-out" data-type="إخراج" onclick="selectMovementType(this, 'إخراج')">
+                        <i class="fas fa-arrow-up text-danger"></i>
+                        <strong>إخراج</strong>
+                        <small>سحب كمية من المخزون</small>
+                    </div>
+                    <div class="type-card type-adjust" data-type="تعديل" onclick="selectMovementType(this, 'تعديل')">
+                        <i class="fas fa-sync-alt text-info"></i>
+                        <strong>تعديل</strong>
+                        <small>ضبط الكمية يدوياً</small>
+                    </div>
+                </div>
+                <input type="hidden" id="movementType" value="إدخال" />
+
+                <!-- المنتج -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">المنتج *</label>
+                    <select id="movementProductId" class="form-select form-select-lg" required>
+                        <option value="">-- اختر المنتج --</option>
+                        @foreach (var p in products)
+                        {
+                            <option value="@p.Id" data-stock="@p.StockQuantity">
+                                @p.Name (@p.Reference) - المخزون: @p.StockQuantity
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <!-- الكمية -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">الكمية *</label>
+                    <input type="number" id="movementQuantity" class="form-control form-control-lg"
+                           min="1" value="1" required style="text-align: center; font-weight: 700; font-size: 1.3rem;" />
+                </div>
+
+                <!-- السبب -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">السبب *</label>
+                    <input type="text" id="movementReason" class="form-control"
+                           placeholder="مثال: جرد يدوي، تلف، إرجاع..." required />
+                </div>
+
+                <!-- ملاحظات -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">ملاحظات (اختياري)</label>
+                    <textarea id="movementNotes" class="form-control" rows="2"
+                              placeholder="أي ملاحظات إضافية..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-success btn-lg" onclick="saveMovement()" id="saveMovementBtn">
+                    <i class="fas fa-save"></i> حفظ الحركة
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedMovementType = 'إدخال';
+
+        function showAddMovementModal() {
+            selectedMovementType = 'إدخال';
+            document.getElementById('movementProductId').value = '';
+            document.getElementById('movementQuantity').value = '1';
+            document.getElementById('movementReason').value = '';
+            document.getElementById('movementNotes').value = '';
+
+            // إعادة تعيين البطاقات
+            document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
+            document.querySelector('.type-card.type-in').classList.add('active');
+            document.getElementById('movementType').value = 'إدخال';
+
+            new bootstrap.Modal(document.getElementById('addMovementModal')).show();
+        }
+
+        function selectMovementType(element, type) {
+            document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            selectedMovementType = type;
+            document.getElementById('movementType').value = type;
+        }
+
+        async function saveMovement() {
+            const productId = parseInt(document.getElementById('movementProductId').value);
+            const quantity = parseInt(document.getElementById('movementQuantity').value);
+            const reason = document.getElementById('movementReason').value.trim();
+            const notes = document.getElementById('movementNotes').value.trim();
+            const movementType = document.getElementById('movementType').value;
+
+            // التحقق
+            if (!productId) {
+                alert('❌ يرجى اختيار المنتج');
+                return;
+            }
+            if (!quantity || quantity <= 0) {
+                alert('❌ الكمية يجب أن تكون أكبر من 0');
+                return;
+            }
+            if (!reason) {
+                alert('❌ السبب مطلوب');
+                return;
+            }
+
+            // التحقق من المخزون عند الإخراج
+            if (movementType === 'إخراج') {
+                const option = document.getElementById('movementProductId').selectedOptions[0];
+                const stock = parseInt(option.getAttribute('data-stock'));
+                if (quantity > stock) {
+                    alert(`❌ الكمية غير كافية! المخزون الحالي: ${stock}`);
+                    return;
+                }
+            }
+
+            const btn = document.getElementById('saveMovementBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/StockMovements/AddMovement', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ProductId: productId,
+                        MovementType: movementType,
+                        Quantity: quantity,
+                        Reason: reason,
+                        Notes: notes
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ تم تسجيل الحركة بنجاح');
+                    location.reload();
+                } else {
+                    alert('❌ ' + data.message);
+                    btn.innerHTML = '<i class="fas fa-save"></i> حفظ الحركة';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                alert('❌ حدث خطأ');
+                btn.innerHTML = '<i class="fas fa-save"></i> حفظ الحركة';
+                btn.disabled = false;
+            }
+        }
+    </script>
+}

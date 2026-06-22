@@ -138,105 +138,65 @@ namespace SmarterGros.Controllers
             return View(product);
         }
 
+        // ═══════════════════════════════════════════════════
+        // ✏️ تعديل منتج
+        // ═══════════════════════════════════════════════════
         [HttpPost]
-        [HasPermission(Permissions.Products.Edit)]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Product product, IFormFile? imageFile)
         {
             var existing = await _context.Products.FindAsync(id);
-            if (existing == null) return NotFound();
+            if (existing == null)
+                return NotFound();
 
-            // ✅ حفظ القيم القديمة قبل التعديل
-            var oldValues = new
-            {
-                existing.Name,
-                existing.StockQuantity,
-                existing.PurchasePriceTTC,
-                existing.RetailPriceTTC,
-                existing.WholesalePriceTTC,
-                existing.MinStockAlert
-            };
-
-
-            var oldQty = existing.StockQuantity;
-
+            // تحديث البيانات
             existing.Name = product.Name;
+            existing.Reference = product.Reference;
             existing.CategoryId = product.CategoryId;
-            existing.Barcode = product.Barcode;
             existing.Unit = product.Unit;
+            existing.Description = product.Description;
+            existing.PurchasePriceHT = product.PurchasePriceHT;
+            existing.PurchasePriceTTC = product.PurchasePriceTTC;
+            existing.TaxRate = product.TaxRate;
+            existing.RetailPriceHT = product.RetailPriceHT;
+            existing.RetailPriceTTC = product.RetailPriceTTC;
+            existing.RetailMargin = product.RetailMargin;
+            existing.SemiWholesalePriceHT = product.SemiWholesalePriceHT;
+            existing.SemiWholesalePriceTTC = product.SemiWholesalePriceTTC;
+            existing.SemiWholesaleMargin = product.SemiWholesaleMargin;
+            existing.WholesalePriceHT = product.WholesalePriceHT;
+            existing.WholesalePriceTTC = product.WholesalePriceTTC;
+            existing.WholesaleMargin = product.WholesaleMargin;
+            existing.StockQuantity = product.StockQuantity;
+            existing.MinStockAlert = product.MinStockAlert;
+            existing.ExpiryDate = product.ExpiryDate;
             existing.Location = product.Location;
             existing.Zone = product.Zone;
             existing.Aisle = product.Aisle;
             existing.Shelf = product.Shelf;
             existing.Level = product.Level;
             existing.Bin = product.Bin;
-            existing.PurchasePriceHT = product.PurchasePriceHT;
-            existing.TaxRate = product.TaxRate;
-            existing.PurchasePriceTTC = product.PurchasePriceHT * (1 + product.TaxRate / 100);
-            existing.WholesalePriceHT = product.WholesalePriceHT;
-            existing.WholesalePriceTTC = product.WholesalePriceTTC;
-            existing.WholesaleMargin = product.WholesaleMargin;
-            existing.SemiWholesalePriceHT = product.SemiWholesalePriceHT;
-            existing.SemiWholesalePriceTTC = product.SemiWholesalePriceTTC;
-            existing.SemiWholesaleMargin = product.SemiWholesaleMargin;
-            existing.RetailPriceHT = product.RetailPriceHT;
-            existing.RetailPriceTTC = product.RetailPriceTTC;
-            existing.RetailMargin = product.RetailMargin;
-            existing.StockQuantity = product.StockQuantity;
-            existing.MinStockAlert = product.MinStockAlert;
-            existing.PackagingQty = product.PackagingQty;
-            existing.ExpiryDate = product.ExpiryDate;
-            existing.Description = product.Description;
 
-            if (imageFile != null)
+            // تحديث الصورة إذا وُجدت
+            if (imageFile != null && imageFile.Length > 0)
             {
-                var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "products");
+                var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "products");
                 Directory.CreateDirectory(uploadsDir);
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
-                var filePath = Path.Combine(uploadsDir, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await imageFile.CopyToAsync(stream);
-                existing.ImagePath = $"/uploads/products/{fileName}";
-            }
 
-            if (oldQty != product.StockQuantity)
-            {
-                var movement = new StockMovement
+                var fileName = $"product_{id}_{DateTime.Now.Ticks}{Path.GetExtension(imageFile.FileName)}";
+                var filePath = Path.Combine(uploadsDir, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    ProductId = id,
-                    MovementType = "تعديل",
-                    Quantity = product.StockQuantity - oldQty,
-                    QuantityBefore = oldQty,
-                    QuantityAfter = product.StockQuantity,
-                    Reason = "تعديل يدوي",
-                    UserName = User.Identity?.Name,
-                    MovementDate = DateTime.Now
-                };
-                _context.StockMovements.Add(movement);
+                    await imageFile.CopyToAsync(stream);
+                }
+
+                existing.ImagePath = $"/uploads/products/{fileName}";
             }
 
             await _context.SaveChangesAsync();
 
-            // ✅ تسجيل العملية مع القيم القديمة والجديدة
-            await _activityLog.LogUpdateAsync(
-                module: "Products",
-                entityName: "Product",
-                entityId: id,
-                description: $"تم تعديل منتج: {existing.Name}",
-                oldValues: oldValues,
-                newValues: new
-                {
-                    existing.Name,
-                    existing.StockQuantity,
-                    existing.PurchasePriceTTC,
-                    existing.RetailPriceTTC,
-                    existing.WholesalePriceTTC,
-                    existing.MinStockAlert
-                }
-            );
-
-
-            TempData["Success"] = "تم تعديل المنتج بنجاح";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
@@ -273,13 +233,53 @@ namespace SmarterGros.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // ═══════════════════════════════════════════════════
+        // 🔍 API: جلب بيانات منتج للتعديل
+        // ═══════════════════════════════════════════════════
         [HttpGet]
-        [HasPermission(Permissions.Products.View)]
         public async Task<IActionResult> GetProduct(int id)
         {
-            var product = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
-            if (product == null) return NotFound();
-            return Json(product);
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (product == null)
+                return Json(new { success = false, message = "المنتج غير موجود" });
+
+            return Json(new
+            {
+                success = true,
+                id = product.Id,
+                name = product.Name,
+                reference = product.Reference,
+                categoryId = product.CategoryId,
+                barcode = product.Barcode,
+                unit = product.Unit,
+                description = product.Description,
+                purchasePriceHT = product.PurchasePriceHT,
+                purchasePriceTTC = product.PurchasePriceTTC,
+                taxRate = product.TaxRate,
+                retailPriceHT = product.RetailPriceHT,
+                retailPriceTTC = product.RetailPriceTTC,
+                retailMargin = product.RetailMargin,
+                semiWholesalePriceHT = product.SemiWholesalePriceHT,
+                semiWholesalePriceTTC = product.SemiWholesalePriceTTC,
+                semiWholesaleMargin = product.SemiWholesaleMargin,
+                wholesalePriceHT = product.WholesalePriceHT,
+                wholesalePriceTTC = product.WholesalePriceTTC,
+                wholesaleMargin = product.WholesaleMargin,
+                stockQuantity = product.StockQuantity,
+                minStockAlert = product.MinStockAlert,
+                packagingQty = product.PackagingQty,
+                expiryDate = product.ExpiryDate?.ToString("yyyy-MM-dd"),
+                location = product.Location,
+                zone = product.Zone,
+                aisle = product.Aisle,
+                shelf = product.Shelf,
+                level = product.Level,
+                bin = product.Bin,
+                imagePath = product.ImagePath
+            });
         }
 
         [HttpGet]
