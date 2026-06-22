@@ -47,6 +47,7 @@ public class HardwareIdService : IHardwareIdService
         }
     }
 
+    
     private string GenerateHardwareId()
     {
         try
@@ -64,11 +65,12 @@ public class HardwareIdService : IHardwareIdService
             var bytes = Encoding.UTF8.GetBytes(combined);
             var hash = sha256.ComputeHash(bytes);
 
+            
             // 4️⃣ تحويل إلى Base32 وأخذ 16 حرف
-            var base32 = ToBase32(hash).Substring(0, 16);
-
+            var base32 = ToBase32(hash).Substring(0, 44);
+            return base32;
             // 5️⃣ تنسيق: XXXX-XXXX-XXXX-XXXX
-            return $"{base32.Substring(0, 4)}-{base32.Substring(4, 4)}-{base32.Substring(8, 4)}-{base32.Substring(12, 4)}";
+            //return $"{base32.Substring(0, 4)}-{base32.Substring(4, 4)}-{base32.Substring(8, 4)}-{base32.Substring(12, 4)}";
         }
         catch (Exception)
         {

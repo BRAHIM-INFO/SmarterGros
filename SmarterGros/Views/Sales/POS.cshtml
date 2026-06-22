@@ -163,6 +163,76 @@
             border: 2px solid transparent;
         }
 
+        .product-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 2px solid #f0f0f0;
+            transition: all 0.2s;
+        }
+
+        .product-card:hover .product-img {
+            transform: scale(1.1);
+            border-color: #d32f2f;
+        }
+
+        /* تحسين شبكة المنتجات */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+            .product-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+                border-color: #d32f2f;
+            }
+
+            .product-card:active {
+                transform: scale(0.95);
+                background: #fff5f5;
+            }
+
+            /* تأثير الإضافة */
+            .product-card.added {
+                animation: addedPulse 0.3s ease;
+            }
+
+        @@keyframes addedPulse {
+            0%
+
+        {
+            transform: scale(1);
+            background: white;
+        }
+
+        50% {
+            transform: scale(0.92);
+            background: #d4edda;
+        }
+
+        100% {
+            transform: scale(1);
+            background: white;
+        }
+
+        }
+
             .product-card:hover {
                 transform: translateY(-3px);
                 box-shadow: 0 5px 15px rgba(0,0,0,0.15);
@@ -564,19 +634,29 @@
                 </div>
 
                 <h3 class="section-title">
-                    <i class="fas fa-star text-warning"></i> المنتجات الأكثر مبيعاً
+                    <i class="fas fa-box text-warning"></i> المنتجات المتوفرة
+                    <span style="background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 15px; font-size: 0.8rem; margin-right: 10px;">
+                        @((ViewBag.AllProducts as List<SmarterGros.Models.Product>)?.Count ?? 0) منتج
+                    </span>
                 </h3>
 
                 <div class="products-grid">
-                    @foreach (var product in (List<SmarterGros.Models.Product>)ViewBag.PopularProducts)
+                    @foreach (var product in (List<SmarterGros.Models.Product>)ViewBag.AllProducts)
                     {
                         var stockClass = product.StockQuantity == 0 ? "out" :
                         product.StockQuantity <= product.MinStockAlert ? "low" : "";
 
-                        <div class="product-card" onclick="addProduct(@product.Id, '@product.Name.Replace("'", "\\'")', '@product.Reference', @product.RetailPriceTTC, @product.PurchasePriceTTC, @product.TaxRate, @product.StockQuantity)">
-                            <div class="product-icon">
-                                <i class="fas fa-box"></i>
-                            </div>
+                        <div class="product-card" onclick="addProductWithSound(@product.Id, '@product.Name.Replace("'", "\\'")', '@product.Reference', @product.RetailPriceTTC, @product.PurchasePriceTTC, @product.TaxRate, @product.StockQuantity)">
+                            @if (!string.IsNullOrEmpty(product.ImagePath))
+                            {
+                                <img src="@product.ImagePath" alt="@product.Name" class="product-img" />
+                            }
+                            else
+                            {
+                                <div class="product-icon">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                            }
                             <div class="product-name">@product.Name</div>
                             <div class="product-price">@product.RetailPriceTTC.ToString("N0") دج</div>
                             <div class="product-stock @stockClass">
@@ -662,6 +742,57 @@
         }
         setInterval(updateTime, 1000);
         updateTime();
+
+                // ═══════════════════════════════════════════════════
+        // 🔊 صوت Beep عند الإضافة
+        // ═══════════════════════════════════════════════════
+        const beepSound = new Audio('data:audio/wav;base64,UklGRl9vT19teleXBldmF0bQBkYXRhAACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/');
+
+        function playBeep() {
+            try {
+                // صوت beep بسيط باستخدام Web Audio API
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800;  // تردد الصوت
+                oscillator.type = 'sine';
+                gainNode.gain.value = 0.3;          // مستوى الصوت
+
+                oscillator.start();
+
+                // إيقاف بعد 100ms
+                setTimeout(() => {
+                    oscillator.stop();
+                    audioContext.close();
+                }, 100);
+            } catch (e) {
+                console.log('Sound not supported');
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 🛒 إضافة منتج مع صوت وتأثير بصري
+        // ═══════════════════════════════════════════════════
+        function addProductWithSound(id, name, reference, price, cost, taxRate, stock) {
+            // تشغيل الصوت
+            playBeep();
+
+            // تأثير بصري على البطاقة
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                if (card.onclick && card.onclick.toString().includes(id.toString())) {
+                    card.classList.add('added');
+                    setTimeout(() => card.classList.remove('added'), 300);
+                }
+            });
+
+            // إضافة المنتج للسلة
+            addProduct(id, name, reference, price, cost, taxRate, stock);
+        }
 
         // ═══════════════════════════════════════════════════
         // إضافة منتج

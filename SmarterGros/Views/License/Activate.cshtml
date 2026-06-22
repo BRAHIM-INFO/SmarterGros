@@ -211,7 +211,7 @@
             <div style="color: #6c757d; margin-bottom: 8px;">
                 <i class="fas fa-key"></i> رقم جهازك:
             </div>
-            <div class="hw-id-value" id="hardwareId">@ViewBag.HardwareId</div>
+            <div class="hw-id-value" id="hardwareId" style="font-size: 1.1rem; word-break: break-all;">@ViewBag.FullHardwareId</div>            
             <button class="btn-copy" onclick="copyHardwareId()">
                 <i class="fas fa-copy"></i> نسخ
             </button>
@@ -345,6 +345,31 @@
         <!-- 🧹 JavaScript -->
         <!-- ═══════════════════════════════════════════════════ -->
         <script>
+            // عرض Hardware ID الكامل عند فتح الصفحة
+            window.addEventListener('load', function() {
+                fetch('/License/GetHardwareInfo')
+                    .then(r => r.json())
+                    .then(data => {
+                        // تحديث العرض في الصفحة
+                        var hwElement = document.getElementById('hardwareId');
+                        if (hwElement) {
+                            hwElement.textContent = data.fullHardwareId;
+                        }
+
+                        // عرض MessageBox
+                        alert('🔑 رقم جهازك الفريد (Hardware ID):\n\n' + data.fullHardwareId + '\n\n📋 انسخه وأرسله للمبرمج للحصول على مفتاح التفعيل');
+                    });
+            });
+
+            function copyHwId() {
+                fetch('/License/GetHardwareInfo')
+                    .then(r => r.json())
+                    .then(data => {
+                        navigator.clipboard.writeText(data.fullHardwareId).then(() => {
+                            alert('✅ تم نسخ الرقم الكامل!\n\n' + data.fullHardwareId);
+                        });
+                    });
+            }
             (function () {
                 'use strict';
 

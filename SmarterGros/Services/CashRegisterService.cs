@@ -194,11 +194,8 @@ namespace SmarterGros.Services
         // 💰 إدارة الحركات اليدوية
         // ═══════════════════════════════════════════════════
 
-        public async Task<(bool Success, string Message, int? TransactionId)> AddTransactionAsync(
-            CashTransactionViewModel model)
+        public async Task<(bool Success, string Message, int? TransactionId)> AddTransactionAsync(CashTransactionViewModel model)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
             try
             {
                 // التحقق من الصندوق
@@ -209,10 +206,6 @@ namespace SmarterGros.Services
                 if (!register.IsActive)
                     return (false, "الصندوق غير نشط", null);
 
-                // التحقق من إغلاق اليوم
-                if (await IsDayClosedAsync(register.Id, model.TransactionDate.Date))
-                    return (false, "لا يمكن إضافة حركة - اليوم مغلق", null);
-
                 // التحقق من المبلغ
                 if (model.Amount <= 0)
                     return (false, "المبلغ يجب أن يكون أكبر من 0", null);
@@ -220,14 +213,7 @@ namespace SmarterGros.Services
                 // التحقق من توافق Type و Category
                 var expectedType = model.Category.GetTransactionType();
                 if (expectedType != model.Type)
-                    return (false, $"الفئة المختارة لا تتوافق مع نوع الحركة ({model.Type.GetArabicName()})", null);
-
-                // التحقق من وجود رصيد كاف (للصادرات)
-                if (model.Type == TransactionType.Expense && model.Amount > register.CurrentBalance)
-                {
-                    return (false,
-                        $"الرصيد غير كافٍ! الرصيد الحالي: {register.CurrentBalance:N2} دج", null);
-                }
+                    return (false, $"الفئة المختارة لا تتوافق مع نوع الحركة", null);
 
                 var currentUser = await GetCurrentUserAsync();
                 var transactionNumber = await GenerateTransactionNumberAsync();
@@ -269,45 +255,127 @@ namespace SmarterGros.Services
 
                 await _context.SaveChangesAsync();
 
-                // تسجيل في Activity Log
-                await _activityLogService.LogCreateAsync(
-                    module: "CashRegister",
-                    entityName: "CashTransaction",
-                    entityId: cashTransaction.Id,
-                    description: $"حركة {model.Type.GetArabicName()} - {model.Category.GetArabicName()} " +
-                                 $"بمبلغ {model.Amount:N2} دج",
-                    newValues: new
-                    {
-                        cashTransaction.TransactionNumber,
-                        Type = model.Type.GetArabicName(),
-                        Category = model.Category.GetArabicName(),
-                        cashTransaction.Amount,
-                        BalanceBefore = cashTransaction.BalanceBefore,
-                        BalanceAfter = cashTransaction.BalanceAfter
-                    });
-
-                await transaction.CommitAsync();
-
                 return (true,
-                    $"تم تسجيل الحركة {transactionNumber} بنجاح - الرصيد الجديد: {register.CurrentBalance:N2} دج",
+                    $"تم تسجيل الحركة بنجاح",
                     cashTransaction.Id);
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-                await _activityLogService.LogErrorAsync(
-                    actionName: "إضافة حركة صندوق",
-                    errorMessage: ex.Message,
-                    module: "CashRegister");
                 return (false, $"حدث خطأ: {ex.Message}", null);
             }
         }
+        //public async Task<(bool Success, string Message, int? TransactionId)> AddTransactionAsync(
+        //    CashTransactionViewModel model)
+        //{
+        //    using var transaction = await _context.Database.BeginTransactionAsync();
+
+        //    try
+        //    {
+        //        // التحقق من الصندوق
+        //        var register = await _context.CashRegisters.FindAsync(model.CashRegisterId);
+        //        if (register == null)
+        //            return (false, "الصندوق غير موجود", null);
+
+        //        if (!register.IsActive)
+        //            return (false, "الصندوق غير نشط", null);
+
+        //        // التحقق من إغلاق اليوم
+        //        if (await IsDayClosedAsync(register.Id, model.TransactionDate.Date))
+        //            return (false, "لا يمكن إضافة حركة - اليوم مغلق", null);
+
+        //        // التحقق من المبلغ
+        //        if (model.Amount <= 0)
+        //            return (false, "المبلغ يجب أن يكون أكبر من 0", null);
+
+        //        // التحقق من توافق Type و Category
+        //        var expectedType = model.Category.GetTransactionType();
+        //        if (expectedType != model.Type)
+        //            return (false, $"الفئة المختارة لا تتوافق مع نوع الحركة ({model.Type.GetArabicName()})", null);
+
+        //        // التحقق من وجود رصيد كاف (للصادرات)
+        //        if (model.Type == TransactionType.Expense && model.Amount > register.CurrentBalance)
+        //        {
+        //            return (false,
+        //                $"الرصيد غير كافٍ! الرصيد الحالي: {register.CurrentBalance:N2} دج", null);
+        //        }
+
+        //        var currentUser = await GetCurrentUserAsync();
+        //        var transactionNumber = await GenerateTransactionNumberAsync();
+
+        //        // إنشاء الحركة
+        //        var cashTransaction = new CashTransaction
+        //        {
+        //            TransactionNumber = transactionNumber,
+        //            TransactionDate = model.TransactionDate,
+        //            CashRegisterId = model.CashRegisterId,
+        //            Type = model.Type,
+        //            Category = model.Category,
+        //            PaymentMethod = model.PaymentMethod,
+        //            Amount = model.Amount,
+        //            BalanceBefore = register.CurrentBalance,
+        //            BalanceAfter = model.Type == TransactionType.Income
+        //                ? register.CurrentBalance + model.Amount
+        //                : register.CurrentBalance - model.Amount,
+        //            Description = model.Description,
+        //            Notes = model.Notes,
+        //            SupplierId = model.SupplierId,
+        //            CustomerId = model.CustomerId,
+        //            ReferenceType = model.ReferenceType,
+        //            ReferenceId = model.ReferenceId,
+        //            ReferenceNumber = model.ReferenceNumber,
+        //            CheckNumber = model.CheckNumber,
+        //            BankName = model.BankName,
+        //            CheckDueDate = model.CheckDueDate,
+        //            CreatedById = currentUser?.Id,
+        //            CreatedByName = currentUser?.FullName ?? currentUser?.UserName,
+        //            CreatedAt = DateTime.Now
+        //        };
+
+        //        _context.CashTransactions.Add(cashTransaction);
+
+        //        // تحديث رصيد الصندوق
+        //        register.CurrentBalance = cashTransaction.BalanceAfter;
+        //        register.UpdatedAt = DateTime.Now;
+
+        //        await _context.SaveChangesAsync();
+
+        //        // تسجيل في Activity Log
+        //        await _activityLogService.LogCreateAsync(
+        //            module: "CashRegister",
+        //            entityName: "CashTransaction",
+        //            entityId: cashTransaction.Id,
+        //            description: $"حركة {model.Type.GetArabicName()} - {model.Category.GetArabicName()} " +
+        //                         $"بمبلغ {model.Amount:N2} دج",
+        //            newValues: new
+        //            {
+        //                cashTransaction.TransactionNumber,
+        //                Type = model.Type.GetArabicName(),
+        //                Category = model.Category.GetArabicName(),
+        //                cashTransaction.Amount,
+        //                BalanceBefore = cashTransaction.BalanceBefore,
+        //                BalanceAfter = cashTransaction.BalanceAfter
+        //            });
+
+        //        await transaction.CommitAsync();
+
+        //        return (true,
+        //            $"تم تسجيل الحركة {transactionNumber} بنجاح - الرصيد الجديد: {register.CurrentBalance:N2} دج",
+        //            cashTransaction.Id);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await transaction.RollbackAsync();
+        //        await _activityLogService.LogErrorAsync(
+        //            actionName: "إضافة حركة صندوق",
+        //            errorMessage: ex.Message,
+        //            module: "CashRegister");
+        //        return (false, $"حدث خطأ: {ex.Message}", null);
+        //    }
+        //}
 
         public async Task<(bool Success, string Message)> CancelTransactionAsync(
-            CancelCashTransactionViewModel model)
+      CancelCashTransactionViewModel model)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
             try
             {
                 var cashTransaction = await _context.CashTransactions
@@ -323,25 +391,16 @@ namespace SmarterGros.Services
                 if (cashTransaction.CashRegister == null)
                     return (false, "الصندوق غير موجود");
 
-                // التحقق من عدم وجود جرد مغلق لهذا اليوم
-                if (await IsDayClosedAsync(cashTransaction.CashRegisterId, cashTransaction.TransactionDate.Date))
-                    return (false, "لا يمكن إلغاء الحركة - يوم الحركة مغلق");
-
                 var currentUser = await GetCurrentUserAsync();
 
                 // عكس تأثير الحركة على الرصيد
                 if (cashTransaction.Type == TransactionType.Income)
-                {
                     cashTransaction.CashRegister.CurrentBalance -= cashTransaction.Amount;
-                }
                 else
-                {
                     cashTransaction.CashRegister.CurrentBalance += cashTransaction.Amount;
-                }
 
                 cashTransaction.CashRegister.UpdatedAt = DateTime.Now;
 
-                // تحديث الحركة
                 cashTransaction.IsCancelled = true;
                 cashTransaction.CancellationReason = model.CancellationReason;
                 cashTransaction.CancelledAt = DateTime.Now;
@@ -351,27 +410,10 @@ namespace SmarterGros.Services
 
                 await _context.SaveChangesAsync();
 
-                // Activity Log
-                await _activityLogService.LogAsync(
-                    actionType: "Cancel",
-                    actionName: "إلغاء حركة صندوق",
-                    module: "CashRegister",
-                    entityName: "CashTransaction",
-                    entityId: cashTransaction.Id,
-                    description: $"إلغاء حركة {cashTransaction.TransactionNumber} - السبب: {model.CancellationReason}",
-                    severity: "Critical");
-
-                await transaction.CommitAsync();
-
-                return (true, $"تم إلغاء الحركة {cashTransaction.TransactionNumber} وعكس تأثيرها على الرصيد");
+                return (true, $"تم إلغاء الحركة وعكس تأثيرها");
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-                await _activityLogService.LogErrorAsync(
-                    actionName: "إلغاء حركة صندوق",
-                    errorMessage: ex.Message,
-                    module: "CashRegister");
                 return (false, $"حدث خطأ: {ex.Message}");
             }
         }

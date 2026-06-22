@@ -446,11 +446,11 @@ namespace SmarterGros.Controllers
         [HasPermission(Permissions.Sales.QuickSale)]
         public async Task<IActionResult> POS()
         {
-            // الحصول على أكثر المنتجات مبيعاً (للأزرار السريعة)
-            ViewBag.PopularProducts = await _context.Products
+            // ✅ كل المنتجات المتوفرة (وليس فقط الأكثر مبيعاً)
+            ViewBag.AllProducts = await _context.Products
                 .Where(p => p.IsActive && p.StockQuantity > 0)
-                .OrderByDescending(p => p.SaleItems.Count)
-                .Take(12)
+                .Include(p => p.Category)
+                .OrderBy(p => p.Name)
                 .ToListAsync();
 
             return View();
